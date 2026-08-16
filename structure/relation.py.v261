@@ -1,0 +1,520 @@
+# ============================================================
+# Struct3D v2.6
+# structure/relation.py
+#
+# Structural Relation Graph
+#
+# G = (V, E, W)
+#
+# Invariance:
+#   translation
+#   rotation
+#   reflection of normal orientation
+#   permutation of point ordering
+#
+# CPU only
+# ============================================================
+
+import numpy as np
+
+
+class StructuralGraph:
+
+    """
+    Struct3D Structural Relation Graph
+
+    G = (V, E, W)
+
+    E:
+        directed KNN edges
+
+    W:
+        structural affinity
+
+    The affinity is invariant to:
+
+        1. translation
+        2. rotation
+        3. normal sign flip
+        4. point permutation
+    """
+
+    def __init__(
+        self,
+        k=15,
+        sigma_x=None,
+        sigma_n=0.5,
+        sigma_k=0.05,
+        alpha=1.0,
+        beta=1.0
+    ):
+
+        self.k = int(k)
+
+        self.sigma_x = sigma_x
+
+        self.sigma_n = float(sigma_n)
+
+        self.sigma_k = float(sigma_k)
+
+        self.alpha = float(alpha)
+
+        self.beta = float(beta)
+
+    # ========================================================
+    # Characteristic spatial scale
+    # ========================================================
+
+    def estimate_sigma_x(
+        self,
+        points
+    ):
+
+        N = len(points)
+
+        if N <= 1:
+            return 1.0
+
+        kk = min(
+            self.k,
+            N - 1
+        )
+
+        distances = []
+
+        for i in range(N):
+
+            d = np.linalg.norm(
+                points - points[i],
+                axis=1
+            )
+
+            d.sort()
+
+            local = d[1:kk + 1]
+
+            if len(local) > 0:
+
+                distances.extend(
+                    local.tolist()
+                )
+
+        if len(distances) == 0:
+            return 1.0
+
+        sigma = float(
+            np.median(
+                np.asarray(
+                    distances,
+                    dtype=float
+                )
+            )
+        )
+
+        return max(
+            sigma,
+            1e-12
+        )
+
+    # ========================================================
+    # Build point graph
+    # ========================================================
+
+    def build(
+        self,
+        points,
+        normals,
+        curvature
+    ):
+
+        points = np.asarray(
+            points,
+            dtype=float
+        )
+
+        normals = np.asarray(
+            normals,
+            dtype=float
+        )
+
+        curvature = np.asarray(
+            curvature,
+            dtype=float
+        )
+
+        N = len(points)
+
+        if N == 0:
+
+            return {
+                "edges": np.empty(
+                    (0, 2),
+                    dtype=np.int32
+                ),
+
+                "weights": np.empty(
+                    (0,),
+                    dtype=np.float32
+                )
+            }
+
+        # ----------------------------------------------------
+        # Normalize normals
+        # ----------------------------------------------------
+
+        normal_norm = np.linalg.norm(
+            normals,
+            axis=1,
+            keepdims=True
+        )
+
+        normals = normals / np.maximum(
+            normal_norm,
+            1e-12
+        )
+
+        # ----------------------------------------------------
+        # Permutation invariant scale
+        # ----------------------------------------------------
+
+        if self.sigma_x is None:
+
+            sigma_x = self.estimate_sigma_x(
+                points
+            )
+
+        else:
+
+            sigma_x = float(
+                self.sigma_x
+            )
+
+        self.sigma_x = max(
+            sigma_x,
+            1e-12
+        )
+
+        edges = []
+
+        weights = []
+
+        # ====================================================
+        # KNN
+        # ====================================================
+
+        for i in range(N):
+
+            dist = np.linalg.norm(
+                points - points[i],
+                axis=1
+            )
+
+            neighbors = np.argsort(
+                dist,
+                kind="mergesort"
+            )[1:self.k + 1]
+
+            for j in neighbors:
+
+                w = self.edge_weight(
+                    points[i],
+                    points[j],
+                    normals[i],
+                    normals[j],
+                    curvature[i],
+                    curvature[j]
+                )
+
+                edges.append(
+                    [
+                        i,
+                        int(j)
+                    ]
+                )
+
+                weights.append(
+                    w
+                )
+
+        return {
+            "edges": np.asarray(
+                edges,
+                dtype=np.int32
+            ),
+
+            "weights": np.asarray(
+                weights,
+                dtype=np.float32
+            )
+        }
+
+    # ========================================================
+    # Normal distance
+    # ========================================================
+
+    def normal_distance(
+        self,
+        ni,
+        nj
+    ):
+
+        ni = np.asarray(
+            ni,
+            dtype=float
+        )
+
+        nj = np.asarray(
+            nj,
+            dtype=float
+        )
+
+        ni_norm = np.linalg.norm(
+            ni
+        )
+
+        nj_norm = np.linalg.norm(
+            nj
+        )
+
+        if (
+            ni_norm < 1e-12
+            or
+            nj_norm < 1e-12
+        ):
+
+            return 1.0
+
+        ni = ni / ni_norm
+
+        nj = nj / nj_norm
+
+        cosine = abs(
+            float(
+                np.dot(
+                    ni,
+                    nj
+                )
+            )
+        )
+
+        cosine = np.clip(
+            cosine,
+            0.0,
+            1.0
+        )
+
+        return 1.0 - cosine
+
+    # ========================================================
+    # Edge weight
+    # ========================================================
+
+    def edge_weight(
+        self,
+        xi,
+        xj,
+        ni,
+        nj,
+        ki,
+        kj
+    ):
+
+        dx = np.linalg.norm(
+            xi - xj
+        )
+
+        spatial_energy = (
+            dx * dx
+            /
+            (
+                self.sigma_x ** 2
+                +
+                1e-12
+            )
+        )
+
+        dn = self.normal_distance(
+            ni,
+            nj
+        )
+
+        normal_energy = (
+            self.alpha
+            *
+            dn * dn
+            /
+            (
+                self.sigma_n ** 2
+                +
+                1e-12
+            )
+        )
+
+        dk = abs(
+            float(ki) - float(kj)
+        )
+
+        curvature_energy = (
+            self.beta
+            *
+            dk * dk
+            /
+            (
+                self.sigma_k ** 2
+                +
+                1e-12
+            )
+        )
+
+        energy = (
+            spatial_energy
+            +
+            normal_energy
+            +
+            curvature_energy
+        )
+
+        return float(
+            np.exp(
+                -energy
+            )
+        )
+
+    # ========================================================
+    # Convert graph to relation records
+    # ========================================================
+
+    def to_relations(
+        self,
+        graph,
+        threshold=0.6
+    ):
+
+        """
+        Convert graph representation:
+
+            edges + weights
+
+        into canonical structural relations.
+
+        Output:
+
+        [
+            {
+                "units": [i, j],
+                "type": "...",
+                "weight": ...
+            }
+        ]
+        """
+
+        edges = graph.get(
+            "edges",
+            np.empty(
+                (0, 2),
+                dtype=np.int32
+            )
+        )
+
+        weights = graph.get(
+            "weights",
+            np.empty(
+                (0,),
+                dtype=np.float32
+            )
+        )
+
+        relations = []
+
+        for idx, edge in enumerate(edges):
+
+            i = int(edge[0])
+
+            j = int(edge[1])
+
+            w = float(
+                weights[idx]
+            )
+
+            if w >= threshold:
+
+                relation_type = "connected"
+
+            elif w >= threshold * 0.5:
+
+                relation_type = "adjacent"
+
+            else:
+
+                relation_type = "separate"
+
+            relations.append(
+                {
+                    "units": [
+                        i,
+                        j
+                    ],
+
+                    "type":
+                        relation_type,
+
+                    "weight":
+                        w
+                }
+            )
+
+        return relations
+
+    # ========================================================
+    # Statistics
+    # ========================================================
+
+    def statistics(
+        self,
+        graph
+    ):
+
+        edges = graph["edges"]
+
+        weights = graph["weights"]
+
+        print(
+            "\nStructural Graph"
+        )
+
+        print(
+            "Nodes:",
+            len(
+                np.unique(
+                    edges
+                )
+            )
+        )
+
+        print(
+            "Edges:",
+            len(edges)
+        )
+
+        if len(weights) == 0:
+            return
+
+        print(
+            "Weight mean:",
+            np.mean(weights)
+        )
+
+        print(
+            "Weight std:",
+            np.std(weights)
+        )
+
+        print(
+            "Weight min:",
+            np.min(weights)
+        )
+
+        print(
+            "Weight max:",
+            np.max(weights)
+        )
