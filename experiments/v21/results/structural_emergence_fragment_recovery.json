@@ -1,0 +1,187 @@
+[
+  {
+    "merge_threshold": -0.01,
+    "split_threshold": 0.3,
+    "before": {
+      "num_units": 4,
+      "primitives": [
+        "plane",
+        "plane",
+        "plane",
+        "plane"
+      ],
+      "energies": [
+        0.04009830553935724,
+        0.04009852731384662,
+        0.040100958495564235,
+        0.04010997712028023
+      ],
+      "sizes": [
+        768,
+        758,
+        712,
+        762
+      ]
+    },
+    "after": {
+      "num_units": 1,
+      "primitives": [
+        "plane"
+      ],
+      "energies": [
+        0.040102240541219934
+      ],
+      "sizes": [
+        3000
+      ]
+    }
+  },
+  {
+    "merge_threshold": -0.005,
+    "split_threshold": 0.3,
+    "before": {
+      "num_units": 4,
+      "primitives": [
+        "plane",
+        "plane",
+        "plane",
+        "plane"
+      ],
+      "energies": [
+        0.04009830553935724,
+        0.04009852731384662,
+        0.040100958495564235,
+        0.04010997712028023
+      ],
+      "sizes": [
+        768,
+        758,
+        712,
+        762
+      ]
+    },
+    "after": {
+      "num_units": 1,
+      "primitives": [
+        "plane"
+      ],
+      "energies": [
+        0.040102240541219934
+      ],
+      "sizes": [
+        3000
+      ]
+    }
+  },
+  {
+    "merge_threshold": -0.02,
+    "split_threshold": 0.3,
+    "before": {
+      "num_units": 4,
+      "primitives": [
+        "plane",
+        "plane",
+        "plane",
+        "plane"
+      ],
+      "energies": [
+        0.04009830553935724,
+        0.04009852731384662,
+        0.040100958495564235,
+        0.04010997712028023
+      ],
+      "sizes": [
+        768,
+        758,
+        712,
+        762
+      ]
+    },
+    "after": {
+      "num_units": 1,
+      "primitives": [
+        "plane"
+      ],
+      "energies": [
+        0.040102240541219934
+      ],
+      "sizes": [
+        3000
+      ]
+    }
+  },
+  {
+    "merge_threshold": -0.01,
+    "split_threshold": 0.2,
+    "before": {
+      "num_units": 4,
+      "primitives": [
+        "plane",
+        "plane",
+        "plane",
+        "plane"
+      ],
+      "energies": [
+        0.04009830553935724,
+        0.04009852731384662,
+        0.040100958495564235,
+        0.04010997712028023
+      ],
+      "sizes": [
+        768,
+        758,
+        712,
+        762
+      ]
+    },
+    "after": {
+      "num_units": 1,
+      "primitives": [
+        "plane"
+      ],
+      "energies": [
+        0.040102240541219934
+      ],
+      "sizes": [
+        3000
+      ]
+    }
+  },
+  {
+    "merge_threshold": -0.01,
+    "split_threshold": 0.5,
+    "before": {
+      "num_units": 4,
+      "primitives": [
+        "plane",
+        "plane",
+        "plane",
+        "plane"
+      ],
+      "energies": [
+        0.04009830553935724,
+        0.04009852731384662,
+        0.040100958495564235,
+        0.04010997712028023
+      ],
+      "sizes": [
+        768,
+        758,
+        712,
+        762
+      ]
+    },
+    "after": {
+      "num_units": 1,
+      "primitives": [
+        "plane"
+      ],
+      "energies": [
+        0.040102240541219934
+      ],
+      "sizes": [
+        3000
+      ]
+    }
+  }
+]

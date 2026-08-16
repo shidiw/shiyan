@@ -1,0 +1,95 @@
+{
+    "10000": {
+        "id": 10000,
+        "primitive": "plane",
+        "center": [
+            -0.005390598546389172,
+            -0.016985915822416233,
+            0.0
+        ],
+        "energy": 0.040812543583722966,
+        "age": 43,
+        "relations": [
+            {
+                "source": 0,
+                "target": 1,
+                "type": "separate",
+                "distance": 2.9521022264104837
+            },
+            {
+                "source": 0,
+                "target": 2,
+                "type": "separate",
+                "distance": 2.980991607902791
+            },
+            {
+                "source": 1,
+                "target": 2,
+                "type": "separate",
+                "distance": 5.933037459972448
+            }
+        ]
+    },
+    "10001": {
+        "id": 10001,
+        "primitive": "sphere",
+        "center": [
+            -2.957356143239844,
+            -0.0013992789821130897,
+            -0.023749418359566798
+        ],
+        "energy": 0.056205189884110114,
+        "age": 43,
+        "relations": [
+            {
+                "source": 0,
+                "target": 1,
+                "type": "separate",
+                "distance": 2.9521022264104837
+            },
+            {
+                "source": 0,
+                "target": 2,
+                "type": "separate",
+                "distance": 2.980991607902791
+            },
+            {
+                "source": 1,
+                "target": 2,
+                "type": "separate",
+                "distance": 5.933037459972448
+            }
+        ]
+    },
+    "10002": {
+        "id": 10002,
+        "primitive": "sphere",
+        "center": [
+            2.975242171916961,
+            -0.019237367651112513,
+            0.04619724008539001
+        ],
+        "energy": 0.04132538082445158,
+        "age": 43,
+        "relations": [
+            {
+                "source": 0,
+                "target": 1,
+                "type": "separate",
+                "distance": 2.9521022264104837
+            },
+            {
+                "source": 0,
+                "target": 2,
+                "type": "separate",
+                "distance": 2.980991607902791
+            },
+            {
+                "source": 1,
+                "target": 2,
+                "type": "separate",
+                "distance": 5.933037459972448
+            }
+        ]
+    }
+}

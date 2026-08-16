@@ -1,0 +1,222 @@
+[
+  {
+    "config": {
+      "merge_threshold": -0.01,
+      "split_threshold": 0.3
+    },
+    "result": {
+      "before": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      },
+      "after": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      }
+    }
+  },
+  {
+    "config": {
+      "merge_threshold": -0.005,
+      "split_threshold": 0.3
+    },
+    "result": {
+      "before": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      },
+      "after": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      }
+    }
+  },
+  {
+    "config": {
+      "merge_threshold": -0.02,
+      "split_threshold": 0.3
+    },
+    "result": {
+      "before": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      },
+      "after": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      }
+    }
+  },
+  {
+    "config": {
+      "merge_threshold": -0.01,
+      "split_threshold": 0.2
+    },
+    "result": {
+      "before": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      },
+      "after": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      }
+    }
+  },
+  {
+    "config": {
+      "merge_threshold": -0.01,
+      "split_threshold": 0.5
+    },
+    "result": {
+      "before": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      },
+      "after": {
+        "num_units": 3,
+        "primitives": [
+          "plane",
+          "sphere",
+          "cylinder"
+        ],
+        "energies": [
+          0.04,
+          0.040183973710036035,
+          0.05084861553822499
+        ],
+        "sizes": [
+          1000,
+          1000,
+          1000
+        ]
+      }
+    }
+  }
+]

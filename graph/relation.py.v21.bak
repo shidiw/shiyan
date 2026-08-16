@@ -1,0 +1,340 @@
+import numpy as np
+
+
+
+class StructuralGraph:
+    """
+    Structural Relation Graph
+
+    G=(V,E,W)
+
+    V:
+        points
+
+    E:
+        neighborhood edges
+
+    W:
+        geometric affinity
+
+
+    """
+
+
+
+    def __init__(
+        self,
+        k=15,
+        sigma_x=None,
+        sigma_n=0.5,
+        sigma_k=0.05,
+        alpha=1.0,
+        beta=1.0
+    ):
+
+
+        self.k = k
+
+        self.sigma_x = sigma_x
+
+        self.sigma_n = sigma_n
+
+        self.sigma_k = sigma_k
+
+        self.alpha = alpha
+
+        self.beta = beta
+
+
+
+    # =====================================
+    # Build Graph
+    # =====================================
+
+
+    def build(
+        self,
+        points,
+        normals,
+        curvature
+    ):
+
+
+        N=len(points)
+
+
+
+        if self.sigma_x is None:
+
+            self.sigma_x = np.mean(
+
+                np.linalg.norm(
+
+                    points[1:]
+                    -
+                    points[:-1],
+
+                    axis=1
+
+                )
+
+            )
+
+
+
+        edges=[]
+
+        weights=[]
+
+
+
+        for i in range(N):
+
+
+            # nearest neighbors
+
+            dist=np.linalg.norm(
+
+                points
+                -
+                points[i],
+
+                axis=1
+
+            )
+
+
+            neighbors=np.argsort(dist)[1:self.k+1]
+
+
+
+            for j in neighbors:
+
+
+                w=self.edge_weight(
+
+                    points[i],
+
+                    points[j],
+
+                    normals[i],
+
+                    normals[j],
+
+                    curvature[i],
+
+                    curvature[j]
+
+                )
+
+
+                edges.append(
+                    [
+                        i,
+                        j
+                    ]
+                )
+
+
+                weights.append(
+                    w
+                )
+
+
+
+        return {
+
+            "edges":
+                np.array(
+                    edges,
+                    dtype=np.int32
+                ),
+
+
+            "weights":
+                np.array(
+                    weights,
+                    dtype=np.float32
+                )
+
+        }
+
+
+
+
+    # =====================================
+    # Edge Weight
+    # =====================================
+
+
+    def edge_weight(
+        self,
+        xi,
+        xj,
+        ni,
+        nj,
+        ki,
+        kj
+    ):
+
+
+
+        dx=np.linalg.norm(
+            xi-xj
+        )
+
+
+
+        # -------------------------------------------------
+        # Orientation-free normal distance
+        #
+        # n and -n represent the same unoriented normal.
+        # Therefore structural affinity must be invariant
+        # to arbitrary PCA/SVD normal sign flips.
+        # -------------------------------------------------
+
+        ni = np.asarray(
+            ni,
+            dtype=float
+        )
+
+        nj = np.asarray(
+            nj,
+            dtype=float
+        )
+
+        ni_norm = np.linalg.norm(ni)
+        nj_norm = np.linalg.norm(nj)
+
+        if ni_norm > 1e-12:
+            ni = ni / ni_norm
+
+        if nj_norm > 1e-12:
+            nj = nj / nj_norm
+
+        cosine = np.clip(
+            np.abs(
+                np.dot(ni, nj)
+            ),
+            0.0,
+            1.0
+        )
+
+        dn = np.sqrt(
+            max(
+                0.0,
+                2.0 - 2.0 * cosine
+            )
+        )
+
+
+
+        dk=abs(
+            ki-kj
+        )
+
+
+
+        energy=(
+
+            dx*dx
+            /
+            (
+            self.sigma_x**2
+            +
+            1e-12
+            )
+
+
+            +
+
+            self.alpha
+            *
+            dn*dn
+            /
+            (
+            self.sigma_n**2
+            +
+            1e-12
+            )
+
+
+            +
+
+            self.beta
+            *
+            dk*dk
+            /
+            (
+            self.sigma_k**2
+            +
+            1e-12
+            )
+
+        )
+
+
+        return np.exp(
+            -energy
+        )
+
+
+
+    # =====================================
+    # Statistics
+    # =====================================
+
+
+    def statistics(
+        self,
+        graph
+    ):
+
+
+        edges=graph["edges"]
+
+        weights=graph["weights"]
+
+
+
+        print(
+            "\nStructural Graph"
+        )
+
+
+        print(
+            "Nodes:",
+            len(
+                np.unique(edges)
+            )
+        )
+
+
+        print(
+            "Edges:",
+            len(edges)
+        )
+
+
+        print(
+            "Weight mean:",
+            np.mean(weights)
+        )
+
+
+        print(
+            "Weight std:",
+            np.std(weights)
+        )
+
+
+        print(
+            "Weight min:",
+            np.min(weights)
+        )
+
+
+        print(
+            "Weight max:",
+            np.max(weights)
+        )

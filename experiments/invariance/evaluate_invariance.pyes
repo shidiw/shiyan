@@ -1,0 +1,304 @@
+
+
+    na = np.linalg.norm(a)
+
+    nb = np.linalg.norm(b)
+
+
+    if na < 1e-12:
+
+        return 0.0
+
+
+    if nb < 1e-12:
+
+        return 0.0
+
+
+    return float(
+        np.dot(a, b)
+        /
+        (na * nb)
+    )
+
+
+# ============================================================
+# Structural Pipeline
+# ============================================================
+
+def extract_embedding(
+    points
+):
+
+    # --------------------------------------------------------
+    # Geometry
+    # --------------------------------------------------------
+
+    field_model = GeometryField(
+        points,
+        k=15
+    )
+
+
+    field = field_model.compute()
+
+
+    # --------------------------------------------------------
+    # Graph
+    # --------------------------------------------------------
+
+    graph_model = StructuralGraph(
+        k=30
+    )
+
+
+    graph = graph_model.build(
+
+        points,
+
+        field["normals"],
+
+        field["curvature"]
+
+    )
+
+
+    # --------------------------------------------------------
+    # Units
+    # --------------------------------------------------------
+
+    cluster = GraphStructuralCluster(
+
+        threshold=0.25,
+
+        min_points=max(
+            30,
+            int(len(points) * 0.05)
+        )
+
+    )
+
+
+    units = cluster.extract(
+
+        points,
+
+        graph
+
+    )
+
+
+    # --------------------------------------------------------
+    # Merge
+    # --------------------------------------------------------
+
+    merger = Struc        "Struct3D v2.0"
+    )
+
+    print(
+        "Structural Invariance Evaluation"
+    )
+
+    print(
+        "=============================================="
+    )
+
+    print()
+
+
+    embeddings = []
+
+    unit_info = []
+
+
+    # --------------------------------------------------------
+    # Extract embeddings
+    # --------------------------------------------------------
+
+    for filename, name in zip(
+        FILES,
+        NAMES
+    ):
+
+        path = os.path.join(
+            DATA_DIR,
+            filename
+        )
+
+
+        points = np.load(
+            path
+        )
+
+
+        print(
+            f"[{name}]"
+        )
+
+        print(
+            "Points:",
+            points.shape
+        )
+
+
+        embedding, units = (
+            extract_embedding(
+                points
+            )
+        )
+
+
+        embeddings.append(
+            embedding
+        )
+
+
+        unit_info.append(
+            units
+        )
+
+
+        print(
+            "Units:",
+            len(units)
+        )
+
+
+        for i, u in enumerate(units):
+
+            print(
+                " ",
+                i,
+                u.primitive,
+                len(u.points)
+            )
+
+
+        print()
+
+
+    embeddings = np.asarray(
+        embeddings
+    )
+
+
+    # --------------------------------------------------------
+    # Similarity Matrix
+    # --------------------------------------------------------
+
+    n = len(
+        embeddings
+    )
+
+
+    similarity = np.zeros(
+        (n, n)
+    )
+
+
+    for i in range(n):
+
+        for j in range(n):
+
+            similarity[i, j] = (
+                cosine_similarity(
+                    embeddings[i],
+                    embeddings[j]
+                )
+            )
+
+
+    # --------------------------------------------------------
+    # Print matrix
+    # --------------------------------------------------------
+
+    print()
+
+    print(
+        "Structural Similarity Matrix"
+    )
+
+    print()
+
+
+    print(
+        " " * 22,
+        end=""
+    )
+
+
+    for name in NAMES:
+
+        print(
+            f"{name[:10]:>12}",
+            end=""
+        )
+
+
+    print()
+
+
+    for i, name in enumerate(NAMES):
+
+        print(
+            f"{name[:20]:20s}",
+            end=""
+        )
+        for j in range(n):
+
+            print(
+                f"{similarity[i,j]:12.4f}",
+                end=""
+            )
+
+
+        print()
+
+
+    # --------------------------------------------------------
+    # Invariance score
+    # --------------------------------------------------------
+
+    original = 0
+
+
+    invariant_indices = [
+        1,  # translation
+        2,  # rotation
+        3,  # noise
+        4   # partial
+    ]
+
+
+    invariant_scores = []
+
+
+    for i in invariant_indices:
+
+        invariant_scores.append(
+            similarity[
+                original,
+                i
+            ]
+        )
+
+
+    invariance_score = np.mean(
+        invariant_scores
+    )
+
+
+    # --------------------------------------------------------
+    # Separation score
+    # --------------------------------------------------------
+
+    different_indices = [
+        5,  # plane
+        6   # cylinder
+    ]
+
+
+    separation_scores = []
+
+
+    
