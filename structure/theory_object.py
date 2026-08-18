@@ -1,8 +1,15 @@
-"""Theory-facing object assembly.
+"""Theory-facing object construction.
 
-An Object is the unit-level component induced by an explicitly supplied
-assembly relation. The component operation is a mathematical construction;
-the module does not decide which relations are assembly relations.
+The mathematical specification defines the Structural World as
+W = (U, R, Phi).  Object is therefore treated here as a derived structural
+construction from U and an explicitly designated subset of R; it is not
+silently added as a fourth coordinate of W.
+
+The construction used by this module is:
+    O = connected components of (U, R_assembly)
+where R_assembly is supplied explicitly by the caller.  The module does not
+infer assembly from primitive labels, distance thresholds, or other legacy
+heuristics.
 """
 
 from __future__ import annotations
@@ -16,19 +23,26 @@ from .theory_relation import StructuralRelation
 
 @dataclass(frozen=True)
 class StructuralObject:
+    """A derived object represented by the Unit indices it assembles."""
+
     unit_ids: Tuple[int, ...]
     attributes: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        ids = tuple(sorted(set(self.unit_ids)))
+        if ids != self.unit_ids:
+            raise ValueError("Object unit_ids must be unique and sorted")
 
 
 def assemble_objects(
     units: Tuple[TheoryUnit, ...],
     relations: Tuple[StructuralRelation, ...],
 ) -> Tuple[StructuralObject, ...]:
-    """Form connected components of the explicitly supplied assembly graph.
+    """Construct Objects as connected components of explicit assembly edges.
 
-    A relation is considered an assembly relation only when its type is
-    explicitly ``"assembly"``. This is an interface convention, not a claim
-    about how the formal theory must classify geometric relations.
+    Only relations whose type is exactly ``"assembly"`` participate.  This is
+    deliberately an explicit relation-domain choice: no primitive equality,
+    proximity threshold, or hidden heuristic is used to create an object.
     """
     n = len(units)
     parent = list(range(n))
@@ -45,11 +59,10 @@ def assemble_objects(
             parent[rb] = ra
 
     for relation in relations:
-        if relation.relation_type != "assembly":
-            continue
         if not (0 <= relation.source < n and 0 <= relation.target < n):
-            raise ValueError("assembly relation references an invalid unit")
-        union(relation.source, relation.target)
+            raise ValueError("relation references an invalid unit")
+        if relation.relation_type == "assembly":
+            union(relation.source, relation.target)
 
     groups = {}
     for idx in range(n):
