@@ -5,10 +5,7 @@ from structure.theory_core import Partition, TheoryUnit, evaluate_energy, select
 
 class TestTheoryCore(unittest.TestCase):
     def make_partition(self, groups):
-        units = tuple(
-            TheoryUnit(tuple(group), "candidate", {})
-            for group in groups
-        )
+        units = tuple(TheoryUnit(tuple(group), attributes={}) for group in groups)
         universe = tuple(sorted(i for group in groups for i in group))
         return Partition(units, universe)
 
@@ -18,7 +15,7 @@ class TestTheoryCore(unittest.TestCase):
 
     def test_empty_unit_is_rejected(self):
         with self.assertRaises(ValueError):
-            TheoryUnit((), "candidate", {})
+            TheoryUnit((), attributes={})
 
     def test_overlapping_units_are_rejected(self):
         with self.assertRaises(ValueError):
@@ -26,7 +23,7 @@ class TestTheoryCore(unittest.TestCase):
 
     def test_incomplete_partition_is_rejected(self):
         with self.assertRaises(ValueError):
-            Partition((TheoryUnit((0,), "candidate", {}),), (0, 1))
+            Partition((TheoryUnit((0,), attributes={}),), (0, 1))
 
     def test_energy_is_external(self):
         partition = self.make_partition(((0,), (1,)))
