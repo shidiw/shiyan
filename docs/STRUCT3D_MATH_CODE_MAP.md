@@ -7,17 +7,20 @@ by naming alone.
 
 | Mathematical object / statement | Code | Status |
 |---|---|---|
-| Structural Unit `u=(G,theta)` | `structure/theory_core.py::TheoryUnit` | Implemented as a typed container |
+| Structural Unit `u=(G,theta)` | `structure/theory_unit.py::StructuralUnit` | Implemented as the single Unit type; support and attributes are explicit |
+| Compatibility name `TheoryUnit` | `structure/theory_core.py::TheoryUnit` | Alias only; no second Unit model exists |
 | Finite partition validity | `structure/theory_core.py::Partition` | Implemented: nonempty, disjoint, complete |
 | Scalar energy functional supplied on a partition | `structure/theory_energy.py` | Interface implemented; no unsupported decomposition claimed |
 | Generic finite argmin | `structure/theory_partition.py` | Implemented over explicit admissible candidates |
+| Unit materialization from a valid partition | `structure/theory_materialization.py` | Identity on partition cells; no hidden discovery |
 | Explicit relation `r=(source,target,type,evidence)` | `structure/theory_relation.py` | Implemented |
-| Structural graph `G=(V,E)` | `structure/theory_world.py` + graph tests | Implemented domain contract |
+| Structural graph `G=(V,E)` | `structure/theory_world.py` + graph tests | Implemented; edges are exactly supplied relations |
 | Structural World `W=(U,R,Phi)` | `structure/theory_world.py` | Implemented domain/container contract |
-| Relabeling-invariant canonical form | `structure/theory_canonical.py` | Exact finite exhaustive construction |
-| Structural representation `phi(W) in R^23` | `structure/theory_representation.py` | Dimension/schema frozen; extractor is explicit |
+| Canonical form `C(W)` | `structure/theory_canonical.py` | Exact finite exhaustive construction |
+| Structural invariant `I(W)=C(W)` at the frozen finite level | `structure/theory_invariant.py` | Explicit stage; no second unsupported statistic introduced |
+| Structural representation `phi(W) in R^23` | `structure/theory_representation.py` | Dimension/schema frozen; canonical path consumes `I(W)` |
 | Representation distance `D_R=||phi(W1)-phi(W2)||_2` | `structure/theory_distance.py` | Direct implementation |
-| Matching `M* in argmin_{M in A} C(M)` | `structure/theory_matching.py` | Explicit candidate/cost argmin |
+| Matching `M* in argmin_{M in A} C(M)` | `structure/theory_matching.py` | Explicit candidate/cost argmin; cost decomposition remains external |
 | Object | `structure/theory_object.py` | Derived engineering construction, not promoted to theorem |
 | Instance | — | Theory gap; intentionally not implemented |
 | Hierarchy | — | Theory gap; intentionally not implemented |
