@@ -38,7 +38,8 @@ class TestTheoryRepresentationDistance(unittest.TestCase):
         self.assertGreater(distance_preservation_loss((0,), (2,), 1.0), 0.0)
         self.assertEqual(mutation_consistency_loss(0.0, 1.0), 1.0)
         self.assertEqual(mutation_consistency_loss(1.0, 1.0), 0.0)
-        self.assertEqual(combined_loss(1, 2, 3, 0.5, 0.25), 3.75)
+        # 1 + 0.5*2 + 0.25*3 = 2.75.
+        self.assertEqual(combined_loss(1, 2, 3, 0.5, 0.25), 2.75)
 
 
 if __name__ == "__main__":
