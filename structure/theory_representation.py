@@ -3,23 +3,24 @@
 Frozen statement:
     phi(W) in R^23
 
-The supplied theory freezes the seven coordinate groups but does not freeze a
-unique numerical estimator for every statistic. Consequently ``represent``
-accepts an explicit extractor and validates the frozen coordinate contract;
-it does not silently invent feature formulas.
+The theory freezes the seven coordinate groups but does not freeze a unique
+numerical estimator for every statistic. Therefore ``represent`` accepts an
+explicit extractor and validates the frozen coordinate contract; it does not
+silently invent feature formulas.
+
+For an invariance claim, use ``represent_canonical``. It applies the extractor
+to the exact canonical form C(W), so relabeling invariance follows from the
+canonical-form contract rather than from an unproved property of an arbitrary
+world-level extractor.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Any, Callable, Sequence
 
-from .theory_representation_schema import (
-    REPRESENTATION_DIM,
-    REPRESENTATION_GROUPS,
-    group_slices,
-    validate_grouped_representation,
-)
+from .theory_canonical import canonical_form
+from .theory_representation_schema import group_slices, validate_grouped_representation
 from .theory_world import StructuralWorld
 
 
@@ -40,15 +41,29 @@ class StructuralRepresentation:
         return {name: self.values[sl] for name, sl in slices.items()}
 
 
+def _build_representation(values: Sequence[float]) -> StructuralRepresentation:
+    return StructuralRepresentation(tuple(float(v) for v in values))
+
+
 def represent(
     world: StructuralWorld,
     extractor: Callable[[StructuralWorld], Sequence[float]],
 ) -> StructuralRepresentation:
     """Apply an explicitly supplied v4.0 feature extractor.
 
-    The extractor is an implementation dependency, not a hidden theorem.
-    In particular, this function does not claim that arbitrary extractors are
-    relabeling-invariant. An invariant extractor must be tested separately.
+    This function makes no invariance claim about an arbitrary extractor.
     """
-    values = tuple(float(v) for v in extractor(world))
-    return StructuralRepresentation(values)
+    return _build_representation(extractor(world))
+
+
+def represent_canonical(
+    world: StructuralWorld,
+    extractor: Callable[[Any], Sequence[float]],
+) -> StructuralRepresentation:
+    """Represent a world through its exact canonical form.
+
+    The extractor receives only C(W), not the original unit labels. Therefore
+    the composition extractor(C(W)) is invariant under relabelings whenever
+    canonical_form satisfies its exact relabeling-invariance contract.
+    """
+    return _build_representation(extractor(canonical_form(world)))
