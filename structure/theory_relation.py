@@ -26,6 +26,10 @@ class StructuralRelation:
     evidence: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if not isinstance(self.source, int) or not isinstance(self.target, int):
+            raise ValueError("relation endpoints must be integer unit ids")
+        if self.source < 0 or self.target < 0:
+            raise ValueError("relation endpoints must be non-negative")
         if self.source == self.target:
             raise ValueError("A structural relation requires two distinct units")
         if not self.relation_type:
