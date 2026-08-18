@@ -1,45 +1,86 @@
 # Struct3D Mathematics → Code → Regression Traceability
 
-This document is the formal gate between the established Struct3D mathematics and the refactor branch. It does not create new mathematics.
+Source of truth: `structure/Struct3D_数学理论.txt` on this refactor branch. This document does not create new mathematics.
 
 ## Status vocabulary
 
 - **CERTIFIED** — explicit formal statement, direct implementation, and regression coverage.
 - **PARTIAL** — interface/invariant exists, but complete mathematical derivation or exact semantics are not yet encoded.
 - **LEGACY** — historical engineering behavior; tested only for regression.
-- **UNVERIFIED** — requires the authoritative mathematics source before equivalence can be claimed.
+- **PROVISIONAL** — mathematically valid scaffold, but the uploaded specification does not freeze the corresponding construction/formula.
 
 ## Traceability matrix
 
-| Mathematical role | Code | Regression | Status |
+| Mathematical statement | Code | Regression | Status |
 |---|---|---|---|
-| Unit is a non-empty indexed subset with parameters | `structure/theory_core.py:TheoryUnit` | `tests/test_theory_core.py` | CERTIFIED |
-| Partition is pairwise-disjoint and complete | `structure/theory_core.py:Partition` | `tests/test_theory_core.py` | CERTIFIED |
-| Scalar Energy functional on partitions | `structure/theory_energy.py:StructuralEnergy` | `tests/test_theory_energy.py` | CERTIFIED |
-| Stable selection as argmin over explicit candidates | `structure/theory_partition.py:select_stable_partition` | `tests/test_theory_partition.py` | CERTIFIED |
-| Legacy `E_fit + lambda*C + gamma*B` | `structure/energy.py` | `tests/test_legacy_energy_unit.py` | LEGACY |
-| Legacy threshold/connected-component/min-size partition | `structure/graph_cluster.py` | `tests/test_legacy_energy_unit.py` | LEGACY |
-| Explicit structural Relation | `structure/theory_relation.py` | `tests/test_theory_structure.py` | PARTIAL |
-| Assembly from explicitly designated relations | `structure/theory_object.py` | `tests/test_theory_structure.py` | PARTIAL |
-| Structural World container | `structure/theory_world.py` | `tests/test_theory_structure.py`, pipeline test | PARTIAL |
-| Relabeling-invariant canonical form | `structure/theory_canonical.py` | `tests/test_theory_structure.py` | PARTIAL |
-| 23D structural representation | `structure/theory_representation.py` | `tests/test_theory_representation_distance.py` | PARTIAL |
-| `D_R(W1,W2)=||phi(W1)-phi(W2)||_2` | `structure/theory_distance.py` | `tests/test_theory_representation_distance.py` | CERTIFIED at formula level |
-| Minimum-cost structural matching | `structure/theory_matching.py` | `tests/test_theory_representation_distance.py` | PARTIAL |
-| Reconstruction objective | `structure/theory_neural.py` | `tests/test_theory_representation_distance.py` | CERTIFIED at objective level |
-| Distance-preserving neural objective | `structure/theory_neural.py` | `tests/test_theory_representation_distance.py` | PARTIAL |
-| Mutation consistency objective | `structure/theory_neural.py` | `tests/test_theory_representation_distance.py` | PARTIAL |
+| `u_i=(G_i,theta_i)` | `structure/theory_core.py:TheoryUnit` | `tests/test_theory_core.py` | CERTIFIED container mapping |
+| `r_ij` is a relation between two Units | `structure/theory_relation.py:StructuralRelation` | relation tests | CERTIFIED container mapping |
+| `G=(V,E)` | `structure/theory_graph.py:StructuralGraph` | graph property tests | CERTIFIED |
+| `W=(U,R,Phi)` | `structure/theory_world.py:StructuralWorld` | world/pipeline tests | CERTIFIED container mapping |
+| relabeling equivalence `W ~ pi(W)` | `structure/theory_canonical.py` | canonicalization tests | CERTIFIED at finite-container level |
+| `C(W)=C(pi(W))` | `canonical_form()` | relabeling test | CERTIFIED |
+| `I(W)=I(pi(W))` | invariant extractor contract | extractor-specific tests required | PARTIAL |
+| `phi(W) in R^23` | `structure/theory_representation.py` | dimension test | CERTIFIED dimension contract |
+| seven v4.0 coordinate groups | `structure/theory_representation_schema.py` | schema tests required | CERTIFIED schema contract |
+| `D_R=||phi(W1)-phi(W2)||_2` | `structure/theory_distance.py` | distance tests | CERTIFIED formula |
+| non-negativity/symmetry/triangle inequality | `theory_distance.py` | property tests | CERTIFIED from L2 |
+| representation-level mutation => nonzero `D_R` | distance definition | mutation tests | CERTIFIED conditional statement |
+| matching is optimization over admissible correspondences | `structure/theory_matching.py` | matching test | CERTIFIED generic optimization |
 
-## Critical conclusion
+## Deliberately provisional: Energy → Partition → Unit emergence
 
-The current 36/36 regression result proves implementation consistency of the present Core and its explicit invariants. It does **not** prove that every line is a faithful implementation of the historical Struct3D mathematical derivation.
+The uploaded specification defines Structural Units and the later structural
+space, but it does **not** freeze a final Struct3D energy functional, an
+admissible partition class generated from raw points, or a theorem deriving
+Units through `Pi*=argmin E(Pi)`.
 
-Before Phase 2 is called theory-complete, the authoritative mathematics version must be recovered and every numbered Definition, Proposition, Theorem, and formula must be mapped to exact code and one or more regression tests.
+Therefore:
 
-A regression test is not evidence that a heuristic is mathematically valid. Historical thresholds, weights, connected components, primitive parameter-count penalties, and similar choices remain LEGACY unless explicitly derived by the established theory.
+- `structure/theory_energy.py` is an explicit scalar-functional interface,
+  not a frozen Struct3D energy formula.
+- `structure/theory_partition.py` is a generic finite argmin scaffold, not a
+  claim that the uploaded theory already defines Unit discovery this way.
+- `structure/energy.py`, `graph_cluster.py`, and threshold/min-size rules are
+  LEGACY engineering implementations and are not evidence for the theory.
 
-## Current safe implementation chain
+This distinction is intentional. We must not invent an Energy merely to make
+the engineering pipeline look mathematically complete.
 
-`P -> admissible candidate partitions -> E -> Pi* -> U -> explicit R -> W -> C(W) -> phi(W) -> D_R -> M -> neural objectives`
+## Matching cost
 
-Only the portions marked CERTIFIED above may currently be described as direct mathematical-to-code equivalence.
+The mathematical document presents a framework of the form
+`C_ij = d_u + lambda_r d_r + lambda_g d_g`, but explicitly says the complete
+final cost was not frozen. The implementation therefore keeps the cost as an
+external callable.
+
+## Representation feature values
+
+The document freezes the 23-dimensional grouping but does not give a unique
+numerical estimator for every coordinate. The code therefore freezes the
+coordinate contract without inventing feature formulas. A concrete extractor
+must prove relabeling invariance before it is promoted to the theory layer.
+
+## Neural objective
+
+The reconstruction objective and later distance-preserving direction remain
+separate. The combined distance/mutation objective is a later proposed
+improvement and is not retroactively attributed to v1.0.
+
+## Gate rule
+
+A component may be promoted to CERTIFIED only when:
+
+`mathematical statement == implementation == regression property`
+
+If the mathematics is silent, the code remains explicitly provisional. If
+legacy code contradicts the mathematical specification, legacy code is not
+used as evidence for the theory.
+
+## Phase-1 conclusion
+
+The canonical / invariant / representation / distance portion can now be
+traced directly to the uploaded mathematical specification. The missing
+mathematical bridge is the raw-observation-to-Unit-emergence mechanism. That
+is a **theory gap**, not a coding bug. Phase 2 must not claim to have solved
+that gap until the Energy/Partition/Unit construction is formally derived or
+the mathematics document is extended with the already-established derivation.
