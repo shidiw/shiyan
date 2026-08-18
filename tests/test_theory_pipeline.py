@@ -2,7 +2,6 @@ import unittest
 
 from structure.theory_core import Partition, TheoryUnit
 from structure.theory_pipeline import run_theory_pipeline
-from structure.theory_relation import StructuralRelation
 
 
 class TestTheoryPipeline(unittest.TestCase):
@@ -15,10 +14,12 @@ class TestTheoryPipeline(unittest.TestCase):
             (TheoryUnit((0, 1), attributes={}),),
             (0, 1),
         )
+        # The energy selects the merged partition, so its world contains one
+        # unit and cannot legally contain a relation (0, 1) between two units.
         result = run_theory_pipeline(
             (split, merged),
             lambda p: float(len(p.units)),
-            (StructuralRelation(0, 1, "assembly"),),
+            (),
             lambda world: [float(world.unit_count)] * 23,
         )
         self.assertIs(result.partition_selection.partition, merged)
