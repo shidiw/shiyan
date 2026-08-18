@@ -2,7 +2,7 @@ import unittest
 
 from structure.theory_canonical import canonical_form, structurally_equivalent
 from structure.theory_core import TheoryUnit
-from structure.theory_object import assemble_objects
+from structure.theory_object import THEORY_STATUS, StructuralObject, assemble_objects
 from structure.theory_relation import StructuralRelation
 from structure.theory_world import StructuralWorld
 
@@ -22,6 +22,13 @@ class TestTheoryStructure(unittest.TestCase):
     def test_world_validates_relation_domain(self):
         with self.assertRaises(ValueError):
             StructuralWorld(self.units(), (StructuralRelation(0, 3, "assembly"),))
+
+    def test_object_layer_is_explicitly_marked_derived(self):
+        self.assertEqual(THEORY_STATUS, "DERIVED_ENGINEERING_CONSTRUCTION")
+
+    def test_empty_object_is_rejected(self):
+        with self.assertRaises(ValueError):
+            StructuralObject((), {})
 
     def test_assembly_uses_only_explicit_assembly_relations(self):
         rels = (
