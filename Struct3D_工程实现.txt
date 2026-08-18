@@ -1,0 +1,3073 @@
+（理论部分）
+Struct3D v0.0 Data Generation
+	↓
+v0.1 Geometry Field
+
+v0.2 Primitive Structural Unit
+	↓
+v0.3 Structural Graph
+	↓
+v0.4 Structural Refinement
+	↓
+v0.5 Structural Unit Discovery
+	↓
+v0.6 Primitive Discovery
+	↓
+v0.7 Primitive Energy
+	↓
+v0.8 Hierarchy + Relation
+	↓
+v0.9 Memory + Prototype
+	↓
+（工程部分）
+Struct3D v1.0 (W=(P,O,I,R,E)。其中：P: Primitive entities；O: Structural objects；I: Instances；R: Relations；E: Energy landscape)
+	↓
+ Struct3D v1.1 Learned Structural Metric
+	↓
+Struct3D v1.2 Generalized Primitive Atom Discovery
+        ↓
+v1.3  Structural Primitive Discovery
+        ↓
+v1.4  Structural Embedding + Prototype Generalization
+        ↓
+v1.5  Structural Category Learning
+        ↓
+v1.6  Open World Discovery
+        ↓
+v1.7  Structural Reasoning
+        ↓
+v1.8  Hierarchical World Model
+        ↓
+v1.9 Dynamic Structural Cognition
+	↓
+（工程验证-World Model 实验）
+Struct3D v2.0 End-to-End Experiment（统一，验证，冻结）
+      	↓
+v2.1  Object Invariance       
+	↓
+v2.2  Graph Invariance            
+	↓
+v2.3  Structural Unit Invariance  
+	↓
+v2.4  Relation Invariance         
+	↓
+v2.5  Hierarchy Invariance
+	↓
+v2.6  Object Assembly Invariance
+	↓
+v2.7  Instance Identity Invariance
+	↓
+v2.8  Instance-Relation Consistency
+	↓
+v2.9  Object-Instance Relations
+（工程验证-Struct3D 科学实验）
+Struct3D v3.0 Canonical Structural World
+      	↓
+v3.1 Canonical Structural Identity
+	↓
+v3.2 Structural Equivalence
+	↓
+v3.3 Structural Isomorphism
+	↓
+v3.4 Structural Automorphism
+	↓
+v3.5 Structural Quotient
+	↓
+v3.6  Canonical Structural Form
+	↓
+v3.7  Structural Invariant
+	↓
+v3.8  Structural Distance
+	↓
+v3.9  Structural Matching
+	↓
+v4.0  Structural Representation
+	↓
+Neural Struct3D
+
+项目网址：https://github.com/shidiw/shiyan.git
+
+
+论文和代码一一对应
+| Paper                    | Code               |
+| ------------------------ | ------------------ |
+| Observation Space        | data               |
+| Geometric Field          | geometry           |
+| Primitive Unit           | structure/unit     |
+| Energy Functional        | structure/energy   |
+| Optimization             | structure/optimize |
+| Structural Graph         | graph              |
+| Invariant Representation | models/invariant   |
+| Experiment               | experiments        |
+
+
+
+按照我们之前已经确定的 Struct3D 思路，最直观的总图可以整理成下面这样：
+
+
+                         Struct3D Mathematical Development
+                                      │
+                                      ▼
+                              v0.0  几何世界
+                                      │
+                              几何对象不是整体
+                                      │
+                                      ▼
+                              几何 Measure / Energy
+                                      │
+                         “什么东西可以被认为是一个结构？”
+                                      │
+                                      ▼
+                              v1.x  Unit Emergence
+                                      │
+                     局部几何 → 稳定区域 → Unit
+                                      │
+                                      ├──────────────┐
+                                      │              │
+                                      ▼              ▼
+                              Unit Geometry    Unit Energy
+                                      │              │
+                                      └──────┬───────┘
+                                             ▼
+                                      Unit Relations
+                                             │
+                                      ▼
+                              v2.x  Structural Assembly
+                                             │
+                              Unit + Relation Graph
+                                             │
+                                             ▼
+                                        Assembly
+                                             │
+                                             ▼
+                                      Emergent Object
+                                             │
+                              “Object 不是预先定义的”
+                                             │
+                              “Object 是 Unit 组合产生的”
+                                             │
+                                             ▼
+                              v2.x / v3.x Hierarchy
+                                             │
+                    Unit → Assembly → Object → Instance
+                                             │
+                                             ▼
+                                      Object Reasoning
+                                             │
+                    ┌────────────────────────┼──────────────────────┐
+                    │                        │                      │
+                    ▼                        ▼                      ▼
+                 geometry                 primitive              symmetry
+                    │                        │                      │
+                    └────────────────────────┼──────────────────────┘
+                                             │
+                                             ▼
+                                     spatial layout
+                                             │
+                                             ▼
+                                      compatibility
+                                             │
+                                             ▼
+                                  Object-level Relations
+                                             │
+                                             ▼
+                                      Instances
+                                             │
+                                             ▼
+                              v3.x  Structural World
+                                             │
+                    ┌────────────────────────┼──────────────────────┐
+                    │                        │                      │
+                    ▼                        ▼                      ▼
+                   Units                  Objects               Instances
+                    │                        │                      │
+                    └────────────────────────┼──────────────────────┘
+                                             │
+                                             ▼
+                                         Relations
+                                             │
+                                             ▼
+                                            World
+                                             │
+                                             ▼
+                              W = structural world state
+                                             │
+                                             ▼
+                              v3.8 Structural Distance
+                                             │
+                       D(W₁,W₂) = structural difference
+                                             │
+                    ┌────────────────────────┼──────────────────────┐
+                    │                        │                      │
+                    ▼                        ▼                      ▼
+                 Invariance             Mutation               Metric
+                    │                        │                      │
+             relabeling               primitive              identity
+             permutation               object                 symmetry
+             rigid transform           instance               triangle
+                    │                   relation
+                    │
+                    └──────────────────────┬───────────────────────┘
+                                           ▼
+                              v3.9 Structural Matching
+                                           │
+                              W₁  ←────────────→  W₂
+                                           │
+                                  correspondence
+                                           │
+                       ┌───────────────────┼───────────────────┐
+                       ▼                   ▼                   ▼
+                     Units              Objects            Instances
+                       │                   │                   │
+                       └───────────────────┼───────────────────┘
+                                           │
+                                       Relations
+                                           │
+                                           ▼
+                                  Matching Cost
+                                           │
+                                           ▼
+                              Neural Supervision Target
+                                           │
+                                           ▼
+                              v4.0 Structural Representation
+                                           │
+                              World → invariant vector
+                                           │
+                       ┌───────────────────┼───────────────────┐
+                       ▼                   ▼                   ▼
+                  Canonical Form      Invariant Form       Features
+                       │                   │                   │
+                       └───────────────────┼───────────────────┘
+                                           │
+                                           ▼
+                                Structural Representation
+                                           │
+                                           ▼
+                              Neural Struct3D
+
+
+更重要的是，0.0 → 4.0 并不是六七个互相独立的模块，而是一条连续的数学链条：
+
+
+Geometry
+   │
+   ▼
+Energy
+   │
+   ▼
+Stable Local Structure
+   │
+   ▼
+Unit
+   │
+   ▼
+Unit Relations
+   │
+   ▼
+Assembly
+   │
+   ▼
+Emergence
+   │
+   ▼
+Object
+   │
+   ▼
+Hierarchy
+   │
+   ▼
+World
+   │
+   ├───────────────┐
+   │               │
+   ▼               ▼
+Distance        Matching
+   │               │
+   └───────┬───────┘
+           ▼
+     Representation
+           │
+           ▼
+    Neural Struct3D
+
+
+ 一、最核心的一条线
+
+我们之前 Struct3D 真正要解决的问题，其实可以压缩成：
+
+
+点 / 几何
+    ↓
+局部几何结构
+    ↓
+Unit
+    ↓
+Unit 之间的关系
+    ↓
+Assembly
+    ↓
+Emergent Object
+    ↓
+Object 之间的关系
+    ↓
+Instance
+    ↓
+World
+
+
+所以：
+
+
+Unit
+不是 primitive 的同义词
+
+Object
+不是人为给点云贴的类别
+
+Instance
+不是简单的 instance ID
+
+World
+也不是一个普通 point cloud tensor
+
+
+它们都是结构层级中的不同数学对象。
+
+---
+
+ v0.0：Geometry → Energy
+
+最初的问题不是：
+
+
+“怎么设计一个神经网络？”
+
+
+而是：
+
+
+一个三维几何对象，
+为什么可以被划分成若干稳定的结构单元？
+
+
+因此第一步必须从几何本身开始。
+
+
+E ⊂ ℝ³
+
+
+把三维物体看成几何集合，而不是直接看成：
+
+
+X ∈ ℝ^(N×3)
+
+
+然后引入 Energy：
+
+
+F(E)
+
+
+Energy 的作用不是为了“训练神经网络”，而是描述：
+
+
+一个区域作为一个整体，
+在几何上是否稳定。
+
+
+所以最初的逻辑是：
+
+
+Geometry
+    │
+    ▼
+Measure
+    │
+    ▼
+Energy
+    │
+    ▼
+Stability
+
+
+即：
+
+
+几何结构
+   ↓
+几何代价
+   ↓
+稳定区域
+
+
+这是后面 Unit Emergence 的基础。
+
+---
+
+ v1.x：Energy → Unit
+
+有了 Energy 后，才出现真正关键的问题：
+
+
+什么叫 Unit？
+
+
+不是：
+
+
+Unit = 一个人工定义的 primitive
+
+
+而是：
+
+
+Unit = 从几何 Energy 中稳定出现的局部结构
+
+
+所以：
+
+
+Geometry
+    ↓
+Energy
+    ↓
+Energy-minimizing / stable region
+    ↓
+Unit
+
+
+这就是我们一直强调的：
+
+
+Unit Emergence
+
+
+也就是说，Unit 是 emergent structure。
+
+直观地看：
+
+
+        Geometry
+            │
+     ┌──────┼──────┐
+     ▼      ▼      ▼
+   region  region  region
+     │      │      │
+     ▼      ▼      ▼
+    E₁     E₂     E₃
+     │      │      │
+     └──────┼──────┘
+            ▼
+        stable units
+            │
+       ┌────┼────┐
+       ▼    ▼    ▼
+      U₀   U₁   U₂
+
+
+因此我们后面的 Struct3D 不应该反过来：
+
+
+先规定：
+plane
+sphere
+cylinder
+...
+
+
+然后强迫世界去适应这些 primitive。
+
+原来的理论方向是：
+
+
+World
+  ↓
+Geometry
+  ↓
+Energy
+  ↓
+Stable structure
+  ↓
+Unit
+
+
+---
+
+ v2.x：Unit → Relation → Assembly
+
+当 Unit 出现之后，一个 Unit 仍然不能解释完整物体。
+
+例如：
+
+
+U₀ = plane-like unit
+U₁ = sphere-like unit
+
+
+真正重要的问题变成：
+
+
+U₀ 和 U₁ 为什么属于同一个结构？
+
+
+于是出现：
+
+
+Unit Relations
+
+
+即：
+
+
+U₀ ───── R₀ ───── U₁
+
+
+因此：
+
+
+Units
+  │
+  ▼
+Relation Graph
+  │
+  ▼
+Unit Relations
+  │
+  ▼
+Assembly
+
+
+这一步非常重要，因为：
+
+
+Unit ≠ Object
+
+
+Object 是由：
+
+
+Units + Relations
+
+
+共同产生的。
+
+所以：
+
+
+Assembly = {Units, Relations}
+
+
+然后进一步产生：
+
+
+Emergent Object
+
+
+---
+
+ Emergence：Unit → Assembly → Object
+
+因此我们之前的 Emergence 思想可以用这条链表示：
+
+
+local geometry
+      ↓
+     Unit
+      ↓
+ Unit relations
+      ↓
+   Assembly
+      ↓
+ emergent object
+
+
+也就是说：
+
+
+Object 不是 primitive 的简单集合
+
+
+而是：
+
+
+Object = relational assembly of Units
+
+
+这也是为什么后来我们必须把：
+
+
+Object Composition
+
+
+作为 Structural Distance 和 Structural Matching 的测试对象。
+
+因为如果：
+
+
+U₀ + U₁
+
+
+换成：
+
+
+U₀ + U₁ + U₂
+
+
+那么结构本身已经发生改变。
+
+---
+
+ v2.x / v3.x：Hierarchy
+
+当 Assembly 和 Object 出现之后，就自然出现层级。
+
+我们之前的结构可以整理成：
+
+
+Unit
+  │
+  ▼
+Assembly
+  │
+  ▼
+Object
+  │
+  ▼
+Instance
+
+
+但它不是简单的树标签，而是一个结构层级系统。
+
+更直观：
+
+
+World
+ │
+ ├── Instance I₀
+ │      │
+ │      └── Object O₀
+ │              │
+ │              ├── Unit U₀
+ │              └── Unit U₁
+ │
+ └── Instance I₁
+        │
+        └── Object O₁
+                │
+                ├── Unit U₂
+                └── Unit U₃
+
+
+因此：
+
+
+Unit
+ ↓
+Object
+ ↓
+Instance
+
+
+描述的是不同尺度上的结构。
+
+---
+
+ Object Reasoning
+
+到了 Object 层面，Unit 本身的信息已经不够。
+
+Object 开始具有：
+
+
+geometry
+primitive
+symmetry
+spatial layout
+compatibility
+
+
+因此你的那张图可以完整扩展成：
+
+
+Units
+  │
+  ├── Relation Graph
+  │       │
+  │       └── Unit Relations
+  │
+  └── Assembly
+          │
+          ▼
+     Structural Objects
+          │
+          ▼
+     Object Reasoning
+          │
+          ├── geometry
+          ├── primitive
+          ├── symmetry
+          ├── spatial layout
+          └── compatibility
+          │
+          ▼
+     Object-level Relations
+          │
+          ▼
+       Instances
+
+
+这实际上就是 Struct3D 中间部分最重要的结构图。
+
+---
+
+ v3.x：World
+
+当：
+
+
+Units
+Objects
+Instances
+Relations
+
+
+全部出现以后，就不能再只研究一个 Object。
+
+于是定义：
+
+
+W = Structural World
+
+
+可以直观理解成：
+
+
+                  WORLD
+                    │
+       ┌────────────┼────────────┐
+       │            │            │
+       ▼            ▼            ▼
+     Units        Objects     Instances
+       │            │            │
+       └────────────┼────────────┘
+                    │
+                    ▼
+                 Relations
+
+
+所以 World 是前面所有结构的统一载体。
+
+也就是说：
+
+
+Unit
+  ↓
+Object
+  ↓
+Instance
+  ↓
+World
+
+
+不是四个独立概念。
+
+---
+
+ v3.8：World → Structural Distance
+
+到了 World，才有必要问：
+
+
+两个结构世界到底有多不同？
+
+
+于是：
+
+
+D(W₁,W₂)
+
+
+成为 Structural Distance。
+
+它不是普通：
+
+
+Euclidean distance
+
+
+也不是简单：
+
+
+point-wise L2
+
+
+而是比较：
+
+
+World₁
+   ↕
+World₂
+
+
+之间的结构差异。
+
+因此 v3.8 验证的那些性质就非常自然：
+
+
+D(W,W) = 0
+
+
+以及：
+
+
+D(W₁,W₂) = D(W₂,W₁)
+
+
+还有：
+
+
+D(W₁,W₃)
+≤
+D(W₁,W₂) + D(W₂,W₃)
+
+
+同时：
+
+
+Unit relabeling
+Object relabeling
+Instance relabeling
+Relation relabeling
+Rigid transform
+
+
+不应该改变结构。
+
+所以：
+
+
+same structure
+    ↓
+D = 0
+
+
+而：
+
+
+primitive mutation
+object mutation
+instance mutation
+relation mutation
+    ↓
+D > 0
+
+
+这正是你刚刚 v3.8 最终跑出来的 23/23 PASS 所验证的东西。
+
+---
+
+ v3.9：Structural Distance → Structural Matching
+
+但是 Distance 只告诉我们：
+
+
+“两个 World 差多少？”
+
+
+它没有告诉神经网络：
+
+
+“哪个 Unit 对应哪个 Unit？”
+
+
+所以自然需要下一步：
+
+
+Structural Matching
+
+
+即：
+
+
+W₁                         W₂
+
+U₀ ─────────────────────── U₀'
+U₁ ─────────────────────── U₁'
+U₂ ─────────────────────── U₂'
+U₃ ─────────────────────── U₃'
+
+O₀ ─────────────────────── O₀'
+O₁ ─────────────────────── O₁'
+
+I₀ ─────────────────────── I₀'
+I₁ ─────────────────────── I₁'
+
+R₀ ─────────────────────── R₀'
+R₁ ─────────────────────── R₁'
+
+
+因此：
+
+
+Structural Distance
+       ↓
+知道“差多少”
+       ↓
+Structural Matching
+       ↓
+知道“谁对应谁”
+
+
+这就是 v3.9 的理论位置。
+
+而 v3.9 最终已经验证：
+
+
+Matching
+    ↓
+Unit correspondence
+Object correspondence
+Instance correspondence
+Relation correspondence
+    ↓
+Neural supervision target
+
+
+所以它第一次真正把 Struct3D 的数学结构和神经网络接口接起来。
+
+---
+
+ v4.0：Matching → Representation
+
+然后出现最后一个问题：
+
+
+神经网络最终需要什么？
+
+
+如果每次都直接操作：
+
+
+World
+Graph
+Correspondence
+Distance
+
+
+神经网络很难直接使用。
+
+所以需要：
+
+
+Structural Representation
+
+
+即：
+
+
+World
+  ↓
+Canonical Structural Form
+  ↓
+Invariant Structural Form
+  ↓
+Structural Representation
+  ↓
+Vector
+
+
+你刚刚跑出的 v4.0 就是在验证这一层。
+
+最终：
+
+
+W
+ ↓
+Canonical Form
+ ↓
+Invariant Form
+ ↓
+23-dimensional Representation
+
+
+因此 v4.0 的位置不是重新定义 World，而是：
+把已经建立起来的 Structural World
+转换成可计算、可比较、可供神经网络使用的结构表示。
+
+
+最终整合图
+
+如果把整个 Struct3D 0.0 → 4.0 压缩到一张图，我建议你以后论文、代码 README、答辩都使用这一版：
+                         ┌─────────────────────┐
+                         │      GEOMETRY       │
+                         │       v0.0          │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │       ENERGY        │
+                         │   geometric cost    │
+                         └──────────┬──────────┘
+                                    │
+                         stability / emergence
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │        UNIT         │
+                         │      v1.x           │
+                         └──────────┬──────────┘
+                                    │
+                                    │ relations
+                                    ▼
+                         ┌─────────────────────┐
+                         │  UNIT RELATION GRAPH│
+                         │                     │
+                         │ U ─ R ─ U ─ R ─ U  │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │      ASSEMBLY       │
+                         │       v2.x          │
+                         └──────────┬──────────┘
+                                    │
+                              emergence
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ STRUCTURAL OBJECT   │
+                         │                     │
+                         │ geometry            │
+                         │ primitive           │
+                         │ symmetry            │
+                         │ spatial layout      │
+                         │ compatibility       │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ OBJECT RELATIONS    │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │      INSTANCE       │
+                         │       v3.x          │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │       WORLD         │
+                         │                     │
+                         │ Units               │
+                         │ Objects             │
+                         │ Instances           │
+                         │ Relations           │
+                         └──────────┬──────────┘
+                                    │
+                     ┌──────────────┴──────────────┐
+                     │                             │
+                     ▼                             ▼
+          ┌─────────────────────┐       ┌─────────────────────┐
+          │ STRUCTURAL DISTANCE │       │ STRUCTURAL MATCHING │
+          │       v3.8          │       │       v3.9          │
+          │                     │       │                     │
+          │ D(W₁,W₂)            │       │ correspondence      │
+          │ invariance          │       │ matching cost       │
+          │ metric properties   │       │ neural target       │
+          └──────────┬──────────┘       └──────────┬──────────┘
+                     │                             │
+                     └──────────────┬──────────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ STRUCTURAL          │
+                         │ REPRESENTATION      │
+                         │       v4.0          │
+                         │                     │
+                         │ Canonical Form      │
+                         │ Invariant Form      │
+                         │ Feature Vector      │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   NEURAL STRUCT3D   │
+                         │                     │
+                         │ neural input        │
+                         │ structural target   │
+                         │ structural loss     │
+                         └─────────────────────┘
+
+
+最关键的“为什么”关系
+
+最后可以把整个理论浓缩成 8 个箭头：
+① Geometry
+      ↓
+   Energy
+      ↓
+② Unit Emergence
+      ↓
+③ Unit Relations
+      ↓
+   Assembly
+      ↓
+④ Structural Object
+      ↓
+⑤ Hierarchy
+      ↓
+   Instance
+      ↓
+⑥ World
+      ↓
+⑦ Structural Distance
+      ↓
+⑧ Structural Matching
+      ↓
+   Structural Representation
+      ↓
+   Neural Struct3D
+
+也就是：
+几何
+ ↓
+为什么这个区域稳定？
+ ↓
+Energy
+ ↓
+为什么它可以成为一个独立单元？
+ ↓
+Unit
+ ↓
+为什么这些 Unit 属于同一个结构？
+ ↓
+Relation
+ ↓
+为什么组合后形成更高层对象？
+ ↓
+Emergence
+ ↓
+为什么对象还存在不同层级？
+ ↓
+Hierarchy
+ ↓
+如何把整个结构放到一个统一数学空间？
+ ↓
+World
+ ↓
+两个 World 如何比较？
+ ↓
+Structural Distance
+ ↓
+两个 World 中谁对应谁？
+ ↓
+Structural Matching
+ ↓
+如何交给神经网络？
+ ↓
+Structural Representation
+ ↓
+Neural Struct3D
+
+按照我们目前已经确定的路线：
+v0.0 ── Geometry / Energy
+  ↓
+v1.x ── Unit / Emergence
+  ↓
+v2.x ── Relation / Assembly / Object
+  ↓
+v3.x ── Hierarchy / Instance / World
+  ↓
+v3.8 ── Structural Distance
+  ↓
+v3.9 ── Structural Matching
+  ↓
+v4.0 ── Structural Representation
+  ↓
+Neural Struct3D
+
+版本树:
+============================================================
+Struct3D Development History
+============================================================
+
+                 [STRUCTURAL THEORY FORMATION]
+                         v0.0 – v0.9
+
+v0.0  Data Generation
+   ↓
+v0.1  Geometry Field
+   ↓
+v0.2  Primitive Structural Unit
+   ↓
+v0.3  Structural Graph
+   ↓
+v0.4  Structural Refinement
+   ↓
+v0.5  Structural Unit Discovery
+   ↓
+v0.6  Primitive Discovery
+   ↓
+v0.7  Primitive Energy
+   ↓
+v0.8  Hierarchy + Relation
+   ↓
+v0.9  Memory + Prototype
+
+
+                 [WORLD MODEL / ENGINEERING]
+                         v1.0 – v1.9
+
+v1.0  Struct3D World
+      W=(P,O,I,R,E)
+   ↓
+v1.1  Learned Structural Metric
+   ↓
+v1.2  Generalized Primitive Atom Discovery
+   ↓
+v1.3  Structural Primitive Discovery
+   ↓
+v1.4  Structural Embedding + Prototype Generalization
+   ↓
+v1.5  Structural Category Learning
+   ↓
+v1.6  Open World Discovery
+   ↓
+v1.7  Structural Reasoning
+   ↓
+v1.8  Hierarchical World Model
+   ↓
+v1.9  Dynamic Structural Cognition
+
+
+                 [WORLD MODEL VALIDATION]
+                         v2.0 – v2.9
+
+v2.0  End-to-End Experiment
+   ↓
+v2.1  Object Invariance
+   ↓
+v2.2  Graph Invariance
+   ↓
+v2.3  Structural Unit Invariance
+   ↓
+v2.4  Relation Invariance
+   ↓
+v2.5  Hierarchy Invariance
+   ↓
+v2.6  Object Assembly Invariance
+   ↓
+v2.7  Instance Identity Invariance
+   ↓
+v2.8  Instance-Relation Consistency
+   ↓
+v2.9  Object-Instance Relations
+
+
+                 [FORMAL STRUCTURAL MATHEMATICS]
+                         v3.0 – v4.0
+
+v3.0  Canonical Structural World
+   ↓
+v3.1  Canonical Structural Identity
+   ↓
+v3.2  Structural Equivalence
+   ↓
+v3.3  Structural Isomorphism
+   ↓
+v3.4  Structural Automorphism
+   ↓
+v3.5  Structural Quotient
+   ↓
+v3.6  Canonical Structural Form
+   ↓
+v3.7  Structural Invariant
+   ↓
+v3.8  Structural Distance
+   ↓
+v3.9  Structural Matching
+   ↓
+v4.0  Structural Representation
+   ↓
+Neural Struct3D
+
+
+直观流程图:
+Geometry
+  │
+  ▼
+Geometry Field
+  │
+  ▼
+Primitive Structural Unit
+  │
+  ▼
+Structural Graph
+  │
+  ▼
+Structural Refinement
+  │
+  ▼
+Unit Discovery
+  │
+  ▼
+Primitive Discovery
+  │
+  ▼
+Primitive Energy
+  │
+  ▼
+Hierarchy + Relation
+  │
+  ▼
+Memory + Prototype
+  │
+  ▼
+────────────────────────────────────
+          Struct3D World
+        W = (P,O,I,R,E)
+────────────────────────────────────
+  │
+  ├── Structural Metric
+  ├── Primitive Discovery
+  ├── Structural Embedding
+  ├── Category Learning
+  ├── Open World Discovery
+  ├── Structural Reasoning
+  ├── Hierarchical World Model
+  └── Dynamic Structural Cognition
+  │
+  ▼
+────────────────────────────────────
+       World Model Validation
+────────────────────────────────────
+  │
+  ├── Object Invariance
+  ├── Graph Invariance
+  ├── Unit Invariance
+  ├── Relation Invariance
+  ├── Hierarchy Invariance
+  ├── Assembly Invariance
+  ├── Instance Identity
+  └── Instance-Relation Consistency
+  │
+  ▼
+────────────────────────────────────
+    Canonical Structural World
+────────────────────────────────────
+  │
+  ▼
+Structural Identity
+  │
+  ▼
+Structural Equivalence
+  │
+  ▼
+Structural Isomorphism
+  │
+  ▼
+Structural Automorphism
+  │
+  ▼
+Structural Quotient
+  │
+  ▼
+Canonical Structural Form
+  │
+  ▼
+Structural Invariant
+  │
+  ▼
+Structural Distance
+  │
+  ▼
+Structural Matching
+  │
+  ▼
+Structural Representation
+  │
+  ▼
+════════════════════════════════════
+          Neural Struct3D
+════════════════════════════════════
+
+对话：请把我们截至目前关于 Struct3D 的完整数学理论发展过程，从 v0.0 到 v4.0 按时间顺序整理出来。不要重新设计，不要修改原理论，只恢复我们之前已经确定的定义、公式、推导关系、Energy、Unit、Emergence、Hierarchy、World，以及每一步为什么由前一步推出。输出为纯文本，方便我保存。还有流程图，代码关系图
+回答：可以。下面我按我们此前已经确定过的 Struct3D 主线整理，不重新设计理论，也不把后面的 v3.8/v3.9/v4.0 反过来塞进早期版本。
+
+先说明一个重要点：目前我能恢复到的历史上下文里，v0.x、v1.x、v2.x 的部分公式并没有全部逐字保留下来。因此下面对“已经明确保存”的内容直接恢复；对于我现在无法确认原始措辞或公式的地方，我不会为了完整而凭空补公式，而会明确标成“当时主线已确定，但当前记录缺少原式”。这比把后来的理论倒灌回去更符合你要求的“不要重新设计”。
+
+============================================================
+Struct3D 数学理论发展史
+v0.0 → v4.0
+===========
+
+一、总主线
+
+Struct3D 最终形成的理论主链是：
+
+Point Cloud
+↓
+Geometry
+↓
+Geometric / Structural Energy
+↓
+Partition
+↓
+Unit
+↓
+Object
+↓
+Instance
+↓
+Relation
+↓
+Hierarchy
+↓
+World
+↓
+Equivalence
+↓
+Quotient
+↓
+Canonical Form
+↓
+Invariant
+↓
+Structural Distance
+↓
+Structural Matching
+↓
+Structural Representation
+↓
+Neural Struct3D
+
+其中必须注意：
+
+v0.x–v2.x
+主要解决“结构从几何中如何产生”。
+
+v3.x
+主要解决“结构本身如何成为严格数学对象，以及两个 World 如何比较”。
+
+v4.0
+主要解决“结构如何被压缩成可计算、可学习、可作为 Neural Struct3D 输入/监督的表示”。
+
+所以 v4.0 不是突然出现一个神经网络特征，而是前面整个数学结构链的表示化。
+
+============================================================
+二、v0.0：问题起点——Geometry 不是 Structure
+==================================
+
+最初的问题并不是：
+
+“怎样训练一个更好的点云网络？”
+
+而是：
+
+给定一个三维几何对象，怎样从原始几何中得到一个比点本身更高层的结构？
+
+原始输入可以抽象为点集：
+
+P = {x_i}_{i=1}^N,
+x_i ∈ R^3
+
+但单纯的点集没有回答：
+
+1. 哪些点属于同一个局部结构？
+2. 什么是一个最小结构单元？
+3. 哪些结构单元组合成 Part？
+4. 哪些 Part 组成 Object？
+5. Object 之间是什么关系？
+6. 为什么这些结构会“自然出现”？
+
+因此最初提出的核心方向是：
+
+Geometry → Structure
+
+============================================================
+三、v0.1：从点到 Geometry
+===================
+
+随后 Geometry 不再只表示 xyz，而开始引入局部几何量。
+
+核心几何信息包括：
+
+位置：
+x_i ∈ R^3
+
+法向：
+n_i ∈ S^2
+
+曲率：
+κ_i
+
+以及局部邻域关系。
+
+因此一个点的局部几何状态可以理解成：
+
+g_i = (x_i, n_i, κ_i, ...)
+
+这一阶段的重要思想是：
+
+Structure 不能直接从 point identity 定义，
+
+而应该从 geometry 的局部关系产生。
+
+因此开始形成：
+
+P
+→ Local Geometry
+→ Geometric Field
+
+============================================================
+四、v0.2：Geometry Field
+=====================
+
+这一阶段开始把整个点云看成一个几何场，而不是孤立点集合。
+
+可以写成：
+
+G(P) = {g_i}_{i=1}^N
+
+并进一步构造点之间的结构关系。
+
+两个点之间的局部几何差异至少包括：
+
+位置差异
+D_x(i,j)
+
+法向差异
+D_n(i,j)
+
+曲率差异
+D_κ(i,j)
+
+因此开始出现结构兼容性思想：
+
+# C(i,j)
+
+w_d D(i,j)
++
+w_n N(i,j)
++
+w_k K(i,j)
++
+w_b B(i,j)
+
+这里的含义已经明确：
+
+两个局部区域越几何兼容，
+越可能属于同一个结构。
+
+============================================================
+五、v0.3：Structural Graph
+=======================
+
+Geometry Field 进一步转化为图。
+
+定义：
+
+G_s = (V,E)
+
+其中：
+
+V = local geometric elements
+
+E = structural compatibility relations
+
+边权反映两个局部元素之间的几何兼容程度。
+
+因此：
+
+Geometry
+↓
+Geometry Field
+↓
+Structural Graph
+
+这一阶段非常关键，因为之后的 Unit、Object、Relation 都不再只是人为标签，而开始可以建立在图结构上。
+
+============================================================
+六、v0.4：Structural Energy
+========================
+
+这是早期理论真正开始形成数学核心的地方。
+
+我们当时确定的 v0.4 pipeline 是：
+
+Geometry Field
+→ Structural Graph
+→ Structural Units
+→ Primitive Discovery
+→ Energy Optimization
+→ Hierarchy
+→ Relation Graph
+→ Object
+
+同时明确了早期 Energy 形式：
+
+# E
+
+E_fit
++
+λ_c C
++
+λ_b B
+
+其中：
+
+E_fit
+表示结构对局部几何的拟合误差；
+
+C
+表示结构内部的不一致性 / compatibility cost；
+
+B
+表示边界代价。
+
+因此 Energy 不只是“训练 loss”。
+
+它的理论角色是：
+
+用一个统一泛函判断：
+
+一个候选区域究竟是不是一个合理的结构单元。
+
+============================================================
+七、v0.x 的核心突破：Unit
+=================
+
+到了这一阶段，开始明确：
+
+Unit 不是简单 primitive label。
+
+Unit 是：
+
+由几何一致性和能量最小化产生的最小结构实体。
+
+也就是说：
+
+Point
+不是 Unit。
+
+Primitive
+也不是简单的人工类别。
+
+而是：
+
+Geometry
+→ Energy
+→ Stable Region
+→ Unit
+
+这也是后来 Struct3D 与普通 point clustering / primitive fitting 区别的重要来源。
+
+============================================================
+八、Emergence：为什么 Unit 可以“出现”
+===========================
+
+当时讨论 Emergence 时，核心问题是：
+
+如果 Unit 是人为定义的，那么 Struct3D 就只是换了一套名字。
+
+所以必须解释：
+
+Unit 为什么从 Geometry 中出现？
+
+主逻辑是：
+
+对于候选区域 E，
+
+计算其结构能量：
+
+F(E)
+
+如果一个区域内部具有较高的几何一致性，同时分裂会增加总体结构代价，那么该区域就具有成为一个稳定结构单元的倾向。
+
+因此：
+
+Geometry
+↓
+Energy landscape
+↓
+Stable region
+↓
+Unit
+
+这里的 Emergence 不是“神经网络自己学出来”这么简单。
+
+它指：
+
+结构实体可以作为能量优化后的稳定状态出现。
+
+============================================================
+九、v0.x → v1.x：从 Unit 到 Object
+=============================
+
+Unit 解决的是：
+
+“最小结构是什么？”
+
+但这还不够。
+
+真实三维物体通常不是一个 Unit。
+
+例如：
+
+Plane Unit
++
+Sphere Unit
++
+Cylinder Unit
+
+可能组成一个更高层结构。
+
+于是开始形成：
+
+Primitive
+→ Part
+→ Object
+
+当时明确的层级方向是：
+
+Primitive → Part → Object
+
+============================================================
+十、v1.x：Hierarchy
+================
+
+Hierarchy 的核心问题：
+
+多个 Unit 如何形成更高层结构？
+
+早期理论中，一个对象不是 Unit 的简单集合，而是：
+
+Unit
++
+Composition
++
+Relation
+
+因此开始形成：
+
+Unit
+↓
+Part
+↓
+Object
+
+同时出现结构层次：
+
+Primitive
+→ Part
+→ Object
+
+============================================================
+十一、v1.x：Relation
+================
+
+当只有 Unit 和 Object 时，仍然无法表达：
+
+两个结构为什么属于同一个对象？
+
+因此引入 Relation。
+
+早期 Relation 类型已经确定包括：
+
+connected
+touching
+near
+separate
+
+即：
+
+R_ij ∈
+{
+connected,
+touching,
+near,
+separate
+}
+
+关系由几何和结构兼容性产生。
+
+早期兼容性能量写成：
+
+# C(i,j)
+
+w_d D(i,j)
++
+w_n N(i,j)
++
+w_k K(i,j)
++
+w_b B(i,j)
+
+这里：
+
+D = distance term
+
+N = normal compatibility
+
+K = curvature compatibility
+
+B = boundary compatibility
+
+============================================================
+十二、v1.x：Object Formation
+========================
+
+Object 不再简单定义为：
+
+“所有相连点”。
+
+而是逐渐变成：
+
+Units
++
+their composition
++
+their relations
+
+共同形成 Object。
+
+当时对象候选曾经被表达为关系图中的结构组合。
+
+需要特别保留一个后来明确过的修正：
+
+当前 assembly 的实际实现是关系驱动的贪心二元匹配，
+
+不是简单的一般图连通分量。
+
+这一区分非常重要。
+
+============================================================
+十三、v1.8 / v1.9：结构统一化
+====================
+
+我们后来明确要求：
+
+不能停在 v0.x 的实验验证。
+
+必须继续：
+
+v1.8
+→ v1.9
+→ v2.0
+
+并最终 freeze。
+
+v1.9 的作用，是把此前分散的：
+
+Unit
+Object
+Instance
+Relation
+Hierarchy
+
+统一到一个结构体系里。
+
+核心结构开始从：
+
+“一个局部区域”
+
+升级成：
+
+“一个完整结构世界中的实体”。
+
+============================================================
+十四、v2.0：World Model
+===================
+
+v2.0 是第一个真正意义上的 Struct3D World。
+
+World 不再只是 point cloud。
+
+可以抽象为：
+
+# W
+
+(U,O,I,R,H)
+
+其中：
+
+U = Units
+
+O = Objects
+
+I = Instances
+
+R = Relations
+
+H = Hierarchy
+
+World 的意义是：
+
+把 Geometry 产生出来的所有结构实体放进同一个数学对象中。
+
+============================================================
+十五、为什么必须加入 Instance
+===================
+
+这是 v2.x 非常重要的一步。
+
+Object 与 Instance 不能混为一谈。
+
+Object 表示：
+
+“什么类型的结构”。
+
+Instance 表示：
+
+“这个结构在当前 World 中具体出现了哪一个实体”。
+
+因此：
+
+Object
+≠
+Instance
+
+例如：
+
+Object = Chair
+
+World 中可能存在：
+
+Instance I_0 = Chair #1
+Instance I_1 = Chair #2
+
+所以：
+
+Object
+↓
+Instance
+
+============================================================
+十六、World 的结构意义
+==============
+
+到 v2.0，理论主链已经基本形成：
+
+Geometry
+→ Unit
+→ Object
+→ Instance
+→ Relation
+→ Hierarchy
+→ World
+
+这也是后面 v3.x 所有数学结构的输入。
+
+============================================================
+十七、v2.0 → v3.0：问题发生改变
+=====================
+
+v2.0 解决：
+
+“什么是一个 World？”
+
+但接下来出现更严格的问题：
+
+两个 World 什么时候算相同？
+
+例如：
+
+W1：
+
+Unit 0
+Unit 1
+
+W2：
+
+Unit A
+Unit B
+
+如果只是 ID 不同，
+
+它们显然应该被认为是同一个结构。
+
+于是产生：
+
+Structural Equivalence
+
+============================================================
+十八、v3.0：Structural Equivalence
+==============================
+
+核心思想：
+
+结构相同不应该依赖：
+
+Unit ID
+Object ID
+Instance ID
+Relation ID
+
+因此开始引入：
+
+W_1 ~ W_2
+
+表示两个 World 在结构意义上等价。
+
+============================================================
+十九、v3.x：Isomorphism
+===================
+
+进一步把“等价”严格化为结构映射。
+
+如果存在保持结构关系的双射：
+
+φ : W_1 → W_2
+
+并保持：
+
+Unit structure
+Object structure
+Instance ownership
+Relation structure
+Hierarchy
+
+那么：
+
+W_1 ≅ W_2
+
+============================================================
+二十、Automorphism
+===============
+
+如果一个 World 映射到自身：
+
+φ : W → W
+
+则得到：
+
+Automorphism
+
+即：
+
+世界内部允许哪些结构重标号而不改变结构。
+
+这直接导致后来 v3.8 的：
+
+Automorphism Compatibility
+
+测试。
+
+例如：
+
+Unit relabeling
+
+Object relabeling
+
+Instance relabeling
+
+Relation relabeling
+
+Combined relabeling
+
+============================================================
+二十一、Quotient
+============
+
+如果：
+
+W_1 ~ W_2
+
+那么它们属于同一个等价类。
+
+因此开始形成：
+
+[W]
+
+即：
+
+所有与 W 结构等价的 World 的集合。
+
+这就是 Quotient 思想：
+
+World / ~
+
+它的意义是：
+
+把“名字不同但结构相同”的 World 合并。
+
+============================================================
+二十二、v3.5：Structural Canonical Form
+==================================
+
+接下来问题变成：
+
+如果两个 World 等价，
+
+怎样让计算机得到完全相同的表示？
+
+于是引入：
+
+C(W)
+
+Canonical Structural Form。
+
+目标：
+
+W_1 ~ W_2
+⇔
+C(W_1) = C(W_2)
+
+并且要求：
+
+C(C(W)) = C(W)
+
+即：
+
+Canonicalization 是幂等的。
+
+============================================================
+二十三、v3.6–v3.8：Structural Distance
+=================================
+
+仅有：
+
+相同 / 不同
+
+还不够。
+
+我们需要知道：
+
+“不同多少？”
+
+于是定义：
+
+D(W_1,W_2)
+
+Structural Distance。
+
+v3.8 已经系统验证了：
+
+D(W,W)=0
+
+D(W,M)=D(M,W)
+
+并且：
+
+D(A,C)
+≤
+D(A,B)+D(B,C)
+
+同时要求：
+
+relabeling
+不会产生距离。
+
+也就是说：
+
+如果：
+
+W' = π(W)
+
+其中 π 是合法结构重标号，
+
+那么：
+
+D(W,W')=0
+
+============================================================
+二十四、v3.8 的最终成果
+==============
+
+v3.8 最终已经验证：
+
+1. Distance Exists
+2. Identity
+3. Symmetry
+4. Dictionary Order Invariance
+5. Unit Relabeling Invariance
+6. Object Relabeling Invariance
+7. Instance Relabeling Invariance
+8. Relation Relabeling Invariance
+9. Combined Relabeling Invariance
+10. Rigid Transform Invariance
+11. Automorphism Compatibility
+12. Primitive Mutation
+13. Object Composition Mutation
+14. Instance Composition Mutation
+15. Relation Type Mutation
+16. Relation Confidence Mutation
+17. Relation Deletion
+18. Triangle Inequality
+19. Repeated Stability
+20. Structural Ordering
+21. Instance Ownership Enters Structural Signature
+22. Structural Hash Mutation Sensitivity
+
+最终：
+
+23 / 23 PASS
+
+============================================================
+二十五、v3.9：Structural Matching
+============================
+
+Distance 只告诉：
+
+“两个 World 有多远”。
+
+但 Neural Struct3D 更需要：
+
+“谁对应谁？”
+
+因此 v3.9 引入：
+
+Structural Matching
+
+记：
+
+M(W_1,W_2)
+
+它不只是输出一个 scalar distance，
+
+还输出：
+
+Unit matches
+Object matches
+Instance matches
+Relation matches
+
+例如：
+
+U0 ↔ U0
+U1 ↔ U1
+O0 ↔ O0
+O1 ↔ O1
+I0 ↔ I0
+I1 ↔ I1
+R0 ↔ R0
+R1 ↔ R1
+
+============================================================
+二十六、v3.9 与 v3.8 的关系
+===================
+
+v3.8：
+
+D(W_1,W_2)
+
+回答：
+
+“结构差多少？”
+
+v3.9：
+
+M(W_1,W_2)
+
+回答：
+
+“结构中的实体如何对应？”
+
+所以：
+
+Distance
+↓
+Structural Matching
+
+并且已经验证：
+
+matching cost
+与
+structural distance
+
+保持一致。
+
+最终 v3.9：
+
+27 / 27 PASS
+
+============================================================
+二十七、v4.0：Structural Representation
+==================================
+
+这一步才真正进入：
+
+“怎样把 Struct3D 的数学结构交给神经网络？”
+
+因此 v4.0 不是新的 World 理论。
+
+而是：
+
+World
+→ Canonical Form
+→ Invariant
+→ Structural Representation
+
+定义：
+
+R(W) ∈ R^d
+
+当前 v4.0 实现：
+
+d = 23
+
+============================================================
+二十八、v4.0 Representation
+=======================
+
+当前 v4.0 的 Representation 实际输出为：
+
+[
+0.5,
+0.5,
+0.0,
+0.0,
+0.0,
+1.0,
+0.0,
+0.0,
+0.0,
+0.5,
+0.5,
+0.0,
+0.0,
+0.0,
+0.85,
+0.05,
+0.9,
+2.0,
+2.0,
+2.0,
+1.0,
+1.0,
+1.0
+]
+
+维度：
+
+23
+
+其当前实现中的组织方式是：
+
+5 + 4 + 5 + 3 + 3 + 3
+
+这是 v4.0 当前 representation 的实际结构划分。
+
+============================================================
+二十九、v4.0 的两个核心对象
+================
+
+Canonical Form：
+
+C(W)
+
+Invariant：
+
+I(W)
+
+Representation：
+
+R(W)
+
+因此：
+
+World
+↓
+Canonical Form
+↓
+Invariant
+↓
+Representation
+
+同时：
+
+Structural Distance：
+
+D(W_1,W_2)
+
+在 representation 空间中也可以计算对应的表示距离。
+
+============================================================
+三十、v4.0 的关键性质
+=============
+
+v4.0 已经验证：
+
+Representation Determinism
+
+Representation Hash
+
+Dictionary Order Invariance
+
+Unit Relabeling Invariance
+
+Object Relabeling Invariance
+
+Instance Relabeling Invariance
+
+Relation Relabeling Invariance
+
+Combined Relabeling Invariance
+
+Rigid Transform Invariance
+
+Primitive Mutation Sensitivity
+
+Object Composition Sensitivity
+
+Instance Composition Sensitivity
+
+Relation Type Sensitivity
+
+Relation Confidence Sensitivity
+
+Relation Deletion Sensitivity
+
+Instance Occupancy Sensitivity
+
+Canonical Hash Mutation Sensitivity
+
+Representation Hash Mutation Sensitivity
+
+Representation Distance Symmetry
+
+Neural Struct3D Compatibility
+
+最终：
+
+25 / 25 PASS
+
+============================================================
+三十一、所以 v0.0 → v4.0 真正的数学演化
+==========================
+
+整个过程可以压缩成：
+
+v0.0
+问题：
+Geometry 如何产生 Structure？
+
+```
+    ↓
+```
+
+v0.1
+Geometry
+
+```
+    ↓
+```
+
+v0.2
+Geometry Field
+
+```
+    ↓
+```
+
+v0.3
+Structural Graph
+
+```
+    ↓
+```
+
+v0.4
+Structural Energy
+
+```
+    ↓
+```
+
+v0.x
+Energy-stable Unit
+
+```
+    ↓
+```
+
+v1.x
+Unit → Part → Object
+
+```
+    ↓
+```
+
+v1.x
+Relation
+
+```
+    ↓
+```
+
+v1.x
+Hierarchy
+
+```
+    ↓
+```
+
+v1.9
+Unified Structure
+
+```
+    ↓
+```
+
+v2.0
+World
+
+```
+    ↓
+```
+
+v3.0
+Structural Equivalence
+
+```
+    ↓
+```
+
+v3.x
+Isomorphism
+
+```
+    ↓
+```
+
+Automorphism
+
+```
+    ↓
+```
+
+Quotient
+
+```
+    ↓
+```
+
+v3.5+
+Canonical Form
+
+```
+    ↓
+```
+
+v3.8
+Structural Distance
+
+```
+    ↓
+```
+
+v3.9
+Structural Matching
+
+```
+    ↓
+```
+
+v4.0
+Structural Representation
+
+```
+    ↓
+```
+
+Neural Struct3D
+
+============================================================
+三十二、最核心的“为什么一步推出下一步”
+====================
+
+这是整个理论最重要的逻辑：
+
+1.
+
+Point Cloud 不能直接表达结构
+↓
+必须引入 Geometry
+
+2.
+
+Geometry 只有局部信息
+↓
+需要 Geometry Field
+
+3.
+
+Geometry Field 中存在局部兼容关系
+↓
+形成 Structural Graph
+
+4.
+
+Graph 只有关系，还不能定义“结构实体”
+↓
+引入 Structural Energy
+
+5.
+
+Energy 可以判断稳定区域
+↓
+Stable Region → Unit
+
+6.
+
+一个真实物体不只包含一个 Unit
+↓
+Unit → Part → Object
+
+7.
+
+多个 Unit / Part 为什么组合在一起？
+↓
+Relation
+
+8.
+
+多个层级结构如何组织？
+↓
+Hierarchy
+
+9.
+
+Object 在真实 World 中会重复出现
+↓
+Object → Instance
+
+10.
+
+所有实体需要统一放进一个结构世界
+↓
+World
+
+11.
+
+两个 World 可能只是 ID 不同
+↓
+Structural Equivalence
+
+12.
+
+Equivalence 需要显式映射
+↓
+Isomorphism
+
+13.
+
+World 自身允许哪些重标号？
+↓
+Automorphism
+
+14.
+
+等价 World 应该属于同一类
+↓
+Quotient
+
+15.
+
+等价类需要计算机可比较的唯一形式
+↓
+Canonical Form
+
+16.
+
+Canonical Form 提供结构不变量
+↓
+Invariant
+
+17.
+
+只有等价 / 不等价不够
+↓
+Structural Distance
+
+18.
+
+Distance 只告诉“差多少”
+↓
+Structural Matching
+
+19.
+
+Matching 得到结构对应关系
+↓
+Structural Representation
+
+20.
+
+Representation 才能进入神经网络
+↓
+Neural Struct3D
+
+============================================================
+三十三、最终数学对象关系
+============
+
+最底层：
+
+P = Point Cloud
+
+↓
+
+Geometry：
+
+G(P)
+
+↓
+
+Energy：
+
+E(G)
+
+↓
+
+Partition：
+
+P = ⊔_i U_i
+
+↓
+
+Unit：
+
+U_i
+
+↓
+
+Object：
+
+O_j = composition(U_i)
+
+↓
+
+Instance：
+
+I_k → O_j
+
+↓
+
+Relation：
+
+R(I_i,I_j)
+
+↓
+
+Hierarchy：
+
+H
+
+↓
+
+World：
+
+W = (U,O,I,R,H)
+
+然后：
+
+World
+↓
+Equivalence Relation ~
+↓
+[W] = W / ~
+↓
+Canonical Form C(W)
+↓
+Invariant I(W)
+↓
+Distance D(W_1,W_2)
+↓
+Matching M(W_1,W_2)
+↓
+Representation R(W)
+
+============================================================
+三十四、Struct3D 代码关系图
+==================
+
+当前代码层面的关系应该理解成：
+
+data / point cloud
+│
+▼
+geometry
+│
+├── PCA
+├── normal
+├── curvature
+└── local geometry
+│
+▼
+structural graph
+│
+▼
+energy
+│
+├── fit
+├── normal
+├── curvature
+└── boundary
+│
+▼
+unit discovery
+│
+▼
+object composition
+│
+▼
+instance ownership
+│
+▼
+relation graph
+│
+▼
+World
+│
+├───────────────┐
+▼               ▼
+v3.8 distance       v3.9 matching
+│               │
+│               └── correspondence
+│
+▼
+v4.0 representation
+│
+├── canonical form
+├── invariant
+├── feature vector
+└── hash
+│
+▼
+Neural Struct3D
+
+============================================================
+三十五、版本与代码对应关系
+=============
+
+早期：
+
+v0.x
+Geometry / Structural Graph / Energy / Unit / Hierarchy
+
+v1.x
+Unit / Object / Instance / Relation / Hierarchy
+
+v2.0
+World Model
+
+v3.x
+World equivalence
+Isomorphism
+Automorphism
+Quotient
+Canonical Form
+Structural Distance
+
+具体回归测试：
+
+experiments/v38/
+run_v38_structural_distance.py
+
+对应：
+
+Struct3D v3.8
+Structural Distance
+
+experiments/v39/
+run_v39_structural_matching.py
+
+对应：
+
+Struct3D v3.9
+Structural Matching
+
+experiments/v40/
+run_v40_structural_representation.py
+
+对应：
+
+Struct3D v4.0
+Structural Representation
+
+然后：
+
+run_neural_struct3d.py
+
+对应：
+
+Neural Struct3D
+
+注意：
+
+v4.0 ≠ Neural Struct3D。
+
+v4.0 是数学结构的 Representation 层。
+
+Neural Struct3D 是利用这个 Representation / Matching / Structural supervision 建立神经网络。
+
+所以你之前指出的：
+
+“为什么还要 v4.1、v4.2、v4.3？”
+
+如果目标就是：
+
+v0.0 → … → v4.0 → Neural Struct3D
+
+那么**没有必要人为增加 v4.1、v4.2、v4.3 作为理论层级**。
+
+v4.0 应该作为 Struct3D 数学理论的冻结点。
+
+============================================================
+三十六、最终总流程图
+==========
+
+```
+                ┌──────────────────┐
+                │   Point Cloud    │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Geometry      │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ Geometry Field   │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ Structural Graph │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ StructuralEnergy │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Partition     │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │      Unit        │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │  Part / Object   │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Instance      │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Relation      │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Hierarchy     │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │      World       │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │   Equivalence    │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Quotient      │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ Canonical Form   │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Invariant     │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │StructuralDistance│
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │StructuralMatching│
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │  Representation  │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ Neural Struct3D  │
+                └──────────────────┘
+```
+
+============================================================
+三十七、最简理论闭环
+==========
+
+最后可以把整个 Struct3D 理论压缩成一句非常重要的话：
+
+Geometry determines Energy.
+
+Energy determines stable Partition.
+
+Partition determines Units.
+
+Units determine Composition.
+
+Composition determines Objects.
+
+Objects instantiate into Instances.
+
+Instances interact through Relations.
+
+Relations organize Hierarchy.
+
+Hierarchy forms a World.
+
+Worlds are compared modulo structural equivalence.
+
+Equivalence induces Quotient.
+
+Quotient admits Canonical Form.
+
+Canonical Form induces Invariant.
+
+Invariant supports Structural Distance.
+
+Distance supports Structural Matching.
+
+Matching and Invariant Structure produce Structural Representation.
+
+Structural Representation becomes the input / supervision basis of Neural Struct3D.
+
+这就是目前我们已经走到的：
+
+**v0.0 → v4.0 → Neural Struct3D**
+
+而不是：
+
+**v0.0 → v4.0 → v4.1 → v4.2 → v4.3 → Neural Struct3D**。
+
+另外，必须特别保留一个你前面一直强调的审计结论：**v0.x 到 v2.x 的 Energy → Partition → Unit → Emergence → Hierarchy 这一段，在现有历史记录中还没有完整保存当时的逐字原始数学推导；不能拿 v3/v4 的结果倒推去“补齐”它。**当前能确认的早期核心式就是当时已经明确过的 `E = E_fit + λ_c C + λ_b B` 以及兼容性能量 `C(i,j)=w_dD+w_nN+w_kK+w_bB`。因此上面的时间线保留了原主链，但没有伪造缺失的原始公式。
+
