@@ -1,14 +1,18 @@
-"""Theory-safe mathematical core for Struct3D.
+"""Theory-safe structural primitives for Struct3D.
 
-Frozen theory statements represented here:
+The uploaded Struct3D mathematical specification freezes:
     Structural Unit u_i = (G_i, theta_i)
-    Partition Pi is a disjoint, complete family of units
-    E is an externally supplied functional
-    Pi* is selected from an explicit admissible candidate set
+    Structural World W = (U, R, Phi)
+    Structural Graph G = (V, E)
+
+It does NOT freeze a specific energy functional or a specific construction of
+an admissible partition from raw points. ``Partition`` therefore remains a
+mathematically valid finite partition container, but its discovery mechanism
+is deliberately external/provisional until an energy/partition theorem is
+formally added to the specification.
 
 Primitive fitting, additive energy decompositions, graph thresholds and
-minimum-size filters remain legacy engineering choices until justified by
-the formal theory.
+minimum-size filters remain legacy engineering choices.
 """
 
 from __future__ import annotations
@@ -19,12 +23,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
 @dataclass(frozen=True)
 class TheoryUnit:
-    """A structural unit u=(G,theta).
-
-    ``indices`` is the geometric support. ``attributes`` stores theta.
-    ``primitive`` is optional metadata: a primitive explanation is not the
-    definition of a Structural Unit.
-    """
+    """Structural Unit u=(G, theta), represented by point support and attributes."""
 
     indices: Tuple[int, ...]
     attributes: Mapping[str, Any] = field(default_factory=dict)
@@ -46,7 +45,12 @@ class TheoryUnit:
 
 @dataclass(frozen=True)
 class Partition:
-    """A finite partition of an indexed point set."""
+    """A finite partition container over an indexed observation universe.
+
+    This class formalizes partition validity only. It does not claim that the
+    current Struct3D theory specifies how candidate partitions are generated
+    or which energy must select one.
+    """
 
     units: Tuple[TheoryUnit, ...]
     universe: Tuple[int, ...]
@@ -75,6 +79,11 @@ class Partition:
 
 
 def evaluate_energy(partition: Partition, functional: Callable[[Partition], float]) -> float:
+    """Evaluate an externally supplied scalar functional.
+
+    This is an interface for later formalization, not a claim that the
+    supplied Struct3D specification already defines a unique E.
+    """
     value = float(functional(partition))
     if value != value:
         raise ValueError("Energy functional returned NaN")
@@ -82,6 +91,12 @@ def evaluate_energy(partition: Partition, functional: Callable[[Partition], floa
 
 
 def select_minimizer(candidates: Sequence[Partition], functional: Callable[[Partition], float]) -> Partition:
+    """Select an argmin from an explicit finite candidate set.
+
+    This implements the generic optimization operator used by the current
+    engineering scaffold. It must not be read as a theorem that the uploaded
+    Struct3D specification already defines Pi*=argmin E(Pi).
+    """
     if not candidates:
         raise ValueError("At least one admissible partition is required")
     return min(candidates, key=lambda p: evaluate_energy(p, functional))
