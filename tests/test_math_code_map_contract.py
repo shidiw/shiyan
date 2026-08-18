@@ -7,6 +7,8 @@ class TestMathCodeMapContract(unittest.TestCase):
         path = Path(__file__).resolve().parents[1] / "docs" / "STRUCT3D_MATH_CODE_MAP.md"
         text = path.read_text(encoding="utf-8")
         self.assertIn("Structural Unit", text)
+        self.assertIn("single Unit type", text)
+        self.assertIn("Structural invariant `I(W)=C(W)`", text)
         self.assertIn("Representation distance", text)
         self.assertIn("Theory gap; intentionally not implemented", text)
         self.assertIn("Legacy `structure/energy.py`", text)
