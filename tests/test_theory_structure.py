@@ -31,6 +31,26 @@ class TestTheoryStructure(unittest.TestCase):
         objects = assemble_objects(self.units(), rels)
         self.assertEqual(tuple(o.unit_ids for o in objects), ((0,), (1, 2)))
 
+    def test_assembly_is_transitive_through_explicit_relations(self):
+        rels = (
+            StructuralRelation(0, 1, "assembly"),
+            StructuralRelation(1, 2, "assembly"),
+        )
+        objects = assemble_objects(self.units(), rels)
+        self.assertEqual(tuple(o.unit_ids for o in objects), ((0, 1, 2),))
+
+    def test_non_assembly_relations_do_not_merge_objects(self):
+        rels = (
+            StructuralRelation(0, 1, "near"),
+            StructuralRelation(1, 2, "contact"),
+        )
+        objects = assemble_objects(self.units(), rels)
+        self.assertEqual(tuple(o.unit_ids for o in objects), ((0,), (1,), (2,)))
+
+    def test_assembly_rejects_relation_outside_unit_domain(self):
+        with self.assertRaises(ValueError):
+            assemble_objects(self.units(), (StructuralRelation(0, 3, "assembly"),))
+
     def test_canonical_form_is_relabeling_invariant(self):
         u = self.units()
         w1 = StructuralWorld(
