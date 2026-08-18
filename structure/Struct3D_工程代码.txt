@@ -1,0 +1,260 @@
+Struct3D v0.x
+│
+├── v0.0  Data Generation
+│   └── data/primitives.py
+│
+├── v0.1  Geometry Field
+│   └── geometry/
+│   └──field.py
+│   ├── __init__.py
+│   ├── field.py
+│   ├── curvature.py
+│   └── differential.py
+│
+├── data/
+│   └── test.npy
+│
+└── run_struct3d.py
+│
+├── v0.2  Primitive Structural Unit
+│   └── structure/unit.py
+├── structure/
+│   ├── __init__.py
+│   ├── unit.py
+│   ├── initialize.py
+│   └── energy.py
+│
+├── data/
+│   └── primitives.py
+│
+└── run_struct3d.py
+│
+├── v0.3  Structural Graph
+└── structure/
+    ├── unit.py
+    ├── initialize.py
+    └── energy.py
+│
+├── v0.4  Structural Refinement
+│   graph/
+│
+└── relation.py
+│    structure/
+└── refine.py
+│
+├── v0.5  Structural Unit Discovery
+│   ├── structure/graph_cluster.py
+│
+├── v0.6  Primitive Discovery
+│   └── structure/primitive_selector.py
+│   └── structure/merge.py
+│
+├── v0.7  Primitive Energy
+│   └── structure/energy.py
+│
+├── v0.8  Hierarchy + Relation
+│   ├── structure/hierarchy.py
+│   └── structure/relation.py
+│
+└── v0.9  Memory + Prototype
+    ├── structure/memory.py
+    ├── structure/prototype.py
+    └── structure/prototype_memory.py
+
+
+Struct3D v1.x
+│
+├── v1.0  World Model
+│   ├── structure/world_model.py
+│   ├── structure/world_state.py
+│   ├── structure/world_validator.py
+│   ├── structure/object.py
+│   ├── structure/instance.py
+│   └── structure/relation.py
+│
+├── v1.1  Learned Structural Metric
+│   └── structure/object_embedding.py
+│
+├── v1.2  Generalized Primitive Atom Discovery
+│   ├── structure/primitive_selector.py
+│   └── structure/assembly.py
+│
+├── v1.3  Structural Primitive Discovery
+│   ├── structure/assembly.py
+│   └── structure/graph_cluster.py
+│
+├── v1.4  Structural Embedding + Prototype Generalization
+│   ├── structure/object_embedding.py
+│   ├── structure/prototype_generalization.py
+│   └── structure/prototype_match.py
+│
+├── v1.5  Structural Category Learning
+│   ├── structure/category.py
+│   ├── structure/category_emergence.py
+│   └── structure/category_memory.py
+│
+├── v1.6  Open World Discovery
+│   └── structure/open_world.py
+│
+├── v1.7  Structural Reasoning
+│   ├── structure/reasoning.py
+│   └── structure/reasoning_v2.py
+│
+├── v1.8  Hierarchical World Model
+│   ├── structure/hierarchy.py
+│   └── structure/world_model.py
+│
+└── v1.9  Dynamic Structural Cognition
+    ├── structure/cognition.py
+    └── structure/memory.py
+
+
+Struct3D v2.x
+│
+├── v2.0  End-to-End World Model
+│   └── experiments/v20/run_v20_end_to_end.py
+│
+├── v2.1  Object Invariance
+│   └── experiments/v21/run_v21_invariance.py
+│
+├── v2.2  Graph Invariance
+│   ├── experiments/v21/run_v21_graph_invariance.py
+│   └── experiments/v21/run_v21_graph_invariance_strict.py
+│
+├── v2.3  Structural Unit Invariance
+│   └── experiments/v23/run_v23_unit_invariance.py
+│
+├── v2.4  Relation Invariance
+│   ├── experiments/v24/run_v24_relation_invariance.py
+│   └── experiments/v24/run_v241_relation_invariance_nonvacuous.py
+│
+├── v2.5  Hierarchy Invariance
+│   └── experiments/v25/run_v25_hierarchy_invariance_nonvacuous.py
+│
+├── v2.6  Object Assembly Invariance
+│   └── experiments/v26/run_v26_object_assembly_invariance_nonvacuous.py
+│
+├── v2.7  Instance Identity Invariance
+│   ├── experiments/v27/run_v27_instance_invariance.py
+│   └── experiments/v27/run_v271_multi_instance_invariance.py
+│
+└── v2.8  Instance-Relation Consistency
+   └── experiments/v28/run_v28_instance_relation_consistency.py
+
+
+Struct3D v3.0
+Canonical Structural World
+│
+└── experiments/v30/
+    └── run_v30_canonical_world_invariance.py
+
+
+        ↓
+
+
+Struct3D v3.1
+Canonical Structural Identity
+│
+└── experiments/v31/
+    └── run_v31_canonical_identity_invariance.py
+
+
+        ↓
+
+
+Struct3D v3.2
+Structural Equivalence
+│
+└── experiments/v32/
+    └── run_v32_structural_equivalence.py
+
+
+        ↓
+
+
+Struct3D v3.3
+Structural Isomorphism
+│
+└── experiments/v33/
+    └── run_v33_structural_isomorphism.py
+
+
+        ↓
+
+
+Struct3D v3.4
+Structural Automorphism
+│
+└── experiments/v34/
+    └── run_v34_structural_automorphism.py
+
+
+        ↓
+
+
+Struct3D v3.5
+Structural Quotient
+│
+└── experiments/v35/
+    └── run_v35_structural_quotient.py
+
+
+        ↓
+
+
+Struct3D v3.6
+Canonical Structural Form
+│
+└── experiments/v36/
+    └── run_v36_structural_canonical_form.py
+
+
+        ↓
+
+
+Struct3D v3.7
+Structural Invariant
+│
+└── experiments/v37/
+    └── run_v37_structural_invariant.py
+
+
+        ↓
+
+
+Struct3D v3.8
+Structural Distance
+│
+└── experiments/v38/
+    └── run_v38_structural_distance.py
+
+
+        ↓
+
+
+Struct3D v3.9
+Structural Matching
+│
+└── experiments/v39/
+    └── run_v39_structural_matching.py
+
+
+        ↓
+
+
+Struct3D v4.0
+Structural Representation
+│
+└── experiments/v40/
+    └── run_v40_structural_representation.py
+
+
+        ↓
+
+
+Neural Struct3D
+│
+└── experiments/neural/
+    ├── run_neural_struct3d.py
+    ├── test_neural_struct3d_geometry.py
+    └── test_neural_struct3d_generalization.py

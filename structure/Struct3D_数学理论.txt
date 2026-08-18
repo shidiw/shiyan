@@ -1,0 +1,1688 @@
+对。现在这次我会**严格按照我们之前已经确定的 Struct3D 版本链来整理**，不再把刚才我临时提出的
+
+[
+E_g+\lambda_rE_r+\lambda_oE_o+\gamma K
+]
+
+之类的新统一目标混进来。
+
+而且要先把一个关键点钉死：
+
+> 你刚上传的文本主要记录的是 **PAT 的数学闭环**：Atom → Primitive → Relation → Hierarchy。
+> **Struct3D 是在此基础上后来继续发展的另一套数学体系。**
+
+我们之前 Struct3D 已经走到了：
+
+[
+\boxed{
+\text{Canonical Structural Form}
+\rightarrow
+\text{Structural Invariant}
+\rightarrow
+\text{Structural Distance}
+\rightarrow
+\text{Structural Matching}
+\rightarrow
+\text{Structural Representation}
+\rightarrow
+\text{Neural Struct3D}
+}
+]
+
+下面把这条链完整列出来。
+
+---
+
+# Struct3D 数学理论总纲
+
+## 一、Struct3D 最终要解决的数学问题
+
+PAT 的问题是：
+
+[
+X\rightarrow A\rightarrow P\rightarrow G_P\rightarrow H
+]
+
+即：
+
+[
+\boxed{
+\text{点云}
+\rightarrow
+\text{Atom}
+\rightarrow
+\text{Primitive}
+\rightarrow
+\text{Relation}
+\rightarrow
+\text{Hierarchy}
+}
+]
+
+而 Struct3D 把问题进一步提升为：
+
+[
+\boxed{
+\text{不同观测下的结构如何形成一个可比较、可度量、可匹配、可学习的统一空间？}
+}
+]
+
+所以 Struct3D 的数学链不是简单的 segmentation：
+
+[
+X\rightarrow Y
+]
+
+而是：
+
+[
+\boxed{
+X
+\rightarrow
+W
+\rightarrow
+C(W)
+\rightarrow
+D(W_1,W_2)
+\rightarrow
+M(W_1,W_2)
+\rightarrow
+\phi(W)
+}
+]
+
+其中：
+
+* (X)：观测
+* (W)：Structural World
+* (C(W))：Canonical Structural Form
+* (D)：Structural Distance
+* (M)：Structural Matching
+* (\phi(W))：Structural Representation
+
+---
+
+# 二、Definition 1：Structural World
+
+定义一个三维场景/对象的结构世界：
+
+[
+\boxed{
+W=(U,R,\Phi)
+}
+]
+
+其中：
+
+[
+U={u_1,\ldots,u_K}
+]
+
+是 Structural Units。
+
+[
+R
+]
+
+是 Structural Relations。
+
+[
+\Phi
+]
+
+是所有结构属性。
+
+因此：
+
+[
+\boxed{
+W=
+(\text{Units},
+\text{Relations},
+\text{Attributes})
+}
+]
+
+这是 Struct3D 的基本对象。
+
+---
+
+# 三、Definition 2：Structural Unit
+
+Structural Unit 是 Struct3D 中的基本结构实体。
+
+[
+\boxed{
+u_i=(G_i,\theta_i)
+}
+]
+
+其中：
+
+* (G_i)：该 Unit 的几何/空间支撑；
+* (\theta_i)：该 Unit 的结构属性。
+
+注意：
+
+[
+\boxed{
+Structural\ Unit\neq Point
+}
+]
+
+也不是简单：
+
+[
+Structural\ Unit=Superpoint
+]
+
+更不是：
+
+[
+Structural\ Unit=Primitive
+]
+
+Primitive 是一种可能的几何解释，而 Structural Unit 是结构实体。
+
+这继承了 PAT 中：
+
+[
+A_i\subset X
+]
+
+以及：
+
+[
+Primitive\neq Atom
+]
+
+的基本区分。PAT 原始理论明确把 Atom、Primitive、Hierarchy 分成三个不同数学层次。
+
+---
+
+# 四、Definition 3：Structural Relation
+
+对于两个 Structural Units：
+
+[
+u_i,u_j
+]
+
+定义：
+
+[
+\boxed{
+r_{ij}\in\mathcal R
+}
+]
+
+表示它们之间的结构关系。
+
+因此：
+
+[
+R=
+{r_{ij}}
+]
+
+形成关系集合。
+
+这里继承 PAT 已经确定的原则：
+
+[
+R(P_i,P_j)
+]
+
+不能简单依赖：
+
+[
+type(P_i)=type(P_j)
+]
+
+而应该由：
+
+[
+\boxed{
+geometry+
+boundary+
+spatial
+}
+]
+
+共同决定。
+
+Struct3D 把这个关系从 Primitive 层推广到了 Structural Unit 层。
+
+---
+
+# 五、Definition 4：Structural Graph
+
+于是定义：
+
+[
+\boxed{
+G=(V,E)
+}
+]
+
+其中：
+
+[
+V={u_1,\ldots,u_K}
+]
+
+而：
+
+[
+E=
+{(u_i,u_j,r_{ij})}
+]
+
+因此：
+
+[
+\boxed{
+Structural\ World
+\equiv
+Structural\ Graph
++
+Attributes
+}
+]
+
+这一步是从 PAT：
+
+[
+G_P=(V_P,E_P)
+]
+
+向 Struct3D 的：
+
+[
+G=(V,E)
+]
+
+推广。
+
+PAT 中进一步通过：
+
+[
+H=ConnectedComponents(G_P)
+]
+
+形成 higher-level hierarchy。
+
+---
+
+# 六、Definition 5：Structural Relabeling
+
+这是 Struct3D 后来非常重要的一步。
+
+假设：
+
+[
+W=(U,R,\Phi)
+]
+
+对 Unit 编号进行一个 permutation：
+
+[
+\pi\in S_K
+]
+
+得到：
+
+[
+\pi(W)
+]
+
+只是重新编号：
+
+[
+u_i\rightarrow u_{\pi(i)}
+]
+
+结构本身没有发生变化。
+
+因此：
+
+[
+\boxed{
+W\sim_{\mathrm{label}}\pi(W)
+}
+]
+
+称为：
+
+# Structural Relabeling Equivalence
+
+---
+
+# 七、Structural Invariance
+
+因此 Struct3D 要求：
+
+如果两个结构只发生 Unit / Object / Instance / Relation 的合法 relabeling：
+
+[
+W_2=\pi(W_1)
+]
+
+则：
+
+[
+\boxed{
+\mathcal R(W_1)=\mathcal R(W_2)
+}
+]
+
+也就是：
+
+> Representation 不应该依赖结构节点的名字。
+
+这是 Struct3D 后续测试中已经明确验证的 invariant family。
+
+---
+
+# 八、Definition 6：Canonical Structural Form
+
+为了消除：
+
+[
+u_1,u_2,u_3
+]
+
+这种任意编号，需要定义 canonicalization：
+
+[
+\boxed{
+C:\mathcal W\rightarrow\mathcal C
+}
+]
+
+使得：
+
+[
+\boxed{
+C(W)=C(\pi(W))
+}
+]
+
+对于任意合法 relabeling：
+
+[
+\pi
+]
+
+成立。
+
+因此：
+
+[
+\boxed{
+C(W_1)=C(W_2)
+\iff
+W_1,W_2
+\text{ are structurally equivalent}
+}
+]
+
+这就是我们之前的：
+
+# v3.6 Canonical Structural Form
+
+它解决：
+
+> “同一个结构换了编号以后，到底是不是同一个结构？”
+
+---
+
+# 九、Definition 7：Structural Invariant
+
+Canonical Form 之后进一步定义：
+
+[
+\boxed{
+I(W)=I(\pi(W))
+}
+]
+
+更一般地：
+
+如果：
+
+[
+W_1\cong W_2
+]
+
+则：
+
+[
+\boxed{
+I(W_1)=I(W_2)
+}
+]
+
+这就是：
+
+# v3.7 Structural Invariant
+
+所以逻辑：
+
+[
+\boxed{
+Structural\ Relabeling
+\rightarrow
+Canonical\ Form
+\rightarrow
+Structural\ Invariant
+}
+]
+
+---
+
+# 十、Definition 8：Structural Representation
+
+最终定义：
+
+[
+\boxed{
+\phi(W)\in\mathbb R^d
+}
+]
+
+作为 Structural Representation。
+
+在我们之前冻结的 **Struct3D v4.0** 中：
+
+[
+\boxed{
+d=23
+}
+]
+
+即：
+
+[
+\phi(W)\in\mathbb R^{23}
+]
+
+其 23 维结构如下。
+
+---
+
+## 1. Primitive Histogram
+
+[
+\phi_{1:3}
+]
+
+三个 primitive composition statistics。
+
+---
+
+## 2. Object Composition Histogram
+
+[
+\phi_{4:6}
+]
+
+---
+
+## 3. Object Count / Topology Statistics
+
+[
+\phi_{7:9}
+]
+
+---
+
+## 4. Relation Type Histogram
+
+[
+\phi_{10:12}
+]
+
+---
+
+## 5. Relation Confidence Statistics
+
+[
+\phi_{13:15}
+]
+
+---
+
+## 6. Instance Occupancy Statistics
+
+[
+\phi_{16:18}
+]
+
+---
+
+## 7. Global Structural Counts
+
+[
+\phi_{19:23}
+]
+
+因此：
+
+[
+\boxed{
+\phi(W)
+=======
+
+[
+h_P,
+h_O,
+t_O,
+h_R,
+s_R,
+o_I,
+g
+]
+\in\mathbb R^{23}
+}
+]
+
+这就是我们已经实际进入 Neural Struct3D v1.0 的 **23-dimensional Structural Representation**。
+
+---
+
+# 十一、Definition 9：Structural Distance
+
+Struct3D v3.8 定义：
+
+两个 Structural Worlds：
+
+[
+W_1,W_2
+]
+
+首先映射：
+
+[
+\phi(W_1),\phi(W_2)\in\mathbb R^{23}
+]
+
+然后定义：
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+\left|
+\phi(W_1)-\phi(W_2)
+\right|_2
+}
+]
+
+展开：
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+\sqrt{
+\sum_{k=1}^{23}
+\left(
+\phi_k(W_1)-\phi_k(W_2)
+\right)^2
+}
+}
+]
+
+这就是我们之前 Struct3D v3.8 确定的：
+
+# Structural Distance
+
+---
+
+# 十二、Structural Distance 的基本性质
+
+因为它定义在 Euclidean representation space 中，所以：
+
+## Non-negativity
+
+[
+\boxed{
+D_R(W_1,W_2)\geq0
+}
+]
+
+---
+
+## Symmetry
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+D_R(W_2,W_1)
+}
+]
+
+---
+
+## Identity in representation space
+
+[
+\boxed{
+D_R(W_1,W_2)=0
+\iff
+\phi(W_1)=\phi(W_2)
+}
+]
+
+注意这里必须严谨：
+
+它首先是 **representation-space distance**。
+
+只有当：
+
+[
+\phi
+]
+
+对结构等价类是 injective 时，才能进一步推出：
+
+[
+D_R=0
+\Rightarrow
+W_1\cong W_2
+]
+
+这一点是理论上必须保留的条件。
+
+---
+
+## Triangle Inequality
+
+[
+\boxed{
+D_R(W_1,W_3)
+\leq
+D_R(W_1,W_2)
++
+D_R(W_2,W_3)
+}
+]
+
+因为它继承：
+
+[
+\ell_2
+]
+
+范数的三角不等式。
+
+---
+
+# 十三、Definition 10：Structural Matching
+
+距离解决：
+
+> 两个结构有多像？
+
+但还没有解决：
+
+> 两个结构中的哪些 Unit 对应？
+
+因此 v3.9 引入：
+
+# Structural Matching
+
+定义：
+
+[
+\boxed{
+M:
+W_1\times W_2
+\rightarrow
+\mathcal M
+}
+]
+
+其中：
+
+[
+M(u_i,v_j)
+]
+
+表示两个结构 Unit 的对应关系。
+
+---
+
+匹配代价可以抽象成：
+
+[
+\boxed{
+C_{ij}
+======
+
+d_u(u_i,v_j)
++
+\lambda_r d_r(u_i,v_j)
++
+\lambda_g d_g(u_i,v_j)
+}
+]
+
+然后寻找最优匹配：
+
+[
+\boxed{
+M^*
+===
+
+\arg\min_M
+\sum_{(i,j)\in M}
+C_{ij}
+}
+]
+
+这里需要特别标记：
+
+**这是我们之前 Struct3D Matching 阶段形成的数学框架；具体的完整 matching cost 是否最终冻结成上述三项，需要以当时版本文档/代码为准。**
+
+所以我不会把它冒充成 v4.0 已冻结的最终公式。
+
+---
+
+# 十四、Structural Representation 与 Matching 的关系
+
+整个 v3.6 → v4.0 的逻辑不是几个独立模块。
+
+而是：
+
+[
+\boxed{
+W
+\rightarrow
+C(W)
+\rightarrow
+I(W)
+\rightarrow
+\phi(W)
+\rightarrow
+D_R(W_1,W_2)
+}
+]
+
+而：
+
+[
+M(W_1,W_2)
+]
+
+解决结构级对应。
+
+因此：
+
+```text
+Structural World
+       |
+       v
+Canonical Form
+       |
+       v
+Structural Invariant
+       |
+       v
+Structural Representation
+       |
+       +----------+
+       |          |
+       v          v
+Distance      Matching
+```
+
+---
+
+# 十五、Neural Struct3D 的数学目标
+
+到了 Neural Struct3D v1.0：
+
+输入：
+
+[
+\phi(W)\in\mathbb R^{23}
+]
+
+Encoder：
+
+[
+\boxed{
+z=f_\theta(\phi(W))
+}
+]
+
+其中：
+
+[
+z\in\mathbb R^{64}
+]
+
+所以：
+
+[
+\boxed{
+f_\theta:
+\mathbb R^{23}
+\rightarrow
+\mathbb R^{64}
+}
+]
+
+Decoder：
+
+[
+\boxed{
+\hat\phi(W)=g_\psi(z)
+}
+]
+
+---
+
+# 十六、Reconstruction Objective
+
+第一项：
+
+[
+\boxed{
+L_{\mathrm{recon}}
+==================
+
+|
+\phi(W)-\hat\phi(W)
+|_2^2
+}
+]
+
+目标：
+
+[
+\hat\phi(W)\approx\phi(W)
+]
+
+---
+
+# 十七、Structural Distance Preservation
+
+这是 Neural Struct3D v1.0 暴露出来的关键问题。
+
+理论上希望：
+
+[
+D_R(W_i,W_j)
+]
+
+和 latent distance：
+
+[
+D_Z(W_i,W_j)
+============
+
+|z_i-z_j|_2
+]
+
+保持一致。
+
+即：
+
+[
+\boxed{
+D_Z(W_i,W_j)
+\approx
+D_R(W_i,W_j)
+}
+]
+
+所以自然定义：
+
+[
+\boxed{
+L_{\mathrm{distance}}
+=====================
+
+\left(
+|z_i-z_j|_2
+-----------
+
+D_R(W_i,W_j)
+\right)^2
+}
+]
+
+或者相对误差形式：
+
+[
+\boxed{
+\epsilon_{ij}
+=============
+
+\frac{
+\left|
+D_Z(W_i,W_j)-D_R(W_i,W_j)
+\right|
+}{
+D_R(W_i,W_j)+\epsilon
+}
+}
+]
+
+---
+
+# 十八、Mutation Consistency
+
+我们之前还要求：
+
+如果对结构进行 mutation：
+
+[
+W\rightarrow W'
+]
+
+使：
+
+[
+D_R(W,W')>0
+]
+
+那么：
+
+[
+\boxed{
+|z(W)-z(W')|_2>0
+}
+]
+
+即：
+
+> Structural mutation 在 latent space 中不能被完全压扁。
+
+---
+
+# 十九、Neural Struct3D v1.0 的完整目标
+
+因此我们后来提出：
+
+[
+\boxed{
+L
+=
+
+L_{\mathrm{recon}}
++
+\lambda_dL_{\mathrm{distance}}
++
+\lambda_mL_{\mathrm{mutation}}
+}
+]
+
+但是要注意：
+
+**这一式是 v1.1 / Structural Distance-Preserving Encoder 阶段提出的改进目标，不应倒写成 v1.0 已经使用的最终 loss。**
+
+v1.0 的实际问题正是：
+
+> reconstruction 做得不错，但 latent geometry 没有充分保持 (D_R)。
+
+你之前实验得到：
+
+[
+\boxed{
+\text{Average Relative Distance Error}
+======================================
+
+53.1836%
+}
+]
+
+这直接说明：
+
+[
+L_{\mathrm{recon}}
+]
+
+不能保证：
+
+[
+D_Z\approx D_R
+]
+
+这恰恰成为下一阶段理论/算法问题。
+
+---
+
+# 二十、Struct3D 的几个真正“定理级”性质
+
+这里我要严格区分。
+
+## Theorem / Proposition 1
+
+### Relabeling Invariance
+
+若：
+
+[
+W_2=\pi(W_1)
+]
+
+且 (\phi) 是基于 invariant structural statistics 构造的，则：
+
+[
+\boxed{
+\phi(W_1)=\phi(W_2)
+}
+]
+
+从而：
+
+[
+\boxed{
+D_R(W_1,W_2)=0
+}
+]
+
+这是 Struct3D v3.7 → v4.0 最核心的数学性质。
+
+---
+
+# 二十一、Proposition 2：Structural Distance Symmetry
+
+由：
+
+[
+D_R(W_1,W_2)
+============
+
+|\phi(W_1)-\phi(W_2)|_2
+]
+
+直接得到：
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+D_R(W_2,W_1)
+}
+]
+
+这是严格成立的。
+
+---
+
+# 二十二、Proposition 3：Mutation Detectability
+
+若 mutation：
+
+[
+W\rightarrow W'
+]
+
+改变了 Structural Representation：
+
+[
+\phi(W')\neq\phi(W)
+]
+
+则：
+
+[
+\boxed{
+D_R(W,W')>0
+}
+]
+
+因此：
+
+[
+\boxed{
+\text{representation-level mutation}
+\Rightarrow
+\text{nonzero structural distance}
+}
+]
+
+注意它的条件是：
+
+[
+\phi(W')\neq\phi(W)
+]
+
+不能无条件声称所有语义 mutation 都一定被 23D representation 检测出来。
+
+---
+
+# 二十三、Proposition 4：Structural Distance is a Metric / Pseudometric
+
+在整个 (\mathcal W) 上，如果不同结构可能映射到相同：
+
+[
+\phi(W)
+]
+
+那么严格说：
+
+[
+D_R
+]
+
+是：
+
+[
+\boxed{
+\text{pseudometric on structural worlds}
+}
+]
+
+而在 quotient space：
+
+[
+\mathcal W/\sim_\phi
+]
+
+上，它才可以成为真正的 metric。
+
+这其实是 Struct3D 数学里非常重要的一个严谨点。
+
+---
+
+# 二十四、Canonical Structure 的逻辑
+
+因此我们可以定义结构等价：
+
+[
+\boxed{
+W_1\sim W_2
+\iff
+C(W_1)=C(W_2)
+}
+]
+
+或者在 representation 层：
+
+[
+W_1\sim_\phi W_2
+\iff
+\phi(W_1)=\phi(W_2)
+]
+
+于是：
+
+[
+\boxed{
+\mathcal W/\sim
+}
+]
+
+才是真正的：
+
+# Structural Configuration Space
+
+Struct3D 的目标其实就是：
+
+> 把原本杂乱的点云 observation 映射到一个结构等价类空间。
+
+---
+
+# 二十五、整个 Struct3D 数学闭环
+
+现在可以完整写成：
+
+[
+\boxed{
+W
+\xrightarrow{\mathcal O}
+X
+\xrightarrow{\mathcal S}
+G
+\xrightarrow{C}
+C(G)
+\xrightarrow{I}
+I(G)
+\xrightarrow{\phi}
+\mathbb R^{23}
+}
+]
+
+然后：
+
+[
+\boxed{
+(\phi(W_1),\phi(W_2))
+\xrightarrow{D_R}
+D_R(W_1,W_2)
+}
+]
+
+以及：
+
+[
+\boxed{
+(G_1,G_2)
+\xrightarrow{M}
+M^*(G_1,G_2)
+}
+]
+
+最后：
+
+[
+\boxed{
+\phi(W)
+\xrightarrow{f_\theta}
+z
+}
+]
+
+希望：
+
+[
+\boxed{
+|z_1-z_2|_2
+\approx
+D_R(W_1,W_2)
+}
+]
+
+---
+
+# 二十六、真正的完整逻辑图
+
+```text
+                    REAL WORLD
+                         W
+                         │
+                         │ observation
+                         ▼
+                 Point Cloud X
+                         │
+                         │ structural discovery
+                         ▼
+             Structural Units U
+                         │
+                         │ relations
+                         ▼
+              Structural Graph G
+                         │
+                         │ relabeling
+                         ▼
+              Canonical Form C(G)
+                         │
+                         │ invariant
+                         ▼
+            Structural Invariant I(G)
+                         │
+                         │ encoding
+                         ▼
+       Structural Representation φ(W)
+                         │
+                    R^23 │
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+      Structural Distance      Structural Matching
+              │                     │
+              ▼                     ▼
+          D_R(W1,W2)             M*(W1,W2)
+              │
+              │ neural encoding
+              ▼
+          Neural Struct3D
+              │
+              ▼
+        z = fθ(φ(W))
+              │
+              ▼
+   Latent Structural Geometry
+              │
+              ▼
+       downstream tasks
+```
+
+---
+
+# 二十七、从 PAT 到 Struct3D 的数学继承关系
+
+这一点现在也可以彻底冻结：
+
+[
+\boxed{
+PAT
+\rightarrow
+Struct3D
+}
+]
+
+不是简单换名字。
+
+具体：
+
+[
+\boxed{
+A_i
+\longrightarrow
+u_i
+}
+]
+
+[
+\boxed{
+P_i
+\longrightarrow
+\text{geometric attribute / explanation}
+}
+]
+
+[
+\boxed{
+R(P_i,P_j)
+\longrightarrow
+R(u_i,u_j)
+}
+]
+
+[
+\boxed{
+G_P
+\longrightarrow
+G_S
+}
+]
+
+[
+\boxed{
+H
+\longrightarrow
+Structural\ World
+}
+]
+
+PAT 原来已经明确：
+
+[
+X\rightarrow{A_i}\rightarrow{P_i}\rightarrow G_P\rightarrow H
+]
+
+Struct3D 把它继续推进：
+
+[
+\boxed{
+X
+\rightarrow
+G_S
+\rightarrow
+C(G_S)
+\rightarrow
+I(G_S)
+\rightarrow
+\phi(W)
+\rightarrow
+D_R
+\rightarrow
+M
+}
+]
+
+---
+
+# 二十八、所以目前真正“确定”的 Struct3D 数学资产
+
+我建议从现在开始把下面这些标记为**冻结数学核心**：
+
+### 定义
+
+[
+\boxed{W=(U,R,\Phi)}
+]
+
+[
+\boxed{G=(V,E)}
+]
+
+[
+\boxed{W\sim_{\rm label}\pi(W)}
+]
+
+[
+\boxed{C(W)}
+]
+
+[
+\boxed{I(W)}
+]
+
+[
+\boxed{\phi(W)\in\mathbb R^{23}}
+]
+
+[
+\boxed{D_R(W_1,W_2)}
+]
+
+[
+\boxed{M(W_1,W_2)}
+]
+
+---
+
+### 已确定公式
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+|\phi(W_1)-\phi(W_2)|_2
+}
+]
+
+[
+\boxed{
+D_Z(W_1,W_2)
+============
+
+## |f_\theta(\phi(W_1))
+
+f_\theta(\phi(W_2))|_2
+}
+]
+
+[
+\boxed{
+L_{\rm recon}
+=============
+
+|\phi-\hat\phi|_2^2
+}
+]
+
+以及后续 distance-preserving 方向：
+
+[
+\boxed{
+L
+=
+
+L_{\rm recon}
++
+\lambda_dL_{\rm distance}
++
+\lambda_mL_{\rm mutation}
+}
+]
+
+---
+
+### 已确定数学性质
+
+[
+\boxed{
+\text{Relabeling Invariance}
+}
+]
+
+[
+\boxed{
+D_R(W_1,W_2)
+============
+
+D_R(W_2,W_1)
+}
+]
+
+[
+\boxed{
+D_R\geq0
+}
+]
+
+[
+\boxed{
+D_R=0
+\iff
+\phi(W_1)=\phi(W_2)
+}
+]
+
+[
+\boxed{
+D_R
+\text{ satisfies triangle inequality}
+}
+]
+
+严格说：
+
+[
+D_R
+]
+
+在原始结构空间上可能是 pseudometric，在 quotient space 上是 metric。
+
+---
+
+# 二十九、目前**还不能**放进“已确定定理”的东西
+
+这次一定要划清边界。
+
+以下内容我们之前讨论过，但**不能冒充已经证明的 Struct3D theorem**：
+
+### 1.
+
+[
+\exists S^*
+]
+
+对连续 Structural Space 的严格存在性。
+
+---
+
+### 2.
+
+[
+X_1\sim_WX_2
+\Rightarrow
+S(X_1)\cong S(X_2)
+]
+
+完整 observation-invariance theorem。
+
+---
+
+### 3.
+
+Canonical Structural Form 的唯一性。
+
+---
+
+### 4.
+
+Structural Unit 一定是自然世界真实部件。
+
+---
+
+### 5.
+
+[
+\gamma
+]
+
+控制 structural scale 的连续理论。
+
+---
+
+### 6.
+
+Neural latent space 必然保持：
+
+[
+D_Z=D_R
+]
+
+实际上你已经实验发现简单 Autoencoder **做不到**：
+
+[
+53.1836%
+]
+
+relative distance error。
+
+所以这恰恰是一个尚未解决的问题，而不是已经成立的 theorem。
+
+---
+
+# 三十、最终一句话定义 Struct3D
+
+如果现在让我把**我们已经确定的 Struct3D 数学原理**压缩成一句最严格的话：
+
+> **Struct3D 将三维观测中的局部几何实体及其关系组织为一个结构图，通过 canonicalization 消除结构表示中的任意标号，通过 invariant structural representation 将结构映射到可比较的表示空间，再以 Structural Distance 和 Structural Matching 定义结构之间的差异与对应关系，并进一步要求神经表示保持这一结构几何。**
+
+数学上最终闭环：
+
+[
+\boxed{
+\begin{aligned}
+W
+&\rightarrow X\
+&\rightarrow G\
+&\rightarrow C(G)\
+&\rightarrow I(G)\
+&\rightarrow \phi(W)\in\mathbb R^{23}\
+&\rightarrow D_R(W_1,W_2)\
+&\rightarrow M(W_1,W_2)\
+&\rightarrow z=f_\theta(\phi(W))
+\end{aligned}
+}
+]
+
+而 PAT 是它的前身：
+
+[
+\boxed{
+X
+\rightarrow
+A
+\rightarrow
+P
+\rightarrow
+G_P
+\rightarrow
+H
+}
+]
+
+PAT 文件本身明确把这个旧闭环定义为 Observation → Invariant Atom → Primitive → Relation → Graph → Hierarchy。
+
+**因此，现在我们终于可以把两套理论彻底分开：PAT 负责“结构从几何区域中如何产生”；Struct3D 负责“结构一旦形成以后，如何成为 canonical、invariant、可度量、可匹配、可学习的数学对象”。**
+
+这才是我们目前已经走到的真正理论闭环。
