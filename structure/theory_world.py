@@ -2,6 +2,11 @@
 
 Frozen definition:
     W = (U, R, Phi)
+
+The graph representation is the explicit structural graph
+    G = (V, E)
+with V indexed by world units and E copied exactly from world relations.
+No edges are inferred from unit attributes or primitive equality.
 """
 
 from __future__ import annotations
@@ -11,6 +16,14 @@ from typing import Any, Mapping, Tuple
 
 from .theory_core import TheoryUnit
 from .theory_relation import StructuralRelation
+
+
+@dataclass(frozen=True)
+class StructuralGraph:
+    """Explicit graph view G=(V,E) of a StructuralWorld."""
+
+    vertices: Tuple[int, ...]
+    edges: Tuple[StructuralRelation, ...]
 
 
 @dataclass(frozen=True)
@@ -32,3 +45,11 @@ class StructuralWorld:
     @property
     def relation_count(self) -> int:
         return len(self.relations)
+
+    @property
+    def graph(self) -> StructuralGraph:
+        """Return the explicit graph view; never infer additional edges."""
+        return StructuralGraph(
+            vertices=tuple(range(self.unit_count)),
+            edges=self.relations,
+        )
