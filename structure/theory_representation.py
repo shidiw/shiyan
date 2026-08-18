@@ -2,10 +2,6 @@
 
 Frozen chain:
     W -> C(W) -> I(W) -> phi(W) in R^23.
-
-``represent`` is an explicitly supplied world-level extractor and makes no
-invariance claim. ``represent_canonical`` uses the frozen invariant object
-I(W)=C(W), so any invariance claim is delegated to the exact canonical layer.
 """
 
 from __future__ import annotations
@@ -14,7 +10,11 @@ from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
 from .theory_invariant import structural_invariant
-from .theory_representation_schema import validate_grouped_representation, group_slices
+from .theory_representation_schema import (
+    REPRESENTATION_DIM,
+    validate_grouped_representation,
+    group_slices,
+)
 from .theory_world import StructuralWorld
 
 
@@ -42,7 +42,6 @@ def represent(
     world: StructuralWorld,
     extractor: Callable[[StructuralWorld], Sequence[float]],
 ) -> StructuralRepresentation:
-    """Apply an explicit world-level extractor; no invariance is claimed."""
     return _build_representation(extractor(world))
 
 
@@ -50,5 +49,7 @@ def represent_canonical(
     world: StructuralWorld,
     extractor: Callable[[Any], Sequence[float]],
 ) -> StructuralRepresentation:
-    """Compute phi(W) from the frozen structural invariant I(W)."""
     return _build_representation(extractor(structural_invariant(world)))
+
+
+__all__ = ["REPRESENTATION_DIM", "StructuralRepresentation", "represent", "represent_canonical"]
