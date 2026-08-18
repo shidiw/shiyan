@@ -1,49 +1,52 @@
-"""Minimal theory-facing core for Struct3D.
+"""Theory-safe mathematical core for Struct3D.
 
-This module deliberately implements only statements that are safe to make
-without inventing a new energy decomposition or partition heuristic.
+Frozen theory statements represented here:
+    Structural Unit u_i = (G_i, theta_i)
+    Partition Pi is a disjoint, complete family of units
+    E is an externally supplied functional
+    Pi* is selected from an explicit admissible candidate set
 
-Current status:
-- a StructuralUnit is a candidate subset plus its primitive parameters;
-- a partition is a finite family of non-empty, pairwise-disjoint subsets
-  whose union is the represented point set;
-- an energy is an externally supplied functional on candidates/partitions.
-
-No additive energy, threshold, minimum component size, or relation rule is
-silently promoted to theory here.
+Primitive fitting, additive energy decompositions, graph thresholds and
+minimum-size filters remain legacy engineering choices until justified by
+the formal theory.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Callable, Hashable, Mapping, Sequence, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
 
 @dataclass(frozen=True)
 class TheoryUnit:
-    """A mathematical candidate structural unit.
+    """A structural unit u=(G,theta).
 
-    ``indices`` identifies the subset of the ambient point set. ``primitive``
-    and ``parameters`` are descriptors; they do not by themselves assert
-    optimality.
+    ``indices`` is the geometric support. ``attributes`` stores theta.
+    ``primitive`` is optional metadata: a primitive explanation is not the
+    definition of a Structural Unit.
     """
 
     indices: Tuple[int, ...]
-    primitive: str
-    parameters: Mapping[str, Any]
+    attributes: Mapping[str, Any] = field(default_factory=dict)
+    primitive: Optional[str] = None
 
     def __post_init__(self) -> None:
         if not self.indices:
             raise ValueError("A structural unit must be non-empty")
         if tuple(sorted(set(self.indices))) != self.indices:
             raise ValueError("Unit indices must be unique and sorted")
-        if not self.primitive:
-            raise ValueError("A structural unit requires a primitive label")
+        if self.attributes is None:
+            raise ValueError("Unit attributes cannot be None")
+
+    @property
+    def parameters(self) -> Mapping[str, Any]:
+        """Backward-compatible name for structural attributes."""
+        return self.attributes
 
 
 @dataclass(frozen=True)
 class Partition:
-    """A partition of a finite indexed point set."""
+    """A finite partition of an indexed point set."""
 
     units: Tuple[TheoryUnit, ...]
     universe: Tuple[int, ...]
@@ -71,29 +74,14 @@ class Partition:
         return True
 
 
-def evaluate_energy(
-    partition: Partition,
-    functional: Callable[[Partition], float],
-) -> float:
-    """Evaluate an externally defined partition functional.
-
-    The function intentionally does not prescribe its algebraic form.
-    """
+def evaluate_energy(partition: Partition, functional: Callable[[Partition], float]) -> float:
     value = float(functional(partition))
-    if value != value:  # NaN
+    if value != value:
         raise ValueError("Energy functional returned NaN")
     return value
 
 
-def select_minimizer(
-    candidates: Sequence[Partition],
-    functional: Callable[[Partition], float],
-) -> Partition:
-    """Select a minimum-energy candidate from an explicit admissible set.
-
-    This is the operational form of argmin once the admissible set and
-    functional have been supplied by the theory. It does not create either.
-    """
+def select_minimizer(candidates: Sequence[Partition], functional: Callable[[Partition], float]) -> Partition:
     if not candidates:
         raise ValueError("At least one admissible partition is required")
     return min(candidates, key=lambda p: evaluate_energy(p, functional))
