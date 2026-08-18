@@ -1,15 +1,28 @@
-"""Theory-facing object construction.
+"""Derived Object construction over the frozen Struct3D core.
 
-The mathematical specification defines the Structural World as
-W = (U, R, Phi).  Object is therefore treated here as a derived structural
-construction from U and an explicitly designated subset of R; it is not
-silently added as a fourth coordinate of W.
+IMPORTANT THEORY STATUS
+-----------------------
+The current Struct3D mathematical specification defines
 
-The construction used by this module is:
-    O = connected components of (U, R_assembly)
-where R_assembly is supplied explicitly by the caller.  The module does not
-infer assembly from primitive labels, distance thresholds, or other legacy
-heuristics.
+    W = (U, R, Phi)
+
+and defines Units, Relations, Graphs, relabeling, canonical form,
+invariance, representation, distance and matching.  It does *not* give a
+formal Definition/Theorem that names Object or fixes a unique Object
+emergence operator.
+
+Therefore this module MUST NOT be read as a new mathematical axiom.
+``assemble_objects`` is a derived engineering construction that is kept
+explicit so that later theory work can replace or formally justify it
+without changing the frozen core.
+
+The current engineering rule is deliberately conservative:
+
+    O_derived = connected components of (U, R_assembly)
+
+where ``R_assembly`` is supplied explicitly by the caller.  No primitive
+label, distance threshold, proximity heuristic, or legacy relation inference
+is used here.
 """
 
 from __future__ import annotations
@@ -21,6 +34,9 @@ from .theory_core import TheoryUnit
 from .theory_relation import StructuralRelation
 
 
+THEORY_STATUS = "DERIVED_ENGINEERING_CONSTRUCTION"
+
+
 @dataclass(frozen=True)
 class StructuralObject:
     """A derived object represented by the Unit indices it assembles."""
@@ -30,6 +46,8 @@ class StructuralObject:
 
     def __post_init__(self) -> None:
         ids = tuple(sorted(set(self.unit_ids)))
+        if not ids:
+            raise ValueError("Object must contain at least one unit")
         if ids != self.unit_ids:
             raise ValueError("Object unit_ids must be unique and sorted")
 
@@ -38,13 +56,17 @@ def assemble_objects(
     units: Tuple[TheoryUnit, ...],
     relations: Tuple[StructuralRelation, ...],
 ) -> Tuple[StructuralObject, ...]:
-    """Construct Objects as connected components of explicit assembly edges.
+    """Construct derived Objects from an explicit assembly relation subset.
 
-    Only relations whose type is exactly ``"assembly"`` participate.  This is
-    deliberately an explicit relation-domain choice: no primitive equality,
-    proximity threshold, or hidden heuristic is used to create an object.
+    This function is intentionally an engineering-layer operator, not a
+    theorem of the current mathematical specification.  Only relations whose
+    type is exactly ``"assembly"`` participate.  All relation endpoints are
+    checked against the supplied Unit domain.
     """
     n = len(units)
+    if n == 0:
+        return tuple()
+
     parent = list(range(n))
 
     def find(x: int) -> int:
@@ -72,3 +94,6 @@ def assemble_objects(
         StructuralObject(tuple(ids), {})
         for ids in sorted(groups.values(), key=lambda ids: ids[0])
     )
+
+
+__all__ = ["THEORY_STATUS", "StructuralObject", "assemble_objects"]
