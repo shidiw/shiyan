@@ -1,4 +1,4 @@
-# Struct3D Theory-Compliant Refactor — Audit 0
+# Struct3D Theory-Compliant Refactor — Audit 1
 
 ## Baseline
 
@@ -12,47 +12,106 @@ This document records what is currently implemented versus what is formally just
 
 A code path may enter the theory-compliant core only when its mathematical definition is already established in the Struct3D theory specification. Engineering heuristics remain available as legacy code and must not be silently promoted to theory.
 
-## Layer 1 — Structural Unit
+## Energy → Partition → Unit audit
 
-Current file: `structure/unit.py`.
+### 1. Energy (`structure/energy.py`)
 
-Implemented representation:
+The current implementation computes
 
-`U_k = (P_k, theta_k, E_k)`
+`E = E_fit + lambda * E_complexity + gamma * E_boundary`.
 
-This is a data representation, not by itself a proof of a unique or optimal unit. Primitive fitting currently supports plane, sphere, and an axis-aligned cylinder. Therefore the fitting routines are classified as **engineering implementations of candidate parameter estimation**, not as universal definitions of Structural Unit.
+Observed implementation facts:
+
+- Plane fitting uses mean squared signed-plane residual after taking absolute distance.
+- Sphere fitting uses mean squared radial residual.
+- Cylinder fitting uses an XY-only radial residual around an axis-aligned cylinder center.
+- Complexity is a lookup table: plane=4, sphere=4, cylinder=5, unknown=10.
+- Boundary is the variance of point-to-centroid Euclidean distances.
+- Default weights are `lambda_complexity=0.01` and `gamma_boundary=0.01`.
+- `compute()` stores the total on `unit.energy` and returns all four components.
+
+Theory classification:
+
+- `E_fit`: **candidate geometric residual implementation**. It is not yet a universal definition of the Struct3D energy unless the theory specification explicitly fixes these primitive families and residual measures.
+- `E_complexity`: **legacy heuristic**. Parameter-count/dimension lookup is not promoted to a mathematical complexity functional.
+- `E_boundary`: **legacy heuristic**. The source itself calls this a first version and describes later graph-boundary replacement.
+- `lambda`, `gamma`: **legacy engineering hyperparameters**.
+- The additive decomposition: **legacy implementation structure only**; it is not an axiom in this refactor.
+
+Status: **LEGACY / FROZEN FOR REGRESSION ONLY**.
+
+### 2. Partition (`structure/graph_cluster.py`)
+
+The current implementation:
+
+1. Takes a structural graph `G=(V,E,W)`.
+2. Keeps edges satisfying `w >= threshold`.
+3. Builds connected components.
+4. Removes components with fewer than `min_points` points.
+5. Converts each retained component into a `StructuralUnit` with `primitive="unknown"`.
+
+Default values are `threshold=0.5` and `min_points=50`.
+
+Theory classification:
+
+- Thresholding is an engineering rule.
+- Connected components are an algorithmic consequence of that rule, not yet the formal Stable Partition definition.
+- `min_points` is an engineering filter.
+- No energy minimization is performed here.
+
+Therefore the current module cannot be represented as
+
+`Pi* = argmin_Pi E(Pi)`
+
+without adding mathematical assumptions that are not present in the code or verified by this audit.
+
+Status: **LEGACY / FROZEN FOR REGRESSION ONLY**.
+
+### 3. Structural Unit (`structure/unit.py`)
+
+The current container is represented as
+
+`U_k = (P_k, theta_k, E_k)`.
+
+The implementation stores points, a primitive label, optional point indices, parameters, and energy. It also provides candidate parameter estimation for plane, sphere, and an axis-aligned cylinder.
+
+Important implementation limitations:
+
+- Primitive support is finite and hard-coded.
+- Cylinder fitting is axis-aligned and therefore is not a general 3D cylinder estimator.
+- Parameter fitting is not tied to a formal admissible class or a proven minimizer of a Struct3D objective.
+- The unit container does not itself establish uniqueness, stability, or optimality.
 
 Status: **LEGACY / CANDIDATE IMPLEMENTATION**.
 
-## Layer 2 — Energy
+## Regression suite added
 
-Current file: `structure/energy.py`.
+New files:
 
-Implemented expression:
+- `tests/__init__.py`
+- `tests/test_legacy_energy_unit.py`
 
-`E = E_fit + lambda * E_complexity + gamma * E_boundary`
+The suite characterizes historical behavior without declaring that behavior to be theory. It covers:
 
-The current implementation defines complexity using primitive parameter dimension and defines boundary using variance of point-to-centroid distances. The source itself describes the latter as a first version and says it was later intended to be replaced by graph boundary.
+- default Energy hyperparameters;
+- exact plane/sphere/cylinder fit residuals;
+- legacy complexity lookup;
+- legacy centroid-radius boundary variance;
+- `Energy.compute()` output and mutation behavior;
+- graph-cluster threshold and minimum-size behavior;
+- connected-component extraction into units;
+- minimum-size filtering;
+- StructuralUnit container, center, indices, and initial energy state;
+- plane parameter estimation;
+- unknown primitive behavior.
 
-Therefore:
+The tests use Python's standard `unittest` framework and therefore do not introduce a new testing dependency.
 
-- `E_fit`: candidate geometric residual implementation.
-- `E_complexity`: engineering heuristic unless explicitly present in the theory specification.
-- `E_boundary`: engineering heuristic in the current implementation.
-- `lambda`, `gamma`: engineering hyperparameters in the current implementation.
-- The additive decomposition itself is **not promoted to an axiom** by this refactor.
+### Execution note
 
-Status: **LEGACY / FROZEN FOR REGRESSION ONLY**.
+The regression suite has been committed to the refactor branch, but this environment cannot resolve `github.com` for a local clone, so the tests could not be executed here. No test result is being claimed without execution. The suite is intended to be run from the repository root with:
 
-## Layer 3 — Graph Cluster / Unit Extraction
-
-Current file: `structure/graph_cluster.py`.
-
-The implementation constructs connected components after thresholding graph weights by `threshold=0.5`, then drops components smaller than `min_points=50`.
-
-These values are engineering choices. Connected-component extraction after thresholding is therefore not yet accepted as the formal definition of Stable Partition.
-
-Status: **LEGACY / FROZEN FOR REGRESSION ONLY**.
+`python -m unittest discover -s tests -v`
 
 ## Required formal boundary
 
@@ -62,12 +121,20 @@ The core refactor must eventually expose the following separation:
 
 The exact objective and admissible class must come from the established Struct3D theory. No new terms, weights, thresholds, or relation types are introduced by this audit.
 
-## Immediate next implementation step
+## Next gate
 
-1. Preserve current `energy.py`, `graph_cluster.py`, and `unit.py` as legacy behavior.
-2. Add tests that characterize their current behavior so historical results remain reproducible.
-3. Create theory-facing interfaces only after the corresponding mathematical definitions are recovered/verified.
-4. Then audit Relation and Assembly against those definitions.
+Before changing Energy or Partition implementation, recover/verify the exact established mathematical definitions for:
+
+1. admissible structural primitives;
+2. structural fitting functional;
+3. complexity term, if any;
+4. boundary term, if any;
+5. whether the total objective is additive or has another aggregation law;
+6. admissible partition class;
+7. definition of stable partition;
+8. definition of Structural Unit and whether its parameters are minimizers, estimators, or descriptors.
+
+Only after those items are verified should a theory-facing implementation replace or wrap the legacy modules.
 
 ## Prohibited during this refactor
 
