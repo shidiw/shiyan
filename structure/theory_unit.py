@@ -6,6 +6,12 @@ Frozen mathematical definition:
 ``indices`` encode the finite support G_i and ``attributes`` encode theta_i.
 The optional primitive field is historical metadata only; it is not part of
 unit identity.
+
+The theory-facing API uses ``StructuralUnit(indices, attributes, primitive)``.
+For compatibility with the pre-refactor tests and legacy engineering code,
+``StructuralUnit(indices, primitive, attributes)`` is also accepted when the
+second argument is a string and the third argument is a mapping.  Both forms
+materialize to the same mathematical object (G, theta) plus optional metadata.
 """
 
 from __future__ import annotations
@@ -14,11 +20,22 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Tuple
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class StructuralUnit:
     indices: Tuple[int, ...]
     attributes: Mapping[str, Any] = field(default_factory=dict)
     primitive: Optional[str] = None
+
+    def __init__(self, indices: Tuple[int, ...], attributes=None, primitive=None):
+        # Compatibility form used by the legacy theory tests:
+        #   TheoryUnit(indices, primitive, attributes)
+        if isinstance(attributes, str) and isinstance(primitive, Mapping):
+            attributes, primitive = primitive, attributes
+
+        object.__setattr__(self, "indices", tuple(indices))
+        object.__setattr__(self, "attributes", {} if attributes is None else dict(attributes))
+        object.__setattr__(self, "primitive", primitive)
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         if not self.indices:
