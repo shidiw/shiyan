@@ -1,10 +1,11 @@
 """Theory-facing Structural Representation.
 
-Frozen statement: phi(W) in R^23.
+Frozen chain:
+    W -> C(W) -> I(W) -> phi(W) in R^23.
 
-The numerical extractor is not itself a theorem. Two paths remain explicit:
-``represent`` applies a world-level extractor without an invariance claim;
-``represent_canonical`` applies an extractor only to C(W).
+``represent`` is an explicitly supplied world-level extractor and makes no
+invariance claim. ``represent_canonical`` uses the frozen invariant object
+I(W)=C(W), so any invariance claim is delegated to the exact canonical layer.
 """
 
 from __future__ import annotations
@@ -12,13 +13,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
-from .theory_canonical import canonical_form
-from .theory_representation_schema import (
-    REPRESENTATION_DIM,
-    REPRESENTATION_GROUPS,
-    group_slices,
-    validate_grouped_representation,
-)
+from .theory_invariant import structural_invariant
+from .theory_representation_schema import validate_grouped_representation, group_slices
 from .theory_world import StructuralWorld
 
 
@@ -54,5 +50,5 @@ def represent_canonical(
     world: StructuralWorld,
     extractor: Callable[[Any], Sequence[float]],
 ) -> StructuralRepresentation:
-    """Compute phi(W) through the exact canonical form C(W)."""
-    return _build_representation(extractor(canonical_form(world)))
+    """Compute phi(W) from the frozen structural invariant I(W)."""
+    return _build_representation(extractor(structural_invariant(world)))
