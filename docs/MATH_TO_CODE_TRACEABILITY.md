@@ -4,83 +4,73 @@ Source of truth: `structure/Struct3D_数学理论.txt` on this refactor branch. 
 
 ## Status vocabulary
 
-- **CERTIFIED** — explicit formal statement, direct implementation, and regression coverage.
-- **PARTIAL** — interface/invariant exists, but complete mathematical derivation or exact semantics are not yet encoded.
-- **LEGACY** — historical engineering behavior; tested only for regression.
-- **PROVISIONAL** — mathematically valid scaffold, but the uploaded specification does not freeze the corresponding construction/formula.
+- **CERTIFIED** — the supplied mathematical statement is explicit, the implementation directly represents it, and regression coverage tests the stated property.
+- **PARTIAL** — some structure is implemented, but the supplied document does not fully freeze the numerical/algorithmic semantics.
+- **LEGACY** — historical engineering behavior; retained only for compatibility/regression.
+- **PROVISIONAL** — mathematically valid generic scaffold, but the supplied specification does not define it as a Struct3D construction.
+- **THEORY GAP** — the engineering pipeline needs a mathematical construction that is absent from the supplied specification.
 
-## Traceability matrix
+## Frozen theory → code → regression
 
 | Mathematical statement | Code | Regression | Status |
 |---|---|---|---|
 | `u_i=(G_i,theta_i)` | `structure/theory_core.py:TheoryUnit` | `tests/test_theory_core.py` | CERTIFIED container mapping |
-| `r_ij` is a relation between two Units | `structure/theory_relation.py:StructuralRelation` | relation tests | CERTIFIED container mapping |
+| `r_ij` is a relation between two Units | `structure/theory_relation.py:StructuralRelation` | relation/world tests | CERTIFIED container mapping |
+| Relation evidence may depend on geometry/boundary/spatial information | `StructuralRelation.evidence` | relation tests | CERTIFIED representation of explicit evidence; inference rule remains external |
 | `G=(V,E)` | `structure/theory_graph.py:StructuralGraph` | graph property tests | CERTIFIED |
 | `W=(U,R,Phi)` | `structure/theory_world.py:StructuralWorld` | world/pipeline tests | CERTIFIED container mapping |
-| relabeling equivalence `W ~ pi(W)` | `structure/theory_canonical.py` | canonicalization tests | CERTIFIED at finite-container level |
-| `C(W)=C(pi(W))` | `canonical_form()` | relabeling test | CERTIFIED |
-| `I(W)=I(pi(W))` | invariant extractor contract | extractor-specific tests required | PARTIAL |
-| `phi(W) in R^23` | `structure/theory_representation.py` | dimension test | CERTIFIED dimension contract |
-| seven v4.0 coordinate groups | `structure/theory_representation_schema.py` | schema tests required | CERTIFIED schema contract |
+| `W ~_label pi(W)` | `structure/theory_canonical.py` | `tests/test_theory_math_properties.py` | CERTIFIED at finite-container level |
+| `C(W)=C(pi(W))` | `canonical_form()` | all tested unit permutations | CERTIFIED |
+| `I(W)=I(pi(W))` | `structure/theory_invariant.py:structural_invariant` | `tests/test_theory_math_properties.py` | CERTIFIED for the canonical-form invariant |
+| `phi(W) in R^23` | `structure/theory_representation.py:StructuralRepresentation` | representation tests | CERTIFIED dimension contract |
+| seven v4.0 coordinate groups `(3,3,3,3,3,3,5)` | `structure/theory_representation_schema.py` | `tests/test_theory_representation_schema.py` | CERTIFIED schema contract |
 | `D_R=||phi(W1)-phi(W2)||_2` | `structure/theory_distance.py` | distance tests | CERTIFIED formula |
-| non-negativity/symmetry/triangle inequality | `theory_distance.py` | property tests | CERTIFIED from L2 |
-| representation-level mutation => nonzero `D_R` | distance definition | mutation tests | CERTIFIED conditional statement |
-| matching is optimization over admissible correspondences | `structure/theory_matching.py` | matching test | CERTIFIED generic optimization |
+| non-negativity, symmetry, triangle inequality | `theory_distance.py` | `tests/test_theory_math_properties.py` | CERTIFIED from Euclidean norm |
+| `D_R=0 iff phi(W1)=phi(W2)` | Euclidean distance implementation | `tests/test_theory_math_properties.py` | CERTIFIED in representation space |
+| representation-level mutation changing `phi` gives nonzero `D_R` | distance definition | distance/mutation tests | CERTIFIED conditional statement |
+| matching is an optimization over admissible correspondences | `structure/theory_matching.py` | matching tests | CERTIFIED generic optimization |
+| complete matching cost `C_ij=d_u+lambda_r d_r+lambda_g d_g` | external cost callable | matching tests | PARTIAL: framework stated, final cost not frozen |
+
+## Representation: an important boundary
+
+The supplied document freezes the 23-dimensional grouping but does **not** freeze a unique numerical estimator for every coordinate. Therefore the core representation object validates the exact coordinate contract but does not invent feature formulas. A concrete extractor must establish relabeling invariance before it is promoted as the canonical Struct3D extractor.
+
+## Neural theory boundary
+
+The supplied document distinguishes the v1.0 reconstruction objective from the later distance-preserving direction. `structure/theory_neural.py` therefore exposes these objectives separately. The combined
+
+`L = L_recon + lambda_d L_distance + lambda_m L_mutation`
+
+is treated as a later proposed objective, not retroactively attributed to v1.0. Network architecture, training hyperparameters, and a claim that latent distance exactly equals structural distance are not frozen mathematics.
 
 ## Deliberately provisional: Energy → Partition → Unit emergence
 
-The uploaded specification defines Structural Units and the later structural
-space, but it does **not** freeze a final Struct3D energy functional, an
-admissible partition class generated from raw points, or a theorem deriving
-Units through `Pi*=argmin E(Pi)`.
+The supplied Struct3D mathematical document defines Structural Units and the later structural space, but it does **not** freeze a final raw-point energy functional, an admissible partition class generated from raw points, or a theorem deriving Units through
+
+`Pi* = argmin_{Pi in A(P)} E(Pi)`.
 
 Therefore:
 
-- `structure/theory_energy.py` is an explicit scalar-functional interface,
-  not a frozen Struct3D energy formula.
-- `structure/theory_partition.py` is a generic finite argmin scaffold, not a
-  claim that the uploaded theory already defines Unit discovery this way.
-- `structure/energy.py`, `graph_cluster.py`, and threshold/min-size rules are
-  LEGACY engineering implementations and are not evidence for the theory.
+- `structure/theory_energy.py` is an explicit scalar-functional interface, not a frozen Struct3D energy formula.
+- `structure/theory_partition.py` is a generic finite argmin scaffold, not a claim that the supplied theory already defines Unit discovery this way.
+- `structure/energy.py`, `graph_cluster.py`, and threshold/min-size rules are **LEGACY** engineering implementations and are not evidence for the theory.
 
-This distinction is intentional. We must not invent an Energy merely to make
-the engineering pipeline look mathematically complete.
+This distinction is intentional. We must not invent an Energy merely to make the engineering pipeline look mathematically complete.
 
-## Matching cost
+## Phase-1 gate
 
-The mathematical document presents a framework of the form
-`C_ij = d_u + lambda_r d_r + lambda_g d_g`, but explicitly says the complete
-final cost was not frozen. The implementation therefore keeps the cost as an
-external callable.
-
-## Representation feature values
-
-The document freezes the 23-dimensional grouping but does not give a unique
-numerical estimator for every coordinate. The code therefore freezes the
-coordinate contract without inventing feature formulas. A concrete extractor
-must prove relabeling invariance before it is promoted to the theory layer.
-
-## Neural objective
-
-The reconstruction objective and later distance-preserving direction remain
-separate. The combined distance/mutation objective is a later proposed
-improvement and is not retroactively attributed to v1.0.
-
-## Gate rule
-
-A component may be promoted to CERTIFIED only when:
+A frozen-theory component is promoted to CERTIFIED only when:
 
 `mathematical statement == implementation == regression property`
 
-If the mathematics is silent, the code remains explicitly provisional. If
-legacy code contradicts the mathematical specification, legacy code is not
-used as evidence for the theory.
+If the mathematics is silent, the code remains explicitly provisional. If legacy code contradicts the mathematical specification, legacy code is not used as evidence for the theory.
 
-## Phase-1 conclusion
+### Current Phase-1 result
 
-The canonical / invariant / representation / distance portion can now be
-traced directly to the uploaded mathematical specification. The missing
-mathematical bridge is the raw-observation-to-Unit-emergence mechanism. That
-is a **theory gap**, not a coding bug. Phase 2 must not claim to have solved
-that gap until the Energy/Partition/Unit construction is formally derived or
-the mathematics document is extended with the already-established derivation.
+**Certified:** Structural Unit container, Relation container/evidence, Structural Graph, Structural World container, relabeling equivalence, exact finite canonicalization, canonical invariant, 23D representation schema, Euclidean Structural Distance and its metric-space properties, and generic matching optimization.
+
+**Partial:** final numerical feature extractor, final matching cost, neural distance-preserving objective/architecture.
+
+**Theory gap:** raw observation → candidate Structural Units / admissible partition → final Unit emergence. No legacy heuristic is promoted to fill this gap.
+
+Only after this gate is satisfied should Phase 2 begin. Phase 2 may connect the certified structural objects to the legacy/raw-point pipeline, but it must not silently promote a heuristic into the frozen mathematics.
