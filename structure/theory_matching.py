@@ -1,12 +1,13 @@
 """Theory-facing Structural Matching interface.
 
-The formal theory defines matching as an optimization over admissible
-correspondences. The exact matching cost remains an explicit input because
-the historical document does not freeze a unique final cost decomposition.
+Matching is defined as minimization of an explicitly supplied cost over an
+explicit admissible set. The implementation therefore does not invent a
+correspondence or claim uniqueness when several candidates tie.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Callable, Sequence, Tuple
 
@@ -23,8 +24,15 @@ def select_matching(
 ) -> Match:
     if not candidates:
         raise ValueError("At least one admissible matching is required")
-    scored = [(candidate, float(cost(candidate))) for candidate in candidates]
+
+    scored = []
+    for candidate in candidates:
+        value = float(cost(candidate))
+        if not math.isfinite(value):
+            raise ValueError("matching cost must be finite")
+        scored.append((tuple(candidate), value))
+
+    # Python's min is stable, so an exact tie is deterministic without being
+    # interpreted as evidence of a unique optimum.
     pairs, value = min(scored, key=lambda item: item[1])
-    if value != value:
-        raise ValueError("matching cost cannot be NaN")
-    return Match(tuple(pairs), value)
+    return Match(pairs, value)
