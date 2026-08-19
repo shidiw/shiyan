@@ -27,13 +27,32 @@ class StructuralUnit:
     primitive: Optional[str] = None
 
     def __init__(self, indices: Tuple[int, ...], attributes=None, primitive=None):
-        # Compatibility form used by the legacy theory tests:
-        #   TheoryUnit(indices, primitive, attributes)
+        """Construct the single theory-level Unit type.
+
+        Canonical form::
+
+            StructuralUnit(indices, attributes, primitive=None)
+
+        Legacy compatibility form::
+
+            StructuralUnit(indices, primitive, attributes)
+
+        The compatibility branch is intentionally limited to the unambiguous
+        ``(str, Mapping)`` pattern so legacy callers cannot silently redefine
+        the mathematical meaning of ``(G, theta)``.
+        """
         if isinstance(attributes, str) and isinstance(primitive, Mapping):
             attributes, primitive = primitive, attributes
 
+        if attributes is None:
+            attributes = {}
+        if not isinstance(attributes, Mapping):
+            raise ValueError("unit attributes must be a mapping or None")
+        if primitive is not None and not isinstance(primitive, str):
+            raise ValueError("primitive metadata must be a string or None")
+
         object.__setattr__(self, "indices", tuple(indices))
-        object.__setattr__(self, "attributes", {} if attributes is None else dict(attributes))
+        object.__setattr__(self, "attributes", dict(attributes))
         object.__setattr__(self, "primitive", primitive)
         self.__post_init__()
 
