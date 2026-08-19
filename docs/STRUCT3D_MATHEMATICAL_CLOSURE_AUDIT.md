@@ -18,7 +18,7 @@ Audit states:
 | Stage | Mathematical contract | Current implementation | Status |
 |---|---|---|---|
 | Observation `X` | raw observation/input | legacy geometry/data code exists | LEGACY INPUT |
-| `X -> admissible partitions A(X)` | required for genuine structure discovery | no frozen construction | **GAP** |
+| `X -> admissible partitions A(X)` | required for genuine structure discovery | `AdmissiblePartitionFamily` represents an externally supplied finite family; construction from `X` remains unfrozen | **BOUNDARY / GAP** |
 | Partition | finite, nonempty, disjoint, complete cover | `structure/theory_core.py::Partition` | **CLOSED** |
 | Partition -> Unit | materialize partition cells without changing them | `theory_materialization.py` identity materialization | **CLOSED AS EXTERNAL BOUNDARY** |
 | Unit | `u=(G,theta)` | single `StructuralUnit` type | **CLOSED** |
@@ -43,15 +43,17 @@ Audit states:
 
 This is the first genuine mathematical hole. The frozen implementation intentionally does not pretend that legacy thresholding, connected components, primitive fitting, minimum-size filtering, or legacy energy automatically define Struct3D Units.
 
-The current `Partition` object validates a **supplied** finite partition. Therefore the implemented contract is:
+The new `AdmissiblePartitionFamily` makes the missing mathematical object explicit: it represents a non-empty finite family `A(X)` supplied from outside the theory-facing core. It enforces that every candidate is a valid partition of the same observation index universe. It does **not** define how `X` generates `A(X)`.
 
-`P in admissible input -> materialized Units`
+Therefore the implemented contract is now explicit:
 
-not yet:
+`X -> [external construction of A(X)] -> AdmissiblePartitionFamily -> P* -> Units`
 
-`X -> A(X) -> P* -> Units`.
+The first arrow remains a theory gap. The optimization step is closed for an explicitly supplied finite family:
 
-For full closure, the theory must explicitly define the observation universe, admissible partition family `A(X)`, and existence/selection conditions for the optimization. If the minimizer is not mathematically unique, the theory must remain set-valued or use an explicitly declared deterministic tie-break without calling it uniqueness.
+`P* in argmin_{P in A(X)} E(P)`.
+
+For full closure, the source theory must explicitly define the observation universe, the construction `X -> A(X)`, and existence/selection conditions for the optimization. If the minimizer is not mathematically unique, the theory must remain set-valued or use an explicitly declared deterministic tie-break without calling it uniqueness.
 
 ### 3.2 Unit
 
@@ -121,7 +123,7 @@ The correct identity statement is:
 
 It is **not** structural identity unless injectivity of `phi` on the intended structural quotient is separately proved.
 
-The metric regression suite now explicitly covers non-negativity, symmetry, zero distance for equal representations, and the triangle inequality in addition to the existing Euclidean-value checks.
+The metric regression suite explicitly covers non-negativity, symmetry, zero distance for equal representations, and the triangle inequality in addition to the existing Euclidean-value checks.
 
 ### 3.9 Structural Matching
 
@@ -164,24 +166,22 @@ merely because those names existed in historical engineering code.
 
 ## 6. Test audit
 
-The user-provided local regression run reports:
+The user's latest local regression run reports:
 
-`Ran 81 tests ... OK`
+`Ran 85 tests ... OK`
 
-This confirms that the existing 81-test contract suite is clean at the current local checkout.
+This confirms the 85-test contract suite, including the explicit metric-axiom regression, is clean at the user's checkout before the current admissible-family changes.
 
-An additional test module, `tests/test_theory_distance_axioms.py`, has now been added to the branch to cover the explicit metric axioms that were previously under-tested:
+The current branch now adds:
 
-- non-negativity;
-- symmetry;
-- triangle inequality;
-- zero distance for equal representations.
+- `structure/theory_admissible.py` — explicit finite admissible-family boundary;
+- `tests/test_theory_admissible.py` — regression coverage for non-empty families, common observation domains, explicit argmin selection, and non-construction behavior.
 
-Because this additional module was committed after the user's 81-test run, the post-change total must be re-run locally. No claim is made that the new total has already been executed in the user's checkout.
-
-Recommended verification command:
+These changes have not been executed in the user's local checkout yet. After pulling the branch, rerun:
 
 `python -m unittest discover -s tests -v`
+
+The expected total is 89 tests if no other local changes are present.
 
 ## 7. Final mathematical verdict
 
@@ -189,9 +189,13 @@ The downstream algebra is now contract-clean:
 
 `Partition -> Unit -> explicit Relation -> Graph -> World -> Canonical Form -> Invariant -> R^23 representation boundary -> D_R -> Matching -> Neural objective boundary`.
 
+The upstream discovery boundary is now explicit rather than implicit:
+
+`X -> external A(X) -> finite admissible family -> argmin -> Units`.
+
 However, **Struct3D is not yet a fully closed mathematical theory from raw observation to learned structure**. The blockers are explicit and finite in number:
 
-1. **Observation -> admissible partition/unit construction** is not frozen.
+1. **Observation -> admissible partition construction** is not frozen in the source theory.
 2. **Unit -> relation discovery** is not frozen as a formal predicate/theorem.
 3. **The numerical 23-D extractor `phi`** is a schema plus external mapping, not a fully derived coordinate theorem.
 4. **Latent distance preservation** is not a theorem and must remain an empirical research target.
