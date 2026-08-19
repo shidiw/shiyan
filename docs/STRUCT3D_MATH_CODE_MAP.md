@@ -46,7 +46,7 @@ unstated assumptions:
 - Structural Graph: `G=(V,E)` with `V` indexed by world Units and `E` copied exactly from Relations.
 - Structural World: `W=(U,R,Phi)`.
 - Canonical form: exact finite `C(W)`.
-- Frozen finite invariant: `I(W)=C(W)`.
+- **Structural invariant `I(W)=C(W)`.**
 - Structural Representation: `phi(W) in R^23` with group sizes `3,3,3,3,3,3,5`.
 - Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
 - Matching: explicit finite/admissible argmin.
@@ -78,7 +78,9 @@ A future relation-discovery theorem must provide its own definition and proof.
 The historical engineering roadmap contains these concepts, but the current
 frozen theory only promotes Object as a derived engineering construction. A
 mathematical definition and invariance theorem are still required before
-Instance or Hierarchy become part of the frozen core.
+Instance or Hierarchy become part of the frozen core. These layers **must not be
+promoted into the frozen theory** merely because legacy code or documentation
+uses the names.
 
 ### 5. Canonical form is finite and exact, not a heuristic hash
 
@@ -102,9 +104,11 @@ separately established.
 
 The reconstruction objective may make `phi_hat` close to `phi`, but it does not
 prove `||z1-z2||_2 = D_R(W1,W2)`. That property requires an explicit distance
-objective and independent validation. The historical 53.18% relative-distance
-error is therefore treated as evidence of an unresolved research problem, not
-as a theorem failure hidden by the implementation.
+objective and independent validation. A distance result or a low empirical
+error must not be reported as a proof of the mathematical equality. The
+historical 53.18% relative-distance error is therefore treated as evidence of
+an unresolved research problem, not as a theorem failure hidden by the
+implementation.
 
 ## D. Non-negotiable boundaries
 
@@ -117,7 +121,8 @@ as a theorem failure hidden by the implementation.
 4. A deterministic tie-break does not establish mathematical uniqueness.
 5. `Object`, `Instance`, and `Hierarchy` must not be promoted into the frozen
    theory without explicit definitions and proofs.
-6. Neural objectives are training contracts, not proofs of latent geometry.
+6. Neural objectives are training contracts, not proofs of latent geometry; they
+   must not be reported as a proof of latent metric equality.
 7. Any future implementation that contradicts this table must either update the
    mathematics first or remain explicitly marked as legacy/experimental.
 
@@ -127,6 +132,10 @@ The theory-compliant core is regression-clean only when the full
 `python -m unittest discover -s tests -v` suite passes and no theory test relies
 on legacy heuristics to construct a theory object.
 
-At the current checkpoint, the reported suite result is **73 tests, 73 passed,
-0 failed**. This establishes implementation-contract consistency; it does not
-establish the unresolved mathematical gaps listed above.
+The pre-fix checkpoint reported by the current branch was **81 tests, 77 passed,
+4 failed**. The four failures were contract-wording checks and the legacy
+positional `StructuralUnit` materialization contract. After the corresponding
+code/documentation fixes, this release gate should be rerun locally before the
+branch is considered clean. A passing suite establishes
+implementation-contract consistency; it does not establish the unresolved
+mathematical gaps listed above.
