@@ -78,9 +78,7 @@ A future relation-discovery theorem must provide its own definition and proof.
 The historical engineering roadmap contains these concepts, but the current
 frozen theory only promotes Object as a derived engineering construction. A
 mathematical definition and invariance theorem are still required before
-Instance or Hierarchy become part of the frozen core. These layers **must not be
-promoted into the frozen theory** merely because legacy code or documentation
-uses the names.
+Instance or Hierarchy become part of the frozen core. These layers must not be promoted into the frozen theory merely because legacy code or documentation uses the names.
 
 ### 5. Canonical form is finite and exact, not a heuristic hash
 
