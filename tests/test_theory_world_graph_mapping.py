@@ -1,6 +1,6 @@
 import unittest
 
-from structure.theory_relation import StructuralRelation
+from structure.theory_relation import StructuralRelation, relation_from_units
 from structure.theory_world import StructuralWorld
 from structure.theory_core import TheoryUnit
 
@@ -30,6 +30,21 @@ class TestTheoryWorldGraphMapping(unittest.TestCase):
             StructuralRelation(-1, 1, "adjacent")
         with self.assertRaises(ValueError):
             StructuralRelation(0, 0, "adjacent")
+
+    def test_relation_construction_is_explicit_not_unit_metadata_inference(self):
+        source = TheoryUnit((0,), {"primitive": "plane"})
+        target = TheoryUnit((1,), {"primitive": "plane"})
+        relation = relation_from_units(
+            source,
+            target,
+            source_id=0,
+            target_id=1,
+            relation_type="explicit",
+            evidence={"rule": "supplied"},
+        )
+        self.assertEqual(relation.units, (0, 1))
+        self.assertEqual(relation.relation_type, "explicit")
+        self.assertEqual(dict(relation.evidence), {"rule": "supplied"})
 
 
 if __name__ == "__main__":
