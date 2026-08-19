@@ -8,6 +8,7 @@ Legacy energy remains in ``structure.energy`` for regression comparison.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Callable, Generic, TypeVar
 
 from .theory_core import Partition, TheoryUnit
@@ -23,8 +24,8 @@ class EnergyResult:
     source: str = "theory"
 
     def __post_init__(self) -> None:
-        if self.value != self.value:
-            raise ValueError("Energy cannot be NaN")
+        if not math.isfinite(float(self.value)):
+            raise ValueError("Energy must be a finite real scalar")
 
 
 class StructuralEnergy:
