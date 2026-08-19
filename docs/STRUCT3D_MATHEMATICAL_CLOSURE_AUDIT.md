@@ -43,7 +43,7 @@ Audit states:
 
 This is the first genuine mathematical hole. The frozen implementation intentionally does not pretend that legacy thresholding, connected components, primitive fitting, minimum-size filtering, or legacy energy automatically define Struct3D Units.
 
-The new `AdmissiblePartitionFamily` makes the missing mathematical object explicit: it represents a non-empty finite family `A(X)` supplied from outside the theory-facing core. It enforces that every candidate is a valid partition of the same observation index universe. It does **not** define how `X` generates `A(X)`.
+The `AdmissiblePartitionFamily` makes the missing mathematical object explicit: it represents a non-empty finite family `A(X)` supplied from outside the theory-facing core. It enforces that every candidate is a valid partition of the same observation index universe. It does **not** define how `X` generates `A(X)`.
 
 Therefore the implemented contract is now explicit:
 
@@ -63,13 +63,33 @@ The theory freezes:
 
 `StructuralUnit` stores support indices as `G_i` and attributes as `theta_i`. Primitive is explicitly optional metadata and is therefore not silently promoted to Unit identity. The legacy positional constructor is compatibility only and materializes the same support/attribute object.
 
-### 3.3 Relation
+### 3.3 Relation — formal discovery boundary
 
-The theory defines a relation between Units and states that its evidence may involve geometry, boundary and spatial configuration. The engineering implementation correctly refuses to infer relations from primitive equality or an unapproved threshold. It accepts an explicit relation type/evidence record.
+The current theory-facing relation object is a typed record
 
-This is mathematically safe but not yet a discovery theorem. Full closure requires frozen predicates for relation types and their admissibility/invariance properties.
+`r_ij = (i,j,type,evidence)`
 
-### 3.4 Graph and World
+with distinct non-negative endpoints. The engineering implementation validates endpoint/domain integrity and preserves the supplied type and evidence without deriving them from Unit metadata. In particular, equal primitive labels, shared attributes, distance thresholds, connected components, or legacy relation heuristics do not create a Relation in the frozen core.
+
+The current constructor boundary is therefore:
+
+`(u_i,u_j, supplied relation type, supplied evidence) -> r_ij`.
+
+This is **not** yet the mathematical discovery map
+
+`(u_i,u_j,X) -> r_ij`
+
+because the source theory has not frozen the predicates that decide whether a relation exists or which relation type is valid. The engineering API deliberately cannot fill that gap by guessing.
+
+For full closure, each relation type must acquire an explicit mathematical predicate, for example a statement of the form
+
+`R_t(u_i,u_j; X) in {true,false}`
+
+or an equivalent admissibility relation, together with the domain conditions and any required invariance/equivariance properties. The theory must also specify whether relations are directed or undirected, whether multiple relation types may coexist for the same endpoint pair, and whether evidence is mathematical state or merely provenance metadata.
+
+Until those items are frozen, `StructuralRelation` is a **boundary object**, not a relation-discovery theorem.
+
+### 3.4 Relation -> Graph and World
 
 The graph contract is explicit:
 
@@ -81,7 +101,15 @@ The World contract is:
 
 `W=(U,R,Phi)`.
 
-The implementation validates relation endpoints against the Unit domain.
+The implementation validates relation endpoints against the Unit domain. Thus the implication
+
+`R supplied -> E = R`
+
+is closed, while
+
+`U -> R`
+
+remains a theory gap.
 
 ### 3.5 Canonical Structural Form
 
@@ -168,20 +196,11 @@ merely because those names existed in historical engineering code.
 
 The user's latest local regression run reports:
 
-`Ran 85 tests ... OK`
+`Ran 89 tests ... OK`
 
-This confirms the 85-test contract suite, including the explicit metric-axiom regression, is clean at the user's checkout before the current admissible-family changes.
+The current branch also strengthens the relation boundary regression by explicitly testing construction through supplied relation type/evidence without allowing Unit metadata to determine the relation.
 
-The current branch now adds:
-
-- `structure/theory_admissible.py` — explicit finite admissible-family boundary;
-- `tests/test_theory_admissible.py` — regression coverage for non-empty families, common observation domains, explicit argmin selection, and non-construction behavior.
-
-These changes have not been executed in the user's local checkout yet. After pulling the branch, rerun:
-
-`python -m unittest discover -s tests -v`
-
-The expected total is 89 tests if no other local changes are present.
+Passing the suite confirms implementation-contract consistency. It does not establish the missing relation-discovery predicates.
 
 ## 7. Final mathematical verdict
 
