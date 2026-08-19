@@ -10,8 +10,9 @@ unit identity.
 The theory-facing API uses ``StructuralUnit(indices, attributes, primitive)``.
 For compatibility with the pre-refactor tests and legacy engineering code,
 ``StructuralUnit(indices, primitive, attributes)`` is also accepted when the
-second argument is a string and the third argument is a mapping.  Both forms
-materialize to the same mathematical object (G, theta) plus optional metadata.
+second argument is a string and the third argument is a mapping. Both forms
+materialize to the same mathematical support/attribute object while retaining
+the historical primitive metadata.
 """
 
 from __future__ import annotations
@@ -38,11 +39,18 @@ class StructuralUnit:
             StructuralUnit(indices, primitive, attributes)
 
         The compatibility branch is intentionally limited to the unambiguous
-        ``(str, Mapping)`` pattern so legacy callers cannot silently redefine
-        the mathematical meaning of ``(G, theta)``.
+        ``(str, Mapping)`` pattern. For historical callers, the primitive label
+        is retained both as optional metadata and as the legacy ``kind``
+        attribute when that attribute is absent. This preserves the historical
+        materialized Unit contract without making primitive classification a
+        requirement of the frozen mathematical Unit definition.
         """
-        if isinstance(attributes, str) and isinstance(primitive, Mapping):
-            attributes, primitive = primitive, attributes
+        legacy_form = isinstance(attributes, str) and isinstance(primitive, Mapping)
+        if legacy_form:
+            legacy_primitive = attributes
+            attributes = dict(primitive)
+            attributes.setdefault("kind", legacy_primitive)
+            primitive = legacy_primitive
 
         if attributes is None:
             attributes = {}
