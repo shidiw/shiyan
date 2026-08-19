@@ -10,7 +10,7 @@ with group sizes 3,3,3,3,3,3,5.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import math
 from typing import Tuple
 
 
@@ -38,9 +38,16 @@ def group_slices():
 
 
 def validate_grouped_representation(values) -> None:
-    """Validate only the theory-frozen dimensional contract."""
+    """Validate the frozen R^23 coordinate contract.
+
+    Because the representation is an element of finite-dimensional real
+    space, every coordinate must be a finite real number. NaN and infinities
+    are therefore rejected at the representation boundary rather than being
+    allowed to contaminate distance or matching calculations downstream.
+    """
     if len(values) != REPRESENTATION_DIM:
         raise ValueError("Struct3D v4.0 representation must have 23 dimensions")
     for value in values:
-        if float(value) != float(value):
-            raise ValueError("representation cannot contain NaN")
+        numeric = float(value)
+        if not math.isfinite(numeric):
+            raise ValueError("representation coordinates must be finite real numbers")
