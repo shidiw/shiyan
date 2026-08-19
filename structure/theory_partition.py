@@ -8,7 +8,7 @@ energy is introduced here.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Union
 
 from .theory_core import Partition
 from .theory_energy import EnergyResult, StructuralEnergy
@@ -21,9 +21,12 @@ class PartitionSelection:
     candidate_count: int
 
 
+EnergyEvaluator = Union[Callable[[Partition], float], StructuralEnergy]
+
+
 def select_minimum_energy_partition(
     candidates: Sequence[Partition],
-    energy: Callable[[Partition], float] | StructuralEnergy,
+    energy: EnergyEvaluator,
 ) -> PartitionSelection:
     """Select a minimum-energy partition from an explicit candidate set.
 
@@ -51,6 +54,6 @@ def select_minimum_energy_partition(
 # predicate in theory_stability.py.
 def select_stable_partition(
     candidates: Sequence[Partition],
-    energy: Callable[[Partition], float] | StructuralEnergy,
+    energy: EnergyEvaluator,
 ) -> PartitionSelection:
     return select_minimum_energy_partition(candidates, energy)
