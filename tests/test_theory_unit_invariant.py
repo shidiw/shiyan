@@ -22,6 +22,13 @@ class TestTheoryUnitBoundary(unittest.TestCase):
         partition = Partition(units, (0, 1))
         self.assertEqual(materialize_units(partition), units)
 
+    def test_legacy_positional_constructor_materializes_same_unit(self):
+        canonical = StructuralUnit((0, 1), {"kind": "candidate"}, None)
+        legacy = TheoryUnit((0, 1), "candidate", {})
+        self.assertEqual(legacy.indices, canonical.indices)
+        self.assertEqual(legacy.attributes, canonical.attributes)
+        self.assertEqual(legacy.primitive, "candidate")
+
 
 class TestTheoryInvariantStage(unittest.TestCase):
     def _world_pair(self):
