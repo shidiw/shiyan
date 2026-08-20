@@ -1,14 +1,24 @@
-"""Stage 3 relation-formation contract for Struct3D.
+"""Stage 3 relation-formation contracts for Struct3D.
 
-A relation is formed only from an explicitly supplied admissibility predicate.
-The frozen theory does not infer relations from primitive equality, distance
-thresholds, connectivity, or other hidden heuristics.
+Stage 3A keeps relation formation explicit: a relation is materialized only
+when a supplied admissibility predicate accepts a candidate pair.
+
+Stage 3B adds one frozen geometry-derived predicate for 3-D supports:
+
+    Q_adj(G_i, G_j) = 1  iff  H^2(boundary(G_i) ∩ boundary(G_j)) > 0.
+
+The predicate expresses positive-area boundary contact. It is invariant under
+unit relabeling and rigid motions because Hausdorff measure and set
+intersection are invariant under isometries. The implementation receives the
+pairwise geometric measure as evidence; it does not approximate Hausdorff
+measure from a hidden threshold or nearest-neighbour heuristic.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
+from math import isfinite
+from typing import Any, Callable, Mapping, Sequence, Tuple
 
 from .theory_core import TheoryUnit
 from .theory_relation import StructuralRelation, StructuralRelations
@@ -29,6 +39,29 @@ class RelationEvidence:
             raise ValueError("relation_type must be non-empty")
 
 
+@dataclass(frozen=True)
+class GeometryRelationEvidence:
+    """Pairwise geometric evidence for the Stage 3B adjacency predicate.
+
+    ``boundary_contact_measure`` represents the exact mathematical quantity
+    H^2(∂G_i ∩ ∂G_j) for the continuous supports associated with two Units.
+    For sampled point clouds, an estimator may be supplied by a separate
+    engineering layer, but the estimator itself is not part of this theorem.
+    """
+
+    boundary_contact_measure: float
+    hausdorff_dimension: int = 2
+
+    def __post_init__(self) -> None:
+        value = float(self.boundary_contact_measure)
+        if not isfinite(value):
+            raise ValueError("boundary contact measure must be finite")
+        if value < 0.0:
+            raise ValueError("boundary contact measure must be non-negative")
+        if self.hausdorff_dimension != 2:
+            raise ValueError("3-D boundary contact uses H^2")
+
+
 def relation_is_admissible(
     source: TheoryUnit,
     target: TheoryUnit,
@@ -38,6 +71,34 @@ def relation_is_admissible(
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return bool(predicate(source, target))
+
+
+def geometry_adjacency_q(evidence: GeometryRelationEvidence) -> bool:
+    """Stage 3B geometry-to-relation predicate.
+
+    Definition:
+        Q_adj(G_i,G_j) = 1 iff H^2(∂G_i ∩ ∂G_j) > 0.
+
+    No numerical tolerance is introduced here. A positive measure is a
+    mathematical predicate; sampling/tolerance choices belong to an explicit
+    estimator outside the frozen theory.
+    """
+    return evidence.boundary_contact_measure > 0.0
+
+
+def geometry_adjacency_predicate(
+    evidence_by_pair: Mapping[Tuple[int, int], GeometryRelationEvidence],
+) -> Callable[[int, int], bool]:
+    """Build an index-level Q predicate from explicit geometric evidence."""
+    normalized = dict(evidence_by_pair)
+
+    def predicate(source_id: int, target_id: int) -> bool:
+        evidence = normalized.get((source_id, target_id))
+        if evidence is None:
+            return False
+        return geometry_adjacency_q(evidence)
+
+    return predicate
 
 
 def form_relation(
@@ -98,7 +159,10 @@ def form_relations(
 __all__ = [
     "RelationEvidence",
     "RelationPredicate",
+    "GeometryRelationEvidence",
     "relation_is_admissible",
+    "geometry_adjacency_q",
+    "geometry_adjacency_predicate",
     "form_relation",
     "form_relations",
 ]
