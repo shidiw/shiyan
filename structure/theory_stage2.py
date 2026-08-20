@@ -1,9 +1,9 @@
 """Machine-readable boundary for the current Struct3D theory closure.
 
 The current mathematical specification freezes W=(U,R,Phi) and the downstream
-canonical/invariant/representation chain. Stage 2 now separates the upstream
-formation contracts from the conditional existence theorem proved for finite
-admissible families.
+canonical/invariant/representation chain. Stage 2 separates upstream
+formation contracts from conditional finite-set existence and uniqueness
+results.
 
 Status values are deliberately explicit:
     FROZEN_THEORY: directly represented by the specification.
@@ -46,6 +46,11 @@ STAGE2_CONTRACT = (
         "Existence",
         CONDITIONAL_THEOREM,
         "non-empty finite A(X) + finite E => attained argmin",
+    ),
+    Stage2Boundary(
+        "Uniqueness",
+        CONDITIONAL_THEOREM,
+        "strictly lower finite energy than every distinct competitor => unique argmin",
     ),
     Stage2Boundary("Unit", FROZEN_THEORY, "u=(G,theta)"),
     Stage2Boundary("Relation", FROZEN_THEORY, "r_ij between Units"),
