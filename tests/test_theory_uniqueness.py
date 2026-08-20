@@ -31,7 +31,10 @@ class TestTheoryUniqueness(unittest.TestCase):
     def test_lower_energy_competitor_is_not_unique(self):
         candidate = self.make_partition(((0, 1),))
         competitor = self.make_partition(((0,), (1,)))
-        self.assertFalse(is_unique_minimizer(candidate, (competitor,), lambda p: 2.0 if len(p.units) == 1 else 3.0))
+        # Candidate has one unit; competitor has two. The competitor must
+        # explicitly receive the lower energy for this test to exercise the
+        # strict-separation condition.
+        self.assertFalse(is_unique_minimizer(candidate, (competitor,), lambda p: 2.0 if len(p.units) == 2 else 3.0))
 
     def test_nonfinite_energy_is_rejected(self):
         candidate = self.make_partition(((0,),))
