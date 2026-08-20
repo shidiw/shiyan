@@ -17,11 +17,12 @@ This is an existence theorem, not a uniqueness claim.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from itertools import combinations
-from typing import Callable, Iterable, Tuple
+from typing import Callable, Tuple
 
-from .theory_stability import StabilityNeighborhood, is_locally_stable, is_minimal_stable
+from .theory_stability import StabilityNeighborhood
 from .theory_unit import StructuralUnit
 
 
@@ -62,9 +63,8 @@ def candidate_neighborhood(
     """Instantiate Stage 2E stability against every competing candidate."""
     alternatives = tuple(other for other in family if other != candidate)
     if not alternatives:
-        # A singleton candidate family is stable vacuously.  The Stage 2E
-        # executable neighborhood object historically requires a non-empty
-        # tuple, so the candidate itself is used as a neutral equality witness.
+        # The historical executable neighborhood requires one alternative;
+        # self is a neutral equality witness for the one-element family.
         alternatives = (candidate,)
     return StabilityNeighborhood(alternatives)
 
@@ -76,7 +76,7 @@ def stable_candidates(
     """Return all global minimizers of E over A(X)."""
     family = admissible_candidates(domain)
     values = tuple(float(energy(candidate)) for candidate in family)
-    if any(not __import__("math").isfinite(value) for value in values):
+    if any(not math.isfinite(value) for value in values):
         raise ValueError("Unit emergence energy must be finite on every candidate")
     minimum = min(values)
     return tuple(candidate for candidate, value in zip(family, values) if value == minimum)
@@ -93,14 +93,14 @@ def emergent_units(
     subcandidate. Finiteness guarantees termination at an inclusion-minimal
     stable candidate. Hence the returned set is non-empty.
     """
-    family = admissible_candidates(domain)
     stable = stable_candidates(domain, energy)
     stable_supports = {unit.indices for unit in stable}
 
     result = []
     for candidate in stable:
+        candidate_support = set(candidate.indices)
         has_stable_proper_subset = any(
-            support < candidate.indices and support in stable_supports
+            set(support) < candidate_support
             for support in stable_supports
         )
         if not has_stable_proper_subset:
