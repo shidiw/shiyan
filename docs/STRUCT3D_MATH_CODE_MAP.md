@@ -49,7 +49,6 @@ naming alone.
 - Structural World: `W=(U,R,Phi)`.
 - Canonical form: exact finite `C(W)`.
 - Structural invariant: `I(W)=C(W)`.
-- Structural Representation: `phi(W) in R^23` with group sizes `3,3,3,3,3,3,5`.
 - Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
 - Matching: explicit finite/admissible argmin.
 - Stage 2E local stability and minimal stability for explicit neighborhoods/subcandidates.
@@ -60,10 +59,10 @@ naming alone.
 
 ### Relation formation is explicit, not heuristic
 
-The frozen graph consumes a supplied relation set. Stage 3 now exposes the
-formation boundary as `(C_R, Q, evidence)` and materializes exactly the admitted
-pairs. Primitive equality, distance thresholds, connectivity, curvature
-thresholds, or hidden neighborhood inference cannot create relations.
+The frozen graph consumes a supplied relation set. Stage 3 exposes the formation
+boundary as `(C_R, Q, evidence)` and materializes exactly the admitted pairs.
+Primitive equality, distance thresholds, connectivity, curvature thresholds,
+or hidden neighborhood inference cannot create relations.
 
 ### Local stability ≠ global optimality
 
@@ -89,8 +88,8 @@ properties before promotion.
 2. No hidden threshold may become a mathematical definition.
 3. `D_R=0` means equality of supplied 23-D representations only.
 4. Deterministic tie-breaking is not uniqueness.
-5. `Object`, `Instance`, and `Hierarchy` require their own definitions/proofs.
-6. Neural objectives do not prove latent metric equality.
+5. `Object`, `Instance`, and `Hierarchy` require their own definitions/proofs and **must not be promoted into the frozen theory** merely because an engineering representation exists.
+6. Neural objectives do not prove latent metric equality; any empirical agreement between `D_Z` and `D_R` **must not be reported as a proof** of metric equality without an independent mathematical theorem.
 7. Stage 2E neighborhoods/subcandidate families must be explicit inputs.
 8. Stage 2F/2G hypotheses must not be promoted to universal claims.
 9. Stage 3 candidate pairs and relation predicate must be explicit inputs.
