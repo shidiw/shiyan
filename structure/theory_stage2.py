@@ -1,15 +1,17 @@
 """Machine-readable boundary for the current Struct3D theory closure.
 
 The current mathematical specification freezes W=(U,R,Phi) and the downstream
-canonical/invariant/representation chain. The upstream formation problem still
-contains explicit-input boundaries: admissible candidate families, the supplied
-energy functional, stability neighborhoods, and minimality families.
+canonical/invariant/representation chain. Stage 2 now separates the upstream
+formation contracts from the conditional existence theorem proved for finite
+admissible families.
 
 Status values are deliberately explicit:
     FROZEN_THEORY: directly represented by the specification.
     DERIVED: deterministic engineering construction from frozen objects.
     EXPLICIT_BOUNDARY: executable contract whose mathematical generator is not
         frozen by the preserved source.
+    CONDITIONAL_THEOREM: proved under explicit hypotheses, without promoting
+        those hypotheses into a universal observation-to-candidate theorem.
     THEORY_GAP: requires a future mathematical definition before promotion.
 """
 
@@ -21,6 +23,7 @@ from dataclasses import dataclass
 FROZEN_THEORY = "FROZEN_THEORY"
 DERIVED = "DERIVED"
 EXPLICIT_BOUNDARY = "EXPLICIT_BOUNDARY"
+CONDITIONAL_THEOREM = "CONDITIONAL_THEOREM"
 THEORY_GAP = "THEORY_GAP"
 
 
@@ -39,6 +42,11 @@ STAGE2_CONTRACT = (
     Stage2Boundary("Energy", EXPLICIT_BOUNDARY, "supplied finite scalar functional E"),
     Stage2Boundary("Stability", EXPLICIT_BOUNDARY, "Stable(A; N, E) over explicit N(A)"),
     Stage2Boundary("Minimality", EXPLICIT_BOUNDARY, "no explicitly supplied proper stable subcandidate"),
+    Stage2Boundary(
+        "Existence",
+        CONDITIONAL_THEOREM,
+        "non-empty finite A(X) + finite E => attained argmin",
+    ),
     Stage2Boundary("Unit", FROZEN_THEORY, "u=(G,theta)"),
     Stage2Boundary("Relation", FROZEN_THEORY, "r_ij between Units"),
     Stage2Boundary("Graph", FROZEN_THEORY, "G=(V,E)"),
@@ -60,6 +68,7 @@ __all__ = [
     "FROZEN_THEORY",
     "DERIVED",
     "EXPLICIT_BOUNDARY",
+    "CONDITIONAL_THEOREM",
     "THEORY_GAP",
     "Stage2Boundary",
     "STAGE2_CONTRACT",
