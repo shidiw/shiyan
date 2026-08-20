@@ -49,6 +49,23 @@ class TestStage2DEnergy(unittest.TestCase):
         unit = TheoryUnit((0, 1), {})
         self.assertEqual(self.energy.fit_energy(unit, self.plane), 0.0)
 
+    def test_scale_invariance_of_homogeneous_fit(self):
+        observation = Observation3D(
+            (
+                (0.0, 0.0, 0.5),
+                (1.0, 0.0, 1.0),
+                (0.0, 1.0, 1.5),
+                (1.0, 1.0, 2.0),
+            )
+        )
+        scaled = Observation3D(tuple(tuple(3.0 * value for value in p) for p in observation.points))
+        model = GeometricModel("homogeneous", lambda p: p[2] ** 2, 0.0)
+        graph = self.graph
+        first = Stage2DEnergy(observation, (model,), graph, 0.0, 0.0)
+        second = Stage2DEnergy(scaled, (model,), graph, 0.0, 0.0)
+        unit = TheoryUnit((0, 1, 2, 3), {})
+        self.assertAlmostEqual(first.fit_energy(unit, model), second.fit_energy(unit, model))
+
     def test_model_selection_is_explicit_and_complexity_is_part_of_unit_cost(self):
         energy = Stage2DEnergy(
             self.observation,
