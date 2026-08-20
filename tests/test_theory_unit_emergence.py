@@ -53,8 +53,10 @@ class TestTheoryUnitEmergence(unittest.TestCase):
             (1,): 2.0,
             (0, 1): 1.0,
         }
-        unit = materialize_emergent_unit = materialize_emergent_unit
-        result = unit(domain, lambda candidate: energies[candidate.indices])
+        result = materialize_emergent_unit(
+            domain,
+            lambda candidate: energies[candidate.indices],
+        )
         self.assertEqual(result, StructuralUnit((0, 1), {}))
 
     def test_nonfinite_energy_is_rejected(self):
