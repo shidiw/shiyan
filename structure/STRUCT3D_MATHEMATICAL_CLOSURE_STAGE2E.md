@@ -73,21 +73,21 @@ The `argmin` operator remains the separate global-selection mechanism over an ex
 - `structure/theory_unit_formation.py` implements the Stage 2E formation boundary.
 - `materialize_unit(...)` rejects candidates that do not satisfy the supplied predicates.
 - `tests/test_theory_unit_formation.py` locks the stable, unstable, non-minimal, explicit-neighborhood, and tie cases.
+- Stage 2F is implemented by `structure/theory_existence.py` as a conditional finite-family existence theorem.
+- Stage 2G is implemented by `structure/theory_uniqueness.py` as a conditional strict-minimum uniqueness theorem.
 
-## 8. Remaining closure targets
+## 8. Current closure status
 
-### Stage 2F — Existence
+Stage 2F closes the conditional global-existence statement:
 
-State sufficient conditions under which the explicit admissible family is non-empty and the finite minimization/materialization problem has at least one solution.
+`A(X)` finite and non-empty + finite `E` => `argmin E` is non-empty.
 
-### Stage 2G — Uniqueness / equivalence
+Stage 2G closes the conditional uniqueness statement:
 
-Separate uniqueness of a selected representative from uniqueness modulo legal relabeling. A deterministic implementation tie-break is not a mathematical uniqueness theorem.
+`E(P*) < E(P)` for every distinct admissible `P` => `argmin E = {P*}`.
 
-### Stage 3 — Relation formation
-
-Define exactly when already-materialized Units may be connected by an explicit Relation. Relation formation must not be inferred from primitive equality or geometric proximity unless separately defined.
+Neither theorem claims that the raw observation-to-candidate operator `X -> A(X)` is universally non-empty. Neither theorem promotes a deterministic tie-break to mathematical uniqueness.
 
 ## Verdict
 
-**Stage 2E is implementation-closed as an explicit predicate boundary, but not promoted to a universal Unit-existence or Unit-uniqueness theorem.**
+**Stages 2E–2G are now closed at the strongest level justified by the preserved theory: explicit local formation, conditional global existence, and conditional global uniqueness. The universal construction of `A(X)` and observation-invariant Unit emergence remain the genuine unresolved theory problems.**
