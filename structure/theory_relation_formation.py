@@ -101,6 +101,41 @@ def geometry_adjacency_predicate(
     return predicate
 
 
+def form_geometry_relations(
+    units: Sequence[TheoryUnit],
+    candidate_pairs: Sequence[Tuple[int, int]],
+    evidence_by_pair: Mapping[Tuple[int, int], GeometryRelationEvidence],
+) -> StructuralRelations:
+    """Form `adjacent` relations using the frozen Stage 3B predicate."""
+    evidence_map = dict(evidence_by_pair)
+    n = len(units)
+    relations = []
+    seen = set()
+    for source_id, target_id in candidate_pairs:
+        if not (0 <= source_id < n and 0 <= target_id < n):
+            raise ValueError("candidate relation endpoint outside unit domain")
+        if source_id == target_id:
+            raise ValueError("relation endpoints must be distinct")
+        key = (source_id, target_id)
+        if key in seen:
+            raise ValueError("duplicate candidate relation pair")
+        seen.add(key)
+        evidence = evidence_map.get(key)
+        if evidence is not None and geometry_adjacency_q(evidence):
+            relations.append(
+                StructuralRelation(
+                    source=source_id,
+                    target=target_id,
+                    relation_type="adjacent",
+                    evidence={
+                        "rule": "H^2(boundary intersection) > 0",
+                        "boundary_contact_measure": evidence.boundary_contact_measure,
+                    },
+                )
+            )
+    return StructuralRelations(relations=tuple(relations), unit_count=n)
+
+
 def form_relation(
     source: TheoryUnit,
     target: TheoryUnit,
@@ -163,6 +198,7 @@ __all__ = [
     "relation_is_admissible",
     "geometry_adjacency_q",
     "geometry_adjacency_predicate",
+    "form_geometry_relations",
     "form_relation",
     "form_relations",
 ]
