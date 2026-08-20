@@ -66,13 +66,13 @@ Those require the missing admissibility/energy/perturbation theory to be frozen 
 
 ## 6. Current upstream chain after Stage 2C
 
-The implementation now exposes the following chain without pretending that the missing mathematical inputs are solved:
+The implementation exposes the following chain:
 
 `X`
 
 `-> explicit admissible family A(X)`
 
-`-> supplied energy E`
+`-> explicit energy E_X(P)`
 
 `-> explicit perturbation neighborhood N(A)`
 
@@ -86,19 +86,37 @@ The implementation now exposes the following chain without pretending that the m
 
 `-> StructuralUnit`
 
-The final implication is still a theory gap. The important change is that the gap is now represented by an explicit executable boundary rather than being hidden inside a function named `select_stable_partition`.
+Stage 2D has now supplied a parameterized, normalized energy functional while keeping the model family and observation graph explicit.
 
-## 7. Next closure target
+## 7. Stage 2D result
 
-Stage 2D must now address the exact energy domain and the historical additive skeleton:
+Stage 2D defines
 
-`E = E_fit + lambda_c C + lambda_b B`.
+`E_X(P) = sum_A min_m [F_X(A,m) + lambda_c kappa(m)] + lambda_b B_X(P)`.
 
-The next step is to determine, from the preserved mathematical source, which parts of `E_fit`, `C`, and `B` can be formally defined without importing the legacy primitive-specific implementation. Only after that audit can an exact energy functional be promoted into theory-facing code.
+The geometric fit is normalized by cell cardinality and `diam(X)^2`; the boundary term is a normalized weighted cut over an explicit observation graph. The implementation is in `structure/theory_energy_model.py`, with regression contracts in `tests/test_theory_energy_model.py`.
 
-## 8. Release decision
+This closes the **energy-functional boundary**, but it does not silently promote a universal plane/sphere/cylinder model family, graph-construction heuristic, or coefficient values.
 
-Stage 2C is **implementation-complete as a boundary** when the new regression file passes together with the existing suite. It is **not** a claim that the upstream Structural Unit existence theorem is complete.
+## 8. Remaining closure target
+
+The next mathematical target is now the **formation theorem**:
+
+`P* in argmin_{P in A(X)} E_X(P)`
+
+and, for a declared perturbation neighborhood,
+
+`P* global minimizer => P* locally stable`.
+
+The remaining open question is stronger:
+
+`Stable + Minimal + admissibility => StructuralUnit`
+
+and the existence/uniqueness conditions under which this implication is valid.
+
+## 9. Release decision
+
+Stage 2C remains **interface-complete** and Stage 2D is **energy-functional-complete at the declared parameterized boundary**. Neither stage claims the final Structural Unit existence/uniqueness theorem.
 
 The governing rule remains:
 
