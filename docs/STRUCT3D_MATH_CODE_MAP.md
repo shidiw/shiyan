@@ -48,7 +48,7 @@ naming alone.
 - Structural Graph: `G=(V,E)` with `V` indexed by world Units and `E` copied exactly from Relations.
 - Structural World: `W=(U,R,Phi)`.
 - Canonical form: exact finite `C(W)`.
-- Structural invariant: `I(W)=C(W)`.
+- Structural invariant `I(W)=C(W)`.
 - Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
 - Matching: explicit finite/admissible argmin.
 - Stage 2E local stability and minimal stability for explicit neighborhoods/subcandidates.
