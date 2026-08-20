@@ -25,6 +25,12 @@ class TestTheoryStage2Boundary(unittest.TestCase):
         self.assertIn("non-empty finite A(X)", status.mathematical_definition)
         self.assertIn("attained argmin", status.mathematical_definition)
 
+    def test_uniqueness_is_a_conditional_theorem(self):
+        status = stage2_status("Uniqueness")
+        self.assertEqual(status.status, CONDITIONAL_THEOREM)
+        self.assertIn("strictly lower", status.mathematical_definition)
+        self.assertIn("unique argmin", status.mathematical_definition)
+
     def test_object_is_derived_not_frozen_theorem(self):
         self.assertEqual(stage2_status("Object").status, DERIVED)
 
