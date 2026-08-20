@@ -1,12 +1,22 @@
 import unittest
 
-from structure.theory_stage2 import DERIVED, FROZEN_THEORY, THEORY_GAP, stage2_status
+from structure.theory_stage2 import (
+    DERIVED,
+    EXPLICIT_BOUNDARY,
+    FROZEN_THEORY,
+    THEORY_GAP,
+    stage2_status,
+)
 
 
 class TestTheoryStage2Boundary(unittest.TestCase):
     def test_frozen_core_concepts_are_explicit(self):
         for concept in ("Unit", "Relation", "Graph", "World"):
             self.assertEqual(stage2_status(concept).status, FROZEN_THEORY)
+
+    def test_upstream_closure_objects_are_explicit_boundaries(self):
+        for concept in ("CandidateFamily", "Energy", "Stability", "Minimality"):
+            self.assertEqual(stage2_status(concept).status, EXPLICIT_BOUNDARY)
 
     def test_object_is_derived_not_frozen_theorem(self):
         self.assertEqual(stage2_status("Object").status, DERIVED)
