@@ -82,6 +82,20 @@ class TestStage2DEnergy(unittest.TestCase):
         with self.assertRaises(ValueError):
             GeometricModel("bad", lambda p: 0.0, -1.0)
 
+    def test_negative_or_nonfinite_squared_distance_is_rejected(self):
+        unit = TheoryUnit((0, 1), {})
+        negative = GeometricModel("negative", lambda p: -1.0, 0.0)
+        nonfinite = GeometricModel("nonfinite", lambda p: float("nan"), 0.0)
+        with self.assertRaises(ValueError):
+            self.energy.fit_energy(unit, negative)
+        with self.assertRaises(ValueError):
+            self.energy.fit_energy(unit, nonfinite)
+
+    def test_partition_must_match_observation_index_universe(self):
+        invalid = Partition((TheoryUnit((1,), {}),), (1,))
+        with self.assertRaises(ValueError):
+            self.energy(invalid)
+
 
 if __name__ == "__main__":
     unittest.main()
