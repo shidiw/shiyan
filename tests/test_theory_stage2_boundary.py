@@ -1,6 +1,7 @@
 import unittest
 
 from structure.theory_stage2 import (
+    CONDITIONAL_THEOREM,
     DERIVED,
     EXPLICIT_BOUNDARY,
     FROZEN_THEORY,
@@ -17,6 +18,12 @@ class TestTheoryStage2Boundary(unittest.TestCase):
     def test_upstream_closure_objects_are_explicit_boundaries(self):
         for concept in ("CandidateFamily", "Energy", "Stability", "Minimality"):
             self.assertEqual(stage2_status(concept).status, EXPLICIT_BOUNDARY)
+
+    def test_existence_is_a_conditional_theorem(self):
+        status = stage2_status("Existence")
+        self.assertEqual(status.status, CONDITIONAL_THEOREM)
+        self.assertIn("non-empty finite A(X)", status.mathematical_definition)
+        self.assertIn("attained argmin", status.mathematical_definition)
 
     def test_object_is_derived_not_frozen_theorem(self):
         self.assertEqual(stage2_status("Object").status, DERIVED)
