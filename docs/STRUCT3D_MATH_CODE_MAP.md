@@ -19,7 +19,7 @@ naming alone.
 | v0.4 Structural Refinement | Refinement/optimization procedure | legacy optimization/refinement code | **Theory gap; intentionally not promoted** |
 | v0.5 Structural Unit Discovery | A mathematically defined discovery operator | `structure/theory_materialization.py` | **Boundary only**; discovery is not silently invented |
 | v0.6 Primitive Discovery | Primitive inference from geometry | legacy primitive modules | **Theory gap; intentionally not implemented in the frozen core** |
-| v0.7 Primitive Energy | A frozen mathematical primitive energy functional | legacy `structure/energy.py` | **Theory gap**; legacy energy remains a regression baseline |
+| v0.7 Primitive Energy | A frozen mathematical primitive energy functional | Legacy `structure/energy.py` | **Theory gap**; legacy energy remains a regression baseline |
 | v0.8 Hierarchy + Relation | Explicit Relations; higher hierarchy | `structure/theory_relation.py`, `structure/theory_world.py` | **Relation object implemented; hierarchy not promoted** |
 | v0.9 Memory + Prototype | Structural memory/prototype theory | legacy memory/prototype modules | **Theory gap; intentionally not implemented** |
 | v1.0 Structural World | `W=(U,R,Phi)` | `structure/theory_world.py` | **Implemented** |
