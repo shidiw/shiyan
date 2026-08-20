@@ -38,6 +38,7 @@ naming alone.
 | Stage 2A–2D | Explicit candidates, energy domain, stability, frozen energy model | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Implemented as explicit mathematical contracts** |
 | Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` for explicit perturbation/subcandidate families | `structure/theory_unit_formation.py` | **Implemented boundary; no existence/uniqueness theorem claimed** |
 | Stage 2F | If `A(X)` is finite/non-empty and `E` is finite, then `argmin_{P in A(X)} E(P)` is non-empty | `structure/theory_existence.py` | **Conditional theorem implemented and tested; no universal `A(X) != emptyset` claim** |
+| Stage 2G | Strictly lower finite energy than every distinct competitor implies `argmin E = {P*}` | `structure/theory_uniqueness.py` | **Conditional uniqueness theorem implemented and tested; ties are not promoted to uniqueness** |
 
 ## B. Frozen mathematical objects
 
@@ -57,6 +58,7 @@ unstated assumptions:
 - Stage 2E minimal stability: stable `u` with no explicitly supplied stable proper subcandidate.
 - Stage 2E materialization: identity-preserving conversion to the single `StructuralUnit` type when both predicates hold.
 - Stage 2F existence: finite non-empty explicit admissible family plus finite supplied energy implies an attained global minimizer.
+- Stage 2G uniqueness: strict energy separation from every distinct competitor implies a singleton argmin.
 
 ## C. Critical theory ↔ engineering mismatches that are now explicitly closed
 
@@ -127,7 +129,8 @@ partition family.
 `materialize_unit` is an engineering predicate boundary. It does not prove that
 a materializable Unit exists for every observation, nor that it is unique.
 Stage 2F only proves existence of a global minimizer **conditional on** a finite,
-non-empty admissible family with finite energy.
+non-empty admissible family with finite energy. Stage 2G only proves uniqueness
+under strict energy separation.
 
 ## D. Non-negotiable boundaries
 
@@ -146,8 +149,9 @@ non-empty admissible family with finite energy.
    inputs; no hidden merge/split heuristic is allowed.
 8. Stage 2F must not be rewritten as a universal claim that every observation
    has a non-empty admissible family.
-9. Any future implementation that contradicts this table must either update the
-   mathematics first or remain explicitly marked as legacy/experimental.
+9. Stage 2G must not treat deterministic tie-breaking as proof of uniqueness.
+10. Any future implementation that contradicts this table must either update the
+    mathematics first or remain explicitly marked as legacy/experimental.
 
 ## E. Release criterion
 
@@ -156,6 +160,6 @@ The theory-compliant core is regression-clean only when the full
 on legacy heuristics to construct a theory object.
 
 The latest user-reported checkpoint before Stage 2F was **106 tests, 106 passed**.
-Stage 2E/2F additions must be rerun locally; a passing suite establishes
+Stage 2E/2F/2G additions must be rerun locally; a passing suite establishes
 implementation-contract consistency, not universal observation-to-candidate
 existence or uniqueness.
