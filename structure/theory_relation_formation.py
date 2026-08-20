@@ -25,6 +25,7 @@ from .theory_relation import StructuralRelation, StructuralRelations
 
 
 RelationPredicate = Callable[[TheoryUnit, TheoryUnit], bool]
+CandidateRelationPredicate = Callable[[int, int], bool]
 
 
 @dataclass(frozen=True)
@@ -41,13 +42,7 @@ class RelationEvidence:
 
 @dataclass(frozen=True)
 class GeometryRelationEvidence:
-    """Pairwise geometric evidence for the Stage 3B adjacency predicate.
-
-    ``boundary_contact_measure`` represents the exact mathematical quantity
-    H^2(∂G_i ∩ ∂G_j) for the continuous supports associated with two Units.
-    For sampled point clouds, an estimator may be supplied by a separate
-    engineering layer, but the estimator itself is not part of this theorem.
-    """
+    """Pairwise geometric evidence for the Stage 3B adjacency predicate."""
 
     boundary_contact_measure: float
     hausdorff_dimension: int = 2
@@ -67,28 +62,20 @@ def relation_is_admissible(
     target: TheoryUnit,
     predicate: RelationPredicate,
 ) -> bool:
-    """Evaluate the supplied relation predicate, with no implicit heuristic."""
+    """Evaluate the supplied unit-level relation predicate."""
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return bool(predicate(source, target))
 
 
 def geometry_adjacency_q(evidence: GeometryRelationEvidence) -> bool:
-    """Stage 3B geometry-to-relation predicate.
-
-    Definition:
-        Q_adj(G_i,G_j) = 1 iff H^2(∂G_i ∩ ∂G_j) > 0.
-
-    No numerical tolerance is introduced here. A positive measure is a
-    mathematical predicate; sampling/tolerance choices belong to an explicit
-    estimator outside the frozen theory.
-    """
+    """Return the frozen Stage 3B predicate H^2(∂G_i ∩ ∂G_j) > 0."""
     return evidence.boundary_contact_measure > 0.0
 
 
 def geometry_adjacency_predicate(
     evidence_by_pair: Mapping[Tuple[int, int], GeometryRelationEvidence],
-) -> Callable[[int, int], bool]:
+) -> CandidateRelationPredicate:
     """Build an index-level Q predicate from explicit geometric evidence."""
     normalized = dict(evidence_by_pair)
 
@@ -106,7 +93,7 @@ def form_geometry_relations(
     candidate_pairs: Sequence[Tuple[int, int]],
     evidence_by_pair: Mapping[Tuple[int, int], GeometryRelationEvidence],
 ) -> StructuralRelations:
-    """Form `adjacent` relations using the frozen Stage 3B predicate."""
+    """Form `adjacent` relations using explicit pair-indexed evidence."""
     evidence_map = dict(evidence_by_pair)
     n = len(units)
     relations = []
@@ -144,7 +131,7 @@ def form_relation(
     evidence: RelationEvidence,
     predicate: RelationPredicate,
 ) -> StructuralRelation:
-    """Materialize one relation iff the explicit predicate admits the pair."""
+    """Materialize one relation iff the explicit unit-level predicate admits it."""
     if not relation_is_admissible(source, target, predicate):
         raise ValueError("unit pair is not admissible under the supplied relation predicate")
     return StructuralRelation(
@@ -159,13 +146,16 @@ def form_relations(
     units: Sequence[TheoryUnit],
     candidate_pairs: Sequence[Tuple[int, int]],
     evidence_factory: Callable[[int, int], RelationEvidence],
-    predicate: RelationPredicate,
+    predicate: CandidateRelationPredicate,
 ) -> StructuralRelations:
-    """Form the exact relation set selected by an explicit predicate.
+    """Form exactly the admitted relations among the supplied candidate pairs.
 
-    Candidate pairs are an input to the theory boundary. Pairs rejected by the
-    predicate are omitted; no additional pairs are inferred.
+    The candidate-level predicate receives the explicit integer pair `(i, j)`.
+    This is intentional: candidate-domain restriction is a statement about the
+    admissible index set, not about hidden geometry or Unit attributes.
     """
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
     n = len(units)
     relations = []
     seen = set()
@@ -178,7 +168,7 @@ def form_relations(
         if key in seen:
             raise ValueError("duplicate candidate relation pair")
         seen.add(key)
-        if relation_is_admissible(units[source_id], units[target_id], predicate):
+        if bool(predicate(source_id, target_id)):
             evidence = evidence_factory(source_id, target_id)
             relations.append(
                 StructuralRelation(
@@ -194,6 +184,7 @@ def form_relations(
 __all__ = [
     "RelationEvidence",
     "RelationPredicate",
+    "CandidateRelationPredicate",
     "GeometryRelationEvidence",
     "relation_is_admissible",
     "geometry_adjacency_q",
