@@ -37,7 +37,7 @@ class TestTheoryStability(unittest.TestCase):
             )
 
     def test_minimal_stable_rejects_stable_proper_subcandidate(self):
-        energies = {"A": 1.0, "B": 1.0, "C": 0.5}
+        energies = {"A": 1.0, "B": 1.0, "C": 2.0}
         neighborhoods = {
             "A": StabilityNeighborhood(("C",)),
             "B": StabilityNeighborhood(("A",)),
