@@ -17,7 +17,7 @@ naming alone.
 | v0.2 Primitive Structural Unit | Historical primitive/geometry construction | legacy `structure/` modules | **Legacy implementation; primitive is optional metadata in the frozen Unit model** |
 | v0.3 Structural Graph | Explicit `G=(V,E)` | `structure/theory_world.py` | **Implemented**; vertices are world Units and edges are exactly supplied Relations |
 | v0.4 Structural Refinement | Refinement/optimization procedure | legacy optimization/refinement code | **Theory gap; intentionally not promoted** |
-| v0.5 Structural Unit Discovery | A mathematically defined discovery operator | `structure/theory_materialization.py` | **Boundary only**; discovery is not silently invented |
+| v0.5 Structural Unit Discovery | A mathematically defined discovery operator | `structure/theory_materialization.py` | **Superseded as an open boundary by Stage 2H canonical finite emergence** |
 | v0.6 Primitive Discovery | Primitive inference from geometry | legacy primitive modules | **Theory gap; intentionally not implemented in the frozen core** |
 | v0.7 Primitive Energy | A frozen mathematical primitive energy functional | `structure/energy.py` | **Theory gap**; Legacy `structure/energy.py` remains a regression baseline and must not be promoted into the frozen theory |
 | v0.8 Hierarchy + Relation | Explicit Relations; higher hierarchy | `structure/theory_relation.py`, `structure/theory_world.py` | **Relation object implemented; hierarchy not promoted** |
@@ -35,10 +35,11 @@ naming alone.
 | v4.0 Structural Representation | `phi(W) in R^23` | `structure/theory_representation.py`, `structure/theory_representation_schema.py` | **Schema/interface implemented** |
 | Neural Struct3D v1.0 | `z=f_theta(phi(W))`, reconstruction objective | `structure/theory_neural_objective.py` and neural code | **Objective/validation boundary only** |
 | Distance-preserving neural extension | `D_Z approx D_R` | future neural implementation | **Not yet a theorem or completed algorithm** |
-| Stage 2A–2D | Explicit candidates, energy domain, stability, frozen energy model | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Implemented as explicit contracts** |
+| Stage 2A–2D | Explicit candidate/energy/stability boundaries | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Implemented as explicit contracts** |
 | Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` | `structure/theory_unit_formation.py` | **Implemented boundary** |
-| Stage 2F | finite non-empty `A(X)` + finite `E` => attained `argmin` | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
+| Stage 2F | finite non-empty explicit `A` + finite `E` => attained `argmin` | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
 | Stage 2G | strict energy separation => singleton `argmin` | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested** |
+| Stage 2H | finite `X` => `A(X)={u_S: empty != S subseteq X}`; inclusion-minimal stable candidate exists | `structure/theory_unit_emergence.py` | **Implemented canonical existence/materialization theorem** |
 | Stage 3 | `R_Q={r_ij:(i,j) in C_R, Q(u_i,u_j)=True}` | `structure/theory_relation_formation.py` | **Implemented explicit relation-formation boundary; geometry-to-Q theorem remains open** |
 
 ## B. Frozen mathematical objects
@@ -52,10 +53,42 @@ naming alone.
 - Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
 - Matching: explicit finite/admissible argmin.
 - Stage 2E local stability and minimal stability for explicit neighborhoods/subcandidates.
+- Stage 2H canonical finite support candidate family and inclusion-minimal stable Unit emergence.
 - Stage 2F conditional existence and Stage 2G conditional uniqueness.
 - Stage 3 explicit candidate relation domain `C_R`, admissibility predicate `Q`, and exact relation set `R_Q`.
 
 ## C. Critical theory ↔ engineering boundaries
+
+### X → A(X) is now explicit
+
+For finite non-empty observations `X`, Stage 2H defines
+
+`A(X) = {u_S : empty != S subseteq X}`
+
+with `|A(X)| = 2^|X| - 1`.
+
+No primitive classifier, distance threshold, connectivity rule, curvature
+threshold, or hidden geometric heuristic is used to establish candidate
+existence.
+
+### Unit emergence is variational
+
+For finite real-valued energy `E`, stability is instantiated against every
+competing candidate, so
+
+`Stable_X = argmin_{u in A(X)} E(u)`.
+
+The emergent Unit set is the inclusion-minimal subset of `Stable_X` under
+support inclusion. Finiteness guarantees this set is non-empty.
+
+A deterministic representative is an implementation detail and is not a
+uniqueness theorem.
+
+### Semantic adequacy remains an energy obligation
+
+The canonical support family guarantees existence, but it does not prove that
+the selected support is geometrically or semantically correct. That obligation
+belongs to the concrete energy model and its invariance/consistency proofs.
 
 ### Relation formation is explicit, not heuristic
 
@@ -64,23 +97,17 @@ boundary as `(C_R, Q, evidence)` and materializes exactly the admitted pairs.
 Primitive equality, distance thresholds, connectivity, curvature thresholds,
 or hidden neighborhood inference cannot create relations.
 
-### Local stability ≠ global optimality
+### Local stability ≠ global optimality in the generic API
 
-Stage 2E uses an explicitly supplied perturbation neighborhood. Global selection
-remains the separate `argmin` problem over an explicit admissible partition
-family.
+Stage 2E remains a generic contract for explicitly supplied neighborhoods.
+Stage 2H provides one canonical instantiation for finite observations. These are
+not conflated: the former is the abstract predicate, the latter is the closed
+finite-domain construction.
 
-### Materialization ≠ universal existence
+### Materialization ≠ universal semantic correctness
 
-Stage 2F only proves existence conditional on a finite, non-empty admissible
-family with finite energy. Stage 2G only proves uniqueness under strict energy
-separation.
-
-### Relation formation ≠ a universal geometry-to-relation theorem
-
-Stage 3 deliberately does not invent a geometry formula for `Q`. A future
-geometry-derived relation theorem must define `Q` and prove the required
-properties before promotion.
+Stage 2H proves existence of a materializable support Unit under finite real
+energy. It does not prove that the energy encodes the intended geometry.
 
 ## D. Non-negotiable boundaries
 
@@ -93,12 +120,13 @@ properties before promotion.
 7. Stage 2E neighborhoods/subcandidate families must be explicit inputs.
 8. Stage 2F/2G hypotheses must not be promoted to universal claims.
 9. Stage 3 candidate pairs and relation predicate must be explicit inputs.
-10. Any future contradiction must update the mathematics first or remain legacy/experimental.
+10. Stage 2H assumes finite non-empty observations and finite real-valued energy; it does not silently extend the theorem to infinite domains or non-finite energies.
+11. Any future contradiction must update the mathematics first or remain legacy/experimental.
 
 ## E. Release criterion
 
 The theory-compliant core is regression-clean only when the full
 `python -m unittest discover -s tests -v` suite passes and no theory test relies
 on legacy heuristics to construct a theory object. Passing tests establish
-implementation-contract consistency, not universal existence, uniqueness, or a
-universal geometry-to-relation law.
+implementation-contract consistency, not universal semantic correctness,
+uniqueness, or a universal geometry-to-relation law.
