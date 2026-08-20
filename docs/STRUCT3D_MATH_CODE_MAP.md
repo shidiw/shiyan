@@ -35,6 +35,8 @@ naming alone.
 | v4.0 Structural Representation | `phi(W) in R^23` | `structure/theory_representation.py`, `structure/theory_representation_schema.py` | **Schema and canonical interface implemented**; the theory freezes grouping/dimension, not an unsupported feature extractor formula |
 | Neural Struct3D v1.0 | `z=f_theta(phi(W))`, reconstruction objective | `structure/theory_neural_objective.py` and neural code | **Objective/validation boundary only**; latent metric equality is not claimed |
 | Distance-preserving neural extension | `D_Z approx D_R` and distance-preserving loss | future neural implementation | **Not yet a theorem or completed algorithm** |
+| Stage 2A–2D | Explicit candidates, energy domain, stability, frozen energy model | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Implemented as explicit mathematical contracts** |
+| Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` for explicit perturbation/subcandidate families | `structure/theory_unit_formation.py` | **Implemented boundary; no existence/uniqueness theorem claimed** |
 
 ## B. Frozen mathematical objects
 
@@ -50,6 +52,9 @@ unstated assumptions:
 - Structural Representation: `phi(W) in R^23` with group sizes `3,3,3,3,3,3,5`.
 - Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
 - Matching: explicit finite/admissible argmin.
+- Stage 2E local stability: `E(u) <= E(v)` for every explicitly supplied `v in N(u)`.
+- Stage 2E minimal stability: stable `u` with no explicitly supplied stable proper subcandidate.
+- Stage 2E materialization: identity-preserving conversion to the single `StructuralUnit` type when both predicates hold.
 
 ## C. Critical theory ↔ engineering mismatches that are now explicitly closed
 
@@ -104,9 +109,22 @@ The reconstruction objective may make `phi_hat` close to `phi`, but it does not
 prove `||z1-z2||_2 = D_R(W1,W2)`. That property requires an explicit distance
 objective and independent validation. A distance result or a low empirical
 error must not be reported as a proof of the mathematical equality. The
-historical 53.18% relative-distance error is therefore treated as evidence of
-an unresolved research problem, not as a theorem failure hidden by the
+historical 53.18% relative-distance error is therefore treated as evidence of an
+unresolved research problem, not as a theorem failure hidden by the
 implementation.
+
+### 9. Local stability ≠ global optimality
+
+Stage 2E uses an explicitly supplied perturbation neighborhood. A locally stable
+Unit is not automatically a global minimizer of the partition energy. Global
+selection remains the separate `argmin` problem over an explicit admissible
+partition family.
+
+### 10. Materialization ≠ existence theorem
+
+`materialize_unit` is an engineering predicate boundary. It does not prove that
+a materializable Unit exists for every observation, nor that it is unique.
+Those claims require separate hypotheses and theorems.
 
 ## D. Non-negotiable boundaries
 
@@ -121,7 +139,9 @@ implementation.
    theory without explicit definitions and proofs.
 6. Neural objectives are training contracts, not proofs of latent geometry; they
    must not be reported as a proof of latent metric equality.
-7. Any future implementation that contradicts this table must either update the
+7. Stage 2E neighborhoods and proper-subcandidate families must be explicit
+   inputs; no hidden merge/split heuristic is allowed.
+8. Any future implementation that contradicts this table must either update the
    mathematics first or remain explicitly marked as legacy/experimental.
 
 ## E. Release criterion
@@ -130,10 +150,7 @@ The theory-compliant core is regression-clean only when the full
 `python -m unittest discover -s tests -v` suite passes and no theory test relies
 on legacy heuristics to construct a theory object.
 
-The pre-fix checkpoint reported by the current branch was **81 tests, 77 passed,
-4 failed**. The four failures were contract-wording checks and the legacy
-positional `StructuralUnit` materialization contract. After the corresponding
-code/documentation fixes, this release gate should be rerun locally before the
-branch is considered clean. A passing suite establishes
-implementation-contract consistency; it does not establish the unresolved
-mathematical gaps listed above.
+The latest user-reported checkpoint is **106 tests, 106 passed** before Stage 2E.
+The Stage 2E additions must be rerun locally; a passing suite establishes
+implementation-contract consistency, not the unresolved existence/uniqueness
+mathematical claims.
