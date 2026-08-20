@@ -78,7 +78,9 @@ class TestStage2DEnergy(unittest.TestCase):
             lambda_boundary=0.0,
         )
         unit = TheoryUnit((0, 1), {})
-        self.assertEqual(energy.unit_energy(unit), 1.0)
+        # F = mean(1) / diam(X)^2 = 1 / 2 = 0.5, while the zero-fit model
+        # costs lambda_c * complexity = 2.0. The variational minimum is 0.5.
+        self.assertAlmostEqual(energy.unit_energy(unit), 0.5)
 
     def test_boundary_is_normalized_cut_weight(self):
         one_unit = self.energy.boundary_energy(self.partition((0, 1, 2, 3)))
