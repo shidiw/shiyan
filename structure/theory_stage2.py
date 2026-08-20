@@ -1,23 +1,26 @@
-"""Stage-2 boundary for structures not formally defined by the frozen theory.
+"""Machine-readable boundary for the current Struct3D theory closure.
 
-The current mathematical specification freezes W=(U,R,Phi).  It does not
-formally define Object, Instance, or Hierarchy emergence.  This module makes
-that boundary executable instead of silently extending the theory.
+The current mathematical specification freezes W=(U,R,Phi) and the downstream
+canonical/invariant/representation chain. The upstream formation problem still
+contains explicit-input boundaries: admissible candidate families, the supplied
+energy functional, stability neighborhoods, and minimality families.
 
 Status values are deliberately explicit:
     FROZEN_THEORY: directly represented by the specification.
     DERIVED: deterministic engineering construction from frozen objects.
+    EXPLICIT_BOUNDARY: executable contract whose mathematical generator is not
+        frozen by the preserved source.
     THEORY_GAP: requires a future mathematical definition before promotion.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Tuple
 
 
 FROZEN_THEORY = "FROZEN_THEORY"
 DERIVED = "DERIVED"
+EXPLICIT_BOUNDARY = "EXPLICIT_BOUNDARY"
 THEORY_GAP = "THEORY_GAP"
 
 
@@ -31,6 +34,11 @@ class Stage2Boundary:
 
 
 STAGE2_CONTRACT = (
+    Stage2Boundary("Observation", FROZEN_THEORY, "finite indexed universe X"),
+    Stage2Boundary("CandidateFamily", EXPLICIT_BOUNDARY, "explicit finite A(X) input"),
+    Stage2Boundary("Energy", EXPLICIT_BOUNDARY, "supplied finite scalar functional E"),
+    Stage2Boundary("Stability", EXPLICIT_BOUNDARY, "Stable(A; N, E) over explicit N(A)"),
+    Stage2Boundary("Minimality", EXPLICIT_BOUNDARY, "no explicitly supplied proper stable subcandidate"),
     Stage2Boundary("Unit", FROZEN_THEORY, "u=(G,theta)"),
     Stage2Boundary("Relation", FROZEN_THEORY, "r_ij between Units"),
     Stage2Boundary("Graph", FROZEN_THEORY, "G=(V,E)"),
@@ -51,6 +59,7 @@ def stage2_status(concept: str) -> Stage2Boundary:
 __all__ = [
     "FROZEN_THEORY",
     "DERIVED",
+    "EXPLICIT_BOUNDARY",
     "THEORY_GAP",
     "Stage2Boundary",
     "STAGE2_CONTRACT",
