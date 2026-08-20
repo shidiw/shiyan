@@ -3,9 +3,7 @@ import unittest
 from structure.theory_core import TheoryUnit
 from structure.theory_relation_formation import (
     GeometryRelationEvidence,
-    RelationEvidence,
-    form_relations,
-    geometry_adjacency_predicate,
+    form_geometry_relations,
     geometry_adjacency_q,
 )
 
@@ -35,22 +33,27 @@ class TestStage3BGeometryRelation(unittest.TestCase):
     def test_geometry_q_does_not_use_a_positive_threshold(self):
         self.assertTrue(geometry_adjacency_q(GeometryRelationEvidence(1e-15)))
 
-    def test_candidate_pairs_are_the_only_pairs_materialized(self):
-        q = geometry_adjacency_predicate(
+    def test_only_admissible_candidate_pairs_are_materialized(self):
+        result = form_geometry_relations(
+            self.units,
+            ((0, 1), (0, 2)),
             {
                 (0, 1): GeometryRelationEvidence(1.0),
                 (0, 2): GeometryRelationEvidence(0.0),
                 (1, 2): GeometryRelationEvidence(3.0),
-            }
-        )
-        result = form_relations(
-            self.units,
-            ((0, 1), (0, 2)),
-            lambda i, j: RelationEvidence("adjacent", {"rule": "H2-contact"}),
-            lambda u_i, u_j: q(self.units.index(u_i), self.units.index(u_j)),
+            },
         )
         self.assertEqual(len(result.relations), 1)
         self.assertEqual(result.relations[0].units, (0, 1))
+        self.assertEqual(result.relations[0].relation_type, "adjacent")
+
+    def test_missing_geometric_evidence_does_not_create_a_relation(self):
+        result = form_geometry_relations(
+            self.units,
+            ((0, 1), (1, 2)),
+            {(0, 1): GeometryRelationEvidence(1.0)},
+        )
+        self.assertEqual([r.units for r in result.relations], [(0, 1)])
 
     def test_relabeling_of_unit_ids_does_not_change_the_geometric_predicate(self):
         evidence = GeometryRelationEvidence(4.0)
