@@ -78,8 +78,6 @@ class TestStage2DEnergy(unittest.TestCase):
             lambda_boundary=0.0,
         )
         unit = TheoryUnit((0, 1), {})
-        # F = mean(1) / diam(X)^2 = 1 / 2 = 0.5, while the zero-fit model
-        # costs lambda_c * complexity = 2.0. The variational minimum is 0.5.
         self.assertAlmostEqual(energy.unit_energy(unit), 0.5)
 
     def test_boundary_is_normalized_cut_weight(self):
@@ -109,6 +107,18 @@ class TestStage2DEnergy(unittest.TestCase):
             self.energy.fit_energy(unit, negative)
         with self.assertRaises(ValueError):
             self.energy.fit_energy(unit, nonfinite)
+
+    def test_negative_unit_index_is_rejected(self):
+        unit = TheoryUnit((-1,), {})
+        with self.assertRaises(ValueError):
+            self.energy.fit_energy(unit, self.plane)
+
+    def test_duplicate_boundary_edge_is_rejected(self):
+        with self.assertRaises(ValueError):
+            WeightedObservationGraph(
+                ((0, 1, 1.0), (0, 1, 2.0)),
+                universe_size=4,
+            )
 
     def test_partition_must_match_observation_index_universe(self):
         invalid = Partition((TheoryUnit((1,), {}),), (1,))

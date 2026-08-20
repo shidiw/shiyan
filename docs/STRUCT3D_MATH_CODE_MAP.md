@@ -35,11 +35,12 @@ naming alone.
 | v4.0 Structural Representation | `phi(W) in R^23` | `structure/theory_representation.py`, `structure/theory_representation_schema.py` | **Schema/interface implemented** |
 | Neural Struct3D v1.0 | `z=f_theta(phi(W))`, reconstruction objective | `structure/theory_neural_objective.py` and neural code | **Objective/validation boundary only** |
 | Distance-preserving neural extension | `D_Z approx D_R` | future neural implementation | **Not yet a theorem or completed algorithm** |
-| Stage 2A–2D | Explicit candidates, energy domain, stability, frozen energy model | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Implemented as explicit contracts** |
-| Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` | `structure/theory_unit_formation.py` | **Implemented boundary** |
+| Stage 2A–2D | Explicit candidates, energy domain, stability, derived normalized energy | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Conditional/derived extension; not recovered historical theory** |
+| Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` | `structure/theory_unit_formation.py` | **Explicit conditional interface; not a universal emergence theorem** |
 | Stage 2F | finite non-empty `A(X)` + finite `E` => attained `argmin` | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
 | Stage 2G | strict energy separation => singleton `argmin` | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested** |
-| Stage 3 | `R_Q={r_ij:(i,j) in C_R, Q(u_i,u_j)=True}` | `structure/theory_relation_formation.py` | **Implemented explicit relation-formation boundary; geometry-to-Q theorem remains open** |
+| Stage 3A | `R_Q={r_ij:(i,j) in C_R, Q(u_i,u_j)=True}` | `structure/theory_relation_formation.py` | **Explicit candidate/predicate boundary** |
+| Stage 3B extension | `Q_adj(G_i,G_j)=1 iff H^2(boundary(G_i)∩boundary(G_j))>0` with supplied measure evidence | `structure/theory_relation_formation.py` | **Derived geometry predicate boundary; evidence supplied externally** |
 
 ## B. Frozen mathematical objects
 
@@ -80,7 +81,15 @@ separation.
 
 Stage 3 deliberately does not invent a geometry formula for `Q`. A future
 geometry-derived relation theorem must define `Q` and prove the required
-properties before promotion.
+properties before promotion. Stage 3B is a separately marked derived extension
+because its Hausdorff-contact predicate is not stated in the preserved source
+as the universal relation law.
+
+### Stage 2D energy ≠ recovered historical energy
+
+`E_X(P) = sum_A min_m [F_X(A,m) + lambda_c kappa(m)] + lambda_b B_X(P)` is a
+parameterized derived closure proposal. It is not evidence that the old
+primitive-specific `structure/energy.py` formula was the original theorem.
 
 ## D. Non-negotiable boundaries
 
@@ -93,7 +102,8 @@ properties before promotion.
 7. Stage 2E neighborhoods/subcandidate families must be explicit inputs.
 8. Stage 2F/2G hypotheses must not be promoted to universal claims.
 9. Stage 3 candidate pairs and relation predicate must be explicit inputs.
-10. Any future contradiction must update the mathematics first or remain legacy/experimental.
+10. Stage 2D/3B derived extensions must remain explicitly labeled as extensions until the theory is formally adopted.
+11. Any future contradiction must update the mathematics first or remain legacy/experimental.
 
 ## E. Release criterion
 

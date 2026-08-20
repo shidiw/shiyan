@@ -103,11 +103,16 @@ class WeightedObservationGraph:
         if self.universe_size <= 0:
             raise ValueError("Graph universe must be non-empty")
         total = 0.0
+        seen = set()
         for source, target, weight in self.edges:
             if source == target:
                 raise ValueError("Boundary graph edges must connect distinct vertices")
             if not (0 <= source < self.universe_size and 0 <= target < self.universe_size):
                 raise ValueError("Boundary edge lies outside graph universe")
+            key = (source, target)
+            if key in seen:
+                raise ValueError("Boundary graph edges must not contain duplicate ordered pairs")
+            seen.add(key)
             if not math.isfinite(float(weight)) or weight < 0.0:
                 raise ValueError("Boundary edge weights must be finite and non-negative")
             total += float(weight)
@@ -146,7 +151,7 @@ class Stage2DEnergy:
 
     def fit_energy(self, unit: StructuralUnit, model: GeometricModel) -> float:
         indices = unit.indices
-        if any(i >= len(self.observation.points) for i in indices):
+        if any(i < 0 or i >= len(self.observation.points) for i in indices):
             raise ValueError("Unit index lies outside the observation")
         total = 0.0
         for index in indices:

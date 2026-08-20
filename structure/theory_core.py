@@ -16,6 +16,7 @@ therefore remain explicit external inputs.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Callable, Sequence, Tuple
 
@@ -55,10 +56,16 @@ class Partition:
 
 
 def evaluate_energy(partition: Partition, functional: Callable[[Partition], float]) -> float:
-    """Evaluate an externally supplied scalar functional."""
+    """Evaluate an externally supplied scalar functional.
+
+    The finite-selection theorem requires real-valued (not NaN/inf) energy on
+    every candidate.  Enforcing that requirement here keeps the generic core
+    consistent with Stage 2F and prevents a non-finite value from silently
+    becoming an argmin witness.
+    """
     value = float(functional(partition))
-    if value != value:
-        raise ValueError("Energy functional returned NaN")
+    if not math.isfinite(value):
+        raise ValueError("Energy functional must return a finite real scalar")
     return value
 
 

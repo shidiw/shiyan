@@ -16,6 +16,20 @@ class TestTheoryNeuralObjective(unittest.TestCase):
         with self.assertRaises(ValueError):
             NeuralObjective(distance_weight=-1.0)
 
+    def test_nonfinite_weight_is_rejected(self):
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    NeuralObjective(distance_weight=value)
+
+    def test_nonfinite_loss_is_rejected(self):
+        for index in range(3):
+            terms = [0.0, 0.0, 0.0]
+            terms[index] = float("inf")
+            with self.subTest(index=index):
+                with self.assertRaises(ValueError):
+                    combine_losses(*terms, NeuralObjective())
+
     def test_nan_loss_is_rejected(self):
         with self.assertRaises(ValueError):
             combine_losses(float("nan"), 0.0, 0.0, NeuralObjective())

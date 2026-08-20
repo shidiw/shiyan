@@ -8,6 +8,7 @@ theorem.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -25,7 +26,7 @@ class NeuralObjective:
             self.distance_weight,
             self.mutation_weight,
         ):
-            if value != value or value < 0.0:
+            if not math.isfinite(float(value)) or value < 0.0:
                 raise ValueError("objective weights must be finite and non-negative")
 
 
@@ -37,8 +38,8 @@ def combine_losses(
 ) -> float:
     """Combine explicitly supplied loss terms; no neural claim is implied."""
     terms = (reconstruction, distance, mutation)
-    if any(value != value for value in terms):
-        raise ValueError("loss terms cannot be NaN")
+    if not all(math.isfinite(float(value)) for value in terms):
+        raise ValueError("loss terms must be finite real scalars")
     return (
         objective.reconstruction_weight * reconstruction
         + objective.distance_weight * distance

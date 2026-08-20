@@ -29,6 +29,13 @@ class TestTheoryCore(unittest.TestCase):
         partition = self.make_partition(((0,), (1,)))
         self.assertEqual(evaluate_energy(partition, lambda p: 3.5), 3.5)
 
+    def test_nonfinite_energy_is_rejected(self):
+        partition = self.make_partition(((0,), (1,)))
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    evaluate_energy(partition, lambda p, value=value: value)
+
     def test_argmin_selects_from_explicit_candidates(self):
         p0 = self.make_partition(((0,), (1,)))
         p1 = self.make_partition(((0, 1),))
