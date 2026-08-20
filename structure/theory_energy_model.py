@@ -37,13 +37,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from typing import Callable, Mapping, Sequence, Tuple
+from typing import Callable, Tuple
 
 from .theory_core import Partition, StructuralUnit
 
 Point = Tuple[float, float, float]
 Residual = Callable[[Point], float]
-Complexity = Callable[[], float]
 
 
 @dataclass(frozen=True)
@@ -135,19 +134,27 @@ class Stage2DEnergy:
             raise ValueError("At least one geometric model is required")
         if self.boundary_graph.universe_size != len(self.observation.points):
             raise ValueError("Boundary graph and observation universes must agree")
+        if not math.isfinite(float(self.lambda_complexity)) or not math.isfinite(float(self.lambda_boundary)):
+            raise ValueError("Energy weights must be finite")
         if self.lambda_complexity < 0.0 or self.lambda_boundary < 0.0:
             raise ValueError("Energy weights must be non-negative")
-        if not math.isfinite(self.lambda_complexity) or not math.isfinite(self.lambda_boundary):
-            raise ValueError("Energy weights must be finite")
+
+    def _validate_partition_universe(self, partition: Partition) -> None:
+        expected = tuple(range(len(self.observation.points)))
+        if partition.universe != expected:
+            raise ValueError("Partition universe must match observation indices exactly")
 
     def fit_energy(self, unit: StructuralUnit, model: GeometricModel) -> float:
         indices = unit.indices
         if any(i >= len(self.observation.points) for i in indices):
             raise ValueError("Unit index lies outside the observation")
-        return sum(
-            float(model.squared_distance(self.observation.points[i]))
-            for i in indices
-        ) / (len(indices) * self.observation.scale ** 2)
+        total = 0.0
+        for index in indices:
+            residual = float(model.squared_distance(self.observation.points[index]))
+            if not math.isfinite(residual) or residual < 0.0:
+                raise ValueError("Model squared distance must be finite and non-negative")
+            total += residual
+        return total / (len(indices) * self.observation.scale ** 2)
 
     def unit_energy(self, unit: StructuralUnit) -> float:
         best = math.inf
@@ -161,6 +168,7 @@ class Stage2DEnergy:
         return best
 
     def boundary_energy(self, partition: Partition) -> float:
+        self._validate_partition_universe(partition)
         labels = {}
         for unit_index, unit in enumerate(partition.units):
             for point_index in unit.indices:
@@ -172,8 +180,7 @@ class Stage2DEnergy:
         return cut / self.boundary_graph.total_weight
 
     def __call__(self, partition: Partition) -> float:
-        if len(partition.universe) != len(self.observation.points):
-            raise ValueError("Partition and observation universes must agree")
+        self._validate_partition_universe(partition)
         fit_and_complexity = sum(self.unit_energy(unit) for unit in partition.units)
         return fit_and_complexity + self.lambda_boundary * self.boundary_energy(partition)
 
