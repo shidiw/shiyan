@@ -8,8 +8,8 @@ Let
 X=(x_i)_{i\in\Omega_X},\qquad x_i\in\mathbb R^3,
 \]
 
-be a finite observation and let \(A\subseteq\Omega_X\), \(A\neq\varnothing\).
-Define
+be a finite **simple observation**, meaning \(x_i\neq x_j\) for \(i\neq j\),
+and let \(A\subseteq\Omega_X\), \(A\neq\varnothing\). Define
 
 \[
 T_X(A)=\theta_A
@@ -18,34 +18,28 @@ T_X(A)=\theta_A
 by the finite signature
 
 \[
-\theta_A=
-\Bigl(|A|,\bar x_A,S_X(A)\Bigr),
+\theta_A=\Bigl(|A|,\bar x_A,S_X(A)\Bigr),
 \]
 
 where
 
 \[
-\bar x_A=\frac1{|A|}\sum_{i\in A}x_i
-\]
-
-and
-
-\[
+\bar x_A=\frac1{|A|}\sum_{i\in A}x_i,
+\qquad
 S_X(A)=\operatorname{sort}_{lex}\{x_i:i\in A\}.
 \]
 
-The complete sorted coordinate signature is deliberately retained. The centroid
-is redundant for injectivity but provides a directly interpretable geometric
-summary.
+The complete sorted coordinate signature is retained. The centroid is a
+redundant but interpretable geometric summary.
 
-The observation-derived Unit is therefore
+The observation-derived Unit is
 
 \[
 U_X(A)=\bigl(A,T_X(A)\bigr).
 \]
 
-No semantic label, primitive class, learned representation, threshold, or
-neural network occurs in the definition.
+No semantic label, primitive class, learned representation, threshold,
+optimization rule, or neural network occurs in the definition.
 
 ## Proposition 1 — Finiteness
 
@@ -54,7 +48,7 @@ finite real values.
 
 ## Proposition 2 — Strict injectivity on geometric blocks
 
-For a fixed observation coordinate frame, if
+For a simple observation, if
 
 \[
 T_X(A)=T_X(B),
@@ -63,16 +57,17 @@ T_X(A)=T_X(B),
 then
 
 \[
-\{x_i:i\in A\}=\{x_i:i\in B\}
+S_X(A)=S_X(B).
 \]
 
-as coordinate multisets. Since the observation indices are distinct points in
-the frozen candidate construction, distinct geometric blocks have distinct
-signatures. Thus \(T_X\) is strictly injective on the finite geometric block
-family.
+Because all observed coordinates are distinct, equality of the sorted coordinate
+sets implies \(A=B\). Therefore \(T_X\) is strictly injective on the finite
+block family \(\Pi(\Omega_X)\).
 
-The proof is immediate from equality of the complete sorted coordinate
-signature \(S_X(A)=S_X(B)\).
+This is the exact reason the simplicity assumption is part of the frozen
+mathematical domain. Without it, two different indices carrying exactly the
+same coordinate cannot be distinguished by any relabeling-invariant geometric
+parameter map.
 
 ## Proposition 3 — Relabeling / quotient compatibility
 
@@ -89,25 +84,21 @@ Then
 T_{\pi X}(\pi A)=T_X(A).
 \]
 
-The proof follows because relabeling changes only indices; the coordinate
-multiset \(\{x_i:i\in A\}\) is unchanged.
-
-Consequently
+Relabeling changes only indices, while the coordinate set in the block is
+unchanged. Hence
 
 \[
-U_{\pi X}(\pi A)
-=\bigl(\pi A,T_X(A)\bigr),
+U_{\pi X}(\pi A)=\bigl(\pi A,T_X(A)\bigr)=\pi U_X(A).
 \]
 
-which is exactly the Unit quotient action induced by the observation
-relabeling.
+Thus \(U_X\) descends to the observation relabeling quotient.
 
 ## Theorem — Observation-derived Unit Formation
 
 Let
 
 \[
-P^*=\arg\min_{P\in\Gamma(X)}E_{2D}(P),
+P^*\in\arg\min_{P\in\Gamma(X)}E_{2D}(P),
 \]
 
 where \(\Gamma(X)=A_{max}(X)\) is the frozen finite, non-empty,
@@ -117,41 +108,51 @@ quotient-compatible admissible family. For every block \(A\in P^*\), define
 U_A=U_X(A)=\bigl(A,T_X(A)\bigr).
 \]
 
-Then the selected partition induces a finite Structural Unit family
+Then the selected partition induces the finite Structural Unit family
 
 \[
-U(P^*,X)=\{U_X(A):A\in P^*\}
+U(P^*,X)=\{U_X(A):A\in P^*\}.
 \]
 
-without importing semantic information or a learned representation.
-
-Moreover, under any legal observation relabeling \(\pi\),
+Under every legal relabeling \(\pi\),
 
 \[
-U(\pi P^*,\pi X)=\pi U(P^*,X),
+U(\pi P^*,\pi X)=\pi U(P^*,X).
 \]
 
-so Unit formation descends to the observation quotient.
-
-## Relation to Stage 2D Energy
-
-Stage 2D remains the selector, not the definition of \(\theta\):
+Therefore the map
 
 \[
 X\longrightarrow\Gamma(X)
-\xrightarrow{\arg\min E_{2D}}P^*
-\longrightarrow
-\{(A,T_X(A)):A\in P^*\}.
+\longrightarrow P^*
+\longrightarrow U(P^*,X)
 \]
 
-The unit term and boundary term determine which partition is selected, while
-\(T_X\) determines the semantic-free geometric parameter attached to each
-selected Unit. This separation is essential: changing the energy changes
-\(P^*\), but does not silently redefine the Unit parameter map.
+is closed at the Unit-formation level without semantic labels or learned
+representations.
+
+## Relation to Stage 2D Energy
+
+Stage 2D is the selector, not the definition of \(\theta\):
+
+\[
+X
+\xrightarrow{\Gamma=A_{max}}
+\Gamma(X)
+\xrightarrow{\arg\min E_{2D}}
+P^*
+\xrightarrow{T_X}
+U(P^*,X).
+\]
+
+The Stage 2D unit term and boundary term determine which partition is selected;
+\(T_X\) deterministically attaches the observation-derived geometric parameter
+to every selected Unit. Thus changing the energy changes \(P^*\), but does not
+silently redefine the Unit parameter map.
 
 ## Scope boundary
 
-Strict injectivity is with respect to the observed geometric coordinate frame.
-This theorem does not claim invariance to arbitrary Euclidean transformations;
-those would require an explicitly chosen geometric quotient and a different
-parameter map.
+Strict injectivity is with respect to the fixed observed coordinate frame and
+the simple-observation domain. This theorem does not claim invariance to
+arbitrary Euclidean transformations. Such invariance would require an explicit
+geometric quotient and a different parameter map.
