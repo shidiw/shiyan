@@ -70,11 +70,14 @@ class TestEnergySeparationMargin(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.energy.require_separation_margin((one_unit, two_units), margin=1.1)
 
-    def test_stage2g_consumes_the_same_one_sided_margin(self):
+    def test_stage2g_consumes_the_same_one_sided_margin_and_respects_quotient(self):
         best = self.partition((0, 1, 2, 3))
         competitor = self.partition((0, 1), (2, 3))
-        self.assertTrue(is_unique_minimizer(best, (competitor,), self.energy, margin=0.5))
-        self.assertFalse(is_unique_minimizer(best, (competitor,), self.energy, margin=1.1))
+        reordered_equivalent = self.partition((2, 3), (0, 1))
+        equivalence = structurally_equivalent_partitions
+        self.assertTrue(is_unique_minimizer(best, (competitor,), self.energy, margin=0.5, equivalence=equivalence))
+        self.assertFalse(is_unique_minimizer(best, (competitor,), self.energy, margin=1.1, equivalence=equivalence))
+        self.assertTrue(is_unique_minimizer(best, (reordered_equivalent,), self.energy, margin=0.5, equivalence=equivalence))
 
     def test_stage2e_can_require_an_explicit_unit_margin(self):
         unit = StructuralUnit((0, 1), {})
