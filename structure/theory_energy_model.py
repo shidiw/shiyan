@@ -43,7 +43,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from .theory_core import Partition, StructuralUnit
 
@@ -265,7 +265,7 @@ class Stage2DEnergy:
     def verify_separation_margin(
         self,
         candidates: Tuple[Partition, ...],
-        margin: float | None = None,
+        margin: Optional[float] = None,
     ) -> SeparationMarginResult:
         """Verify a positive uniform margin on an explicit finite candidate family.
 
@@ -305,7 +305,7 @@ class Stage2DEnergy:
     def require_separation_margin(
         self,
         candidates: Tuple[Partition, ...],
-        margin: float | None = None,
+        margin: Optional[float] = None,
     ) -> SeparationMarginResult:
         """Require the theorem-level separation condition or raise."""
         result = self.verify_separation_margin(candidates, margin)
