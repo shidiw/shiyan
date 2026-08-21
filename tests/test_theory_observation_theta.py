@@ -1,14 +1,19 @@
 import unittest
 
-from structure.theory_energy_model import Observation3D
+from structure.theory_energy_model import (
+    GeometricModel,
+    Observation3D,
+    Stage2DEnergy,
+    WeightedObservationGraph,
+)
 from structure.theory_observation_theta import (
     observation_theta,
     observation_unit,
+    relabel_observation_unit,
     theta_injective,
     theta_signature,
 )
 from structure.theory_pipeline import select_stage2d_partition
-from structure.theory_energy_model import GeometricModel, Stage2DEnergy, WeightedObservationGraph
 
 
 class TestObservationDerivedTheta(unittest.TestCase):
@@ -34,10 +39,7 @@ class TestObservationDerivedTheta(unittest.TestCase):
     def test_relabeling_preserves_theta(self):
         permutation = {0: 2, 1: 0, 2: 1}
         original = observation_unit(self.X, (0, 2))
-        relabeled = observation_unit(
-            Observation3D(points=(self.X.points[2], self.X.points[0], self.X.points[1])),
-            (1, 0),
-        )
+        relabeled = relabel_observation_unit(self.X, (0, 2), permutation)
         self.assertEqual(theta_signature(original), theta_signature(relabeled))
 
     def test_stage2d_returns_units_with_observation_theta(self):
@@ -59,7 +61,10 @@ class TestObservationDerivedTheta(unittest.TestCase):
         )
         partition = select_stage2d_partition(self.X, energy)
         for unit in partition.units:
-            self.assertEqual(unit.attributes["signature"], tuple(sorted(self.X.points[i] for i in unit.indices)))
+            self.assertEqual(
+                unit.attributes["signature"],
+                tuple(sorted(self.X.points[i] for i in unit.indices)),
+            )
 
 
 if __name__ == "__main__":
