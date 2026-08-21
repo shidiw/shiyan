@@ -36,6 +36,11 @@ class TestObservationDerivedTheta(unittest.TestCase):
         self.assertNotEqual(theta_signature(u), theta_signature(v))
         self.assertFalse(theta_injective(u, v))
 
+    def test_non_simple_observation_is_outside_strict_injectivity_domain(self):
+        X = Observation3D(points=((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)))
+        with self.assertRaises(ValueError):
+            observation_unit(X, (0,))
+
     def test_relabeling_preserves_theta(self):
         permutation = {0: 2, 1: 0, 2: 1}
         original = observation_unit(self.X, (0, 2))
