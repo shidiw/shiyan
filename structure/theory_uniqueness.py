@@ -10,20 +10,21 @@ condition
 
     E(C) - E(A) >= margin > 0
 
-for every distinct competitor C of candidate A. The margin is supplied and
-verified; it is never manufactured by deterministic tie-breaking.
+for every quotient-distinct competitor C of candidate A. The margin is supplied
+and verified; it is never manufactured by deterministic tie-breaking.
 """
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable, Tuple
+from typing import Callable, Optional, Tuple
 
 from .theory_core import Partition
 
 
 Energy = Callable[[Partition], float]
+Equivalence = Callable[[Partition, Partition], bool]
 
 
 @dataclass(frozen=True)
@@ -48,24 +49,29 @@ def is_unique_minimizer(
     competitors: Tuple[Partition, ...],
     energy: Energy,
     margin: float = 0.0,
+    equivalence: Optional[Equivalence] = None,
 ) -> bool:
     """Return whether ``candidate`` is a strict minimizer over competitors.
 
-    With ``margin=0`` this preserves the original Stage 2G strict-minimum
-    contract. With ``margin>0`` every distinct competitor must exceed the
-    candidate by at least that margin. Equal-energy ties therefore return
-    ``False`` and a positive-margin claim cannot be inferred from ordering.
+    ``equivalence`` is an explicit quotient relation. When supplied, competitors
+    in the same quotient class as the candidate are ignored. With ``margin=0``
+    this preserves the original Stage 2G strict-minimum contract. With
+    ``margin>0`` every quotient-distinct competitor must exceed the candidate by
+    at least that margin.
     """
     required_margin = _validate_margin(margin)
+    equivalent = equivalence or (lambda a, b: a == b)
     candidate_energy = float(energy(candidate))
     if not math.isfinite(candidate_energy):
         raise ValueError("candidate energy must be finite")
 
     for competitor in competitors:
+        if equivalent(candidate, competitor):
+            continue
         competitor_energy = float(energy(competitor))
         if not math.isfinite(competitor_energy):
             raise ValueError("competitor energy must be finite")
-        if competitor != candidate and competitor_energy - candidate_energy < required_margin:
+        if competitor_energy - candidate_energy < required_margin:
             return False
     return True
 
@@ -75,13 +81,20 @@ def prove_unique_minimizer(
     competitors: Tuple[Partition, ...],
     energy: Energy,
     margin: float = 0.0,
+    equivalence: Optional[Equivalence] = None,
 ) -> UniquenessResult:
     """Return a uniqueness witness when the requested separation succeeds."""
     required_margin = _validate_margin(margin)
     value = float(energy(candidate))
     if not math.isfinite(value):
         raise ValueError("candidate energy must be finite")
-    unique = is_unique_minimizer(candidate, competitors, energy, required_margin)
+    unique = is_unique_minimizer(
+        candidate,
+        competitors,
+        energy,
+        required_margin,
+        equivalence,
+    )
     if not unique:
         raise ValueError("candidate is not a uniquely minimizing admissible partition")
     return UniquenessResult(
