@@ -57,18 +57,18 @@ class TestEnergySeparationMargin(unittest.TestCase):
         result = self.energy.verify_separation_margin((one_unit, two_units))
         self.assertTrue(result.satisfied)
         self.assertEqual(result.compared_pairs, 1)
-        self.assertAlmostEqual(result.minimum_gap, 1.0)
+        self.assertAlmostEqual(result.minimum_gap, 0.5)
         self.assertEqual(result.requested_margin, 0.5)
         self.assertTrue(self.energy.require_separation_margin((one_unit, two_units)).satisfied)
 
     def test_margin_failure_is_reported_instead_of_manufactured(self):
         one_unit = self.partition((0, 1, 2, 3))
         two_units = self.partition((0, 1), (2, 3))
-        result = self.energy.verify_separation_margin((one_unit, two_units), margin=1.1)
+        result = self.energy.verify_separation_margin((one_unit, two_units), margin=0.6)
         self.assertFalse(result.satisfied)
-        self.assertAlmostEqual(result.minimum_gap, 1.0)
+        self.assertAlmostEqual(result.minimum_gap, 0.5)
         with self.assertRaises(ValueError):
-            self.energy.require_separation_margin((one_unit, two_units), margin=1.1)
+            self.energy.require_separation_margin((one_unit, two_units), margin=0.6)
 
     def test_stage2g_consumes_the_same_one_sided_margin_and_respects_quotient(self):
         best = self.partition((0, 1, 2, 3))
@@ -76,7 +76,7 @@ class TestEnergySeparationMargin(unittest.TestCase):
         reordered_equivalent = self.partition((2, 3), (0, 1))
         equivalence = structurally_equivalent_partitions
         self.assertTrue(is_unique_minimizer(best, (competitor,), self.energy, margin=0.5, equivalence=equivalence))
-        self.assertFalse(is_unique_minimizer(best, (competitor,), self.energy, margin=1.1, equivalence=equivalence))
+        self.assertFalse(is_unique_minimizer(best, (competitor,), self.energy, margin=0.6, equivalence=equivalence))
         self.assertTrue(is_unique_minimizer(best, (reordered_equivalent,), self.energy, margin=0.5, equivalence=equivalence))
 
     def test_stage2e_can_require_an_explicit_unit_margin(self):
