@@ -22,15 +22,15 @@ Point = Tuple[float, float, float]
 Signature = Tuple[Point, ...]
 
 
-def _validate_simple_observation(observation: Observation3D) -> None:
-    """The strict-injectivity theorem requires a simple finite observation."""
+def validate_observation_for_theta(observation: Observation3D) -> None:
+    """Validate the frozen domain on which T_X is strictly injective."""
     if len(set(observation.points)) != len(observation.points):
         raise ValueError("Strict theta injectivity requires distinct observed coordinates")
 
 
 def observation_theta(observation: Observation3D, indices: Sequence[int]) -> Mapping[str, object]:
     """Return the frozen finite parameter theta=T_X(A)."""
-    _validate_simple_observation(observation)
+    validate_observation_for_theta(observation)
     raw = tuple(int(i) for i in indices)
     block = tuple(sorted(set(raw)))
     if not block:
@@ -86,6 +86,7 @@ def relabel_observation_unit(
 
 
 __all__ = [
+    "validate_observation_for_theta",
     "observation_theta",
     "observation_unit",
     "theta_signature",
