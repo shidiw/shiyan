@@ -38,7 +38,7 @@ naming alone.
 | Stage 2A–2D | Explicit candidates, energy domain, stability, derived normalized energy | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Conditional/derived extension; not recovered historical theory** |
 | Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` | `structure/theory_unit_formation.py` | **Explicit conditional interface; not a universal emergence theorem** |
 | Stage 2F | finite non-empty `A(X)` + finite `E` => attained `argmin` | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
-| Stage 2G | strict energy separation => singleton `argmin` | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested** |
+| Stage 2G | strict energy separation => singleton `argmin` | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested; optional positive margin is verified explicitly** |
 | Stage 3A | `R_Q={r_ij:(i,j) in C_R, Q(u_i,u_j)=True}` | `structure/theory_relation_formation.py` | **Explicit candidate/predicate boundary** |
 | Stage 3B extension | `Q_adj(G_i,G_j)=1 iff H^2(boundary(G_i)∩boundary(G_j))>0` with supplied measure evidence | `structure/theory_relation_formation.py` | **Derived geometry predicate boundary; evidence supplied externally** |
 
@@ -91,6 +91,21 @@ as the universal relation law.
 parameterized derived closure proposal. It is not evidence that the old
 primitive-specific `structure/energy.py` formula was the original theorem.
 
+### Structural Assembly Separation is a verification condition
+
+The frozen Stage 2D functional remains exactly `unit term + boundary term`.
+A positive `delta_E` is **not** injected as a new pairwise energy term. Instead,
+for an explicit finite admissible family `A(X)`, quotient-distinct partitions
+must satisfy
+
+`|E(P_1) - E(P_2)| >= delta_E > 0`.
+
+`structure/theory_energy_model.py` now exposes the exact finite quotient key,
+`verify_separation_margin`, and `require_separation_margin` for this condition.
+Stage 2G consumes the corresponding one-sided condition
+`E(C)-E(P) >= delta_E` when a positive margin is requested. This makes the
+margin an auditable hypothesis rather than a circular definition of Energy.
+
 ## D. Non-negotiable boundaries
 
 1. Legacy energy/partition/primitive inference remains regression baseline code.
@@ -103,7 +118,8 @@ primitive-specific `structure/energy.py` formula was the original theorem.
 8. Stage 2F/2G hypotheses must not be promoted to universal claims.
 9. Stage 3 candidate pairs and relation predicate must be explicit inputs.
 10. Stage 2D/3B derived extensions must remain explicitly labeled as extensions until the theory is formally adopted.
-11. Any future contradiction must update the mathematics first or remain legacy/experimental.
+11. A positive `delta_E` must be verified on the explicit finite admissible family; it must never be manufactured by adding a circular separation term to the Energy definition.
+12. Any future contradiction must update the mathematics first or remain legacy/experimental.
 
 ## E. Release criterion
 
