@@ -32,15 +32,19 @@ class TestStructuralWorldQuotient(unittest.TestCase):
         )
 
     def _relabelled_world(self):
+        # old -> new observation indices
         permutation = {0: 2, 1: 0, 2: 1}
         relabeled_points = [None] * 3
         for old, new in permutation.items():
             relabeled_points[new] = self.X.points[old]
         Xp = Observation3D(points=tuple(relabeled_points))
+
+        # Keep the same Unit order at the world level; only raw support indices
+        # change. The explicit relation remains 0 -> 1.
         v0 = observation_unit(Xp, (2,))
         v1 = observation_unit(Xp, (0, 1))
         return StructuralWorld(
-            units=(v1, v0),
+            units=(v0, v1),
             relations=(StructuralRelation(0, 1, "adjacent", {"rule": "explicit"}),),
         )
 
@@ -67,7 +71,10 @@ class TestStructuralWorldQuotient(unittest.TestCase):
         def extractor(canonical):
             return [float(len(canonical[0])), float(len(canonical[1]))] + [0.0] * 21
 
-        self.assertEqual(quotient_representation(worlds[0], extractor), quotient_representation(worlds[1], extractor))
+        self.assertEqual(
+            quotient_representation(worlds[0], extractor),
+            quotient_representation(worlds[1], extractor),
+        )
 
     def test_good_raw_phi_passes_finite_audit(self):
         worlds = (self._world(), self._relabelled_world())
