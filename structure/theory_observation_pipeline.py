@@ -4,7 +4,8 @@ This module is the release-facing bridge for the final Hypothesis Elimination.
 It makes the former theorem boundaries explicit functions of one finite
 observation X:
 
-    X -> A_max(X), Gamma(X), M(X), G_B(X), N_X, S_X, C_R(X), Phi_X
+    X -> A_max(X), Gamma(X), A_search(X), M(X), M_X(A), G_B(X), N_X, S_X,
+         C_R(X), Q_X, Phi_X
       -> Stage 2D -> Unit -> Relation -> World -> Representation.
 
 The low-level explicit-input APIs remain available for regression and generic
@@ -17,11 +18,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
+from .theory_candidate_search import A_search, materialize_A_search
 from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext
 from .theory_representation import StructuralRepresentation
-from .theory_relation_formation import form_observation_relations
+from .theory_semantic_observation import M_X
+from .theory_semantic_relation import form_observation_semantic_relations
 from .theory_world import StructuralWorld
 
 Point = Tuple[float, float, float]
@@ -51,7 +54,6 @@ class ObservationDerivedPipeline:
     def X(self) -> Observation3D:
         return self.context.observation
 
-    # Former external boundaries, now all deterministic projections of X.
     @property
     def A_max(self):
         return self.context.a_max
@@ -61,8 +63,17 @@ class ObservationDerivedPipeline:
         return self.context.gamma
 
     @property
+    def A_search(self):
+        """Scalable finite search family A_search(X) subset A_max(X)."""
+        return A_search(self.X)
+
+    @property
     def M(self):
         return self.context.model_family
+
+    def M_X(self, unit: StructuralUnit):
+        """Observation-conditioned locally optimal model set M_X(A)."""
+        return M_X(unit, self.context)
 
     @property
     def G_B(self):
@@ -92,16 +103,17 @@ class ObservationDerivedPipeline:
 
     @property
     def partitions(self) -> Tuple[Partition, ...]:
-        return self.context.materialize_partitions()
+        """Materialize only the scalable observation-derived A_search family."""
+        return materialize_A_search(self.X)
 
     def select_partition(self) -> Partition:
-        """Select the Stage-2D argmin over the observation-derived Gamma(X)."""
+        """Select the Stage-2D argmin over A_search(X)."""
         return select_minimizer(self.partitions, self.energy)
 
     def world(self) -> StructuralWorld:
         """Construct W=(U,R,Phi) without an externally supplied partition."""
         partition = self.select_partition()
-        relations = form_observation_relations(partition.units, self.context)
+        relations = form_observation_semantic_relations(partition.units, self.context)
         return StructuralWorld(
             units=partition.units,
             relations=relations.relations,
@@ -110,22 +122,24 @@ class ObservationDerivedPipeline:
         )
 
     def representation(self) -> StructuralRepresentation:
-        """Evaluate the observation-derived Phi_X on the derived World."""
         return self.Phi_X(self.world())
 
     def derived_margin(self) -> float:
-        """Return the quotient-distinct Stage-2D energy margin delta_X."""
         return self.energy.derived_separation_margin(self.partitions)
 
     def audit(self) -> dict:
-        """Return machine-checkable closure facts for the six former boundaries."""
+        """Return machine-checkable closure facts for the observation path."""
         world = self.world()
         representation = self.Phi_X(world)
         return {
             "A_max_nonempty": bool(self.A_max),
             "A_max_finite": len(self.A_max) < float("inf"),
             "Gamma_equals_A_max": set(self.Gamma) == set(self.A_max),
+            "A_search_nonempty": bool(self.A_search),
+            "A_search_finite": len(self.A_search) < float("inf"),
+            "A_search_subset_A_max": set(self.A_search).issubset(set(self.A_max)),
             "M_finite": bool(self.M),
+            "M_X_finite": all(bool(self.M_X(u)) for u in self.unit_family),
             "G_B_finite": len(self.G_B.edges) < float("inf"),
             "N_X_finite": all(len(self.N_X(u).candidates) < float("inf") for u in self.unit_family),
             "S_X_finite": all(len(self.S_X(u)) < float("inf") for u in self.unit_family),
