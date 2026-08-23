@@ -1,21 +1,9 @@
 """Stage 2E: theory-safe Structural Unit formation.
 
-The frozen theory distinguishes three statements that must not be conflated:
-
-1. a candidate unit is locally stable against an explicitly supplied
-   perturbation neighborhood;
-2. a candidate is minimal-stable relative to an explicitly supplied family of
-   proper subcandidates; and
-3. a stable candidate may be materialized as the single frozen StructuralUnit
-   type.
-
-Stage 2E may additionally verify an explicit positive energy margin against a
-supplied competitor family. This is a verification of the Stage 2D separation
-condition, not a new heuristic or a hidden source of competitors.
-
-This module intentionally does not infer neighborhoods, merge rules,
-thresholds, connectivity, primitive labels, or existence/uniqueness theorems
-from raw geometry. Those are separate mathematical inputs.
+The low-level API still accepts explicit predicates for regression compatibility.
+The observation-derived API removes that external boundary by obtaining
+N_X, S_X, and the Unit competitor family directly from one observation-derived
+context.
 """
 
 from __future__ import annotations
@@ -26,7 +14,6 @@ from typing import Callable, Sequence, Tuple
 
 from .theory_stability import StabilityNeighborhood, is_locally_stable, is_minimal_stable
 from .theory_unit import StructuralUnit
-
 
 Energy = Callable[[StructuralUnit], float]
 NeighborhoodRule = Callable[[StructuralUnit], StabilityNeighborhood[StructuralUnit]]
@@ -45,22 +32,14 @@ def has_energy_margin(
     energy: Energy,
     margin: float,
 ) -> bool:
-    """Verify the one-sided positive margin required for Unit formation.
-
-    For ``margin > 0`` the competitor family is mandatory and every distinct
-    competitor must satisfy ``E(c) - E(unit) >= margin``. With ``margin=0``
-    the margin contract is disabled, preserving the original Stage 2E API.
-    """
     required_margin = _validate_margin(margin)
     if required_margin == 0.0:
         return True
     if not competitors:
         return False
-
     candidate_energy = float(energy(unit))
     if not math.isfinite(candidate_energy):
         raise ValueError("candidate energy must be finite")
-
     for competitor in competitors:
         competitor_energy = float(energy(competitor))
         if not math.isfinite(competitor_energy):
@@ -72,8 +51,6 @@ def has_energy_margin(
 
 @dataclass(frozen=True)
 class UnitFormationResult:
-    """Executable result of an explicitly specified Unit-formation predicate."""
-
     unit: StructuralUnit
     stable: bool
     minimal_stable: bool
@@ -81,7 +58,6 @@ class UnitFormationResult:
 
     @property
     def materializable(self) -> bool:
-        """Whether the supplied predicates permit materializing this Unit."""
         return self.stable and self.minimal_stable and self.margin_separated
 
 
@@ -93,12 +69,6 @@ def evaluate_unit_formation(
     energy_margin: float = 0.0,
     margin_competitors: Sequence[StructuralUnit] = (),
 ) -> UnitFormationResult:
-    """Evaluate Stage 2E predicates for one explicit candidate Unit.
-
-    ``proper_subcandidates``, ``neighborhood_rule`` and, when requested,
-    ``margin_competitors`` are mandatory theory inputs. No geometric heuristic
-    is introduced by this function.
-    """
     neighborhood = neighborhood_rule(unit)
     stable = is_locally_stable(unit, neighborhood, energy)
     minimal_stable = is_minimal_stable(
@@ -113,11 +83,23 @@ def evaluate_unit_formation(
         energy,
         energy_margin,
     )
-    return UnitFormationResult(
+    return UnitFormationResult(unit, stable, minimal_stable, margin_separated)
+
+
+def evaluate_observation_unit_formation(
+    unit: StructuralUnit,
+    context,
+    energy: Energy,
+    energy_margin: float = 0.0,
+) -> UnitFormationResult:
+    """Evaluate Stage 2E with N_X, S_X and competitors derived from X."""
+    return evaluate_unit_formation(
         unit=unit,
-        stable=stable,
-        minimal_stable=minimal_stable,
-        margin_separated=margin_separated,
+        neighborhood_rule=context.neighborhood_rule,
+        proper_subcandidates=context.proper_subcandidates(unit),
+        energy=energy,
+        energy_margin=energy_margin,
+        margin_competitors=context.unit_candidates,
     )
 
 
@@ -129,7 +111,6 @@ def materialize_unit(
     energy_margin: float = 0.0,
     margin_competitors: Sequence[StructuralUnit] = (),
 ) -> StructuralUnit:
-    """Materialize a candidate iff all supplied Stage 2E predicates pass."""
     result = evaluate_unit_formation(
         unit,
         neighborhood_rule,
@@ -143,9 +124,24 @@ def materialize_unit(
     return result.unit
 
 
+def materialize_observation_unit(
+    unit: StructuralUnit,
+    context,
+    energy: Energy,
+    energy_margin: float = 0.0,
+) -> StructuralUnit:
+    """Materialize a Unit using only observation-derived Stage 2E boundaries."""
+    result = evaluate_observation_unit_formation(unit, context, energy, energy_margin)
+    if not result.materializable:
+        raise ValueError("candidate does not satisfy observation-derived Stage 2E predicates")
+    return result.unit
+
+
 __all__ = [
     "UnitFormationResult",
     "evaluate_unit_formation",
+    "evaluate_observation_unit_formation",
     "has_energy_margin",
     "materialize_unit",
+    "materialize_observation_unit",
 ]
