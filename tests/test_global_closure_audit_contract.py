@@ -19,6 +19,13 @@ class TestGlobalClosureAuditContract(unittest.TestCase):
         ):
             self.assertIn(marker, text)
 
+    def test_formal_observation_interface_is_frozen(self):
+        text = self.text
+        self.assertIn("ObservationDerivedTheoryInterface", text)
+        self.assertIn("ObservationDerivedBoundaries.from_points(X)", text)
+        self.assertIn("No constructor argument exists for any former external boundary", text)
+        self.assertIn("test_observation_derived_formal_interface.py", text)
+
     def test_derived_extensions_are_not_mislabeled_as_recovered_history(self):
         text = self.text
         self.assertIn("DERIVED EXTENSION", text)
