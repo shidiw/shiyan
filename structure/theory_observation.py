@@ -1,7 +1,7 @@
 """Observation-derived Struct3D theory objects.
 
 All theory-facing boundaries are deterministic functions of one finite
-observation X.  No semantic labels and no neural component are used.
+observation X. No semantic labels and no neural component are used.
 """
 
 from __future__ import annotations
@@ -135,12 +135,7 @@ def observation_neighborhood(candidate: StructuralUnit, observation: Observation
 
 
 def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-    """Frozen S_X: scalable proper subcandidate family.
-
-    It contains every one-point deletion and the singleton supports. This is a
-    finite, non-empty-for-non-singletons, quotient-compatible local family and
-    avoids enumerating the exponential full subset lattice.
-    """
+    """Frozen S_X: one-point deletions plus singleton supports."""
     support = tuple(candidate.indices)
     if len(support) <= 1:
         return ()
@@ -190,7 +185,6 @@ class ObservationDerivedContext:
 
     @property
     def gamma(self):
-        """Primary computational Gamma(X), a strict finite subset of A_max(X)."""
         return Gamma_X(self.observation)
 
     @property
@@ -221,8 +215,8 @@ class ObservationDerivedContext:
         return Stage2DEnergy.from_observation(self)
 
     def form_relations(self, units: Sequence[StructuralUnit]):
-        from .theory_relation_formation import form_observation_relations
-        return form_observation_relations(tuple(units), self)
+        from .theory_semantic_relation import form_observation_semantic_relations
+        return form_observation_semantic_relations(tuple(units), self)
 
     def build_world(self, partition: Partition):
         from .theory_world import StructuralWorld
