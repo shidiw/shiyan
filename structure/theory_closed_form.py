@@ -1,11 +1,12 @@
 """Strict observation-derived boundary bundle for the Struct3D theory.
 
-This module is the release-facing Hypothesis Elimination facade.  It exposes
+This module is the release-facing Hypothesis Elimination facade. It exposes
 only objects generated from one finite observation X; callers cannot inject
 A(X), M(X), G_B(X), N_X/S_X, C_R(X), or Phi_X as independent theorem inputs.
 
-The existing low-level/compatibility APIs remain unchanged.  The purpose here
-is to make the closed mathematical provenance explicit and regression-testable.
+The concrete bundle now implements the frozen formal interface in
+``theory_observation_interface.py``. Low-level compatibility APIs remain
+available, but this class is the release-facing theorem boundary.
 """
 
 from __future__ import annotations
@@ -15,12 +16,18 @@ from typing import Sequence, Tuple
 
 from .theory_observation import ObservationDerivedContext, Point
 from .theory_observation_pipeline import ObservationDerivedPipeline, ObservationRepresentationMap
+from .theory_observation_interface import ObservationDerivedTheoryInterface
 from .theory_core import StructuralUnit
 
 
 @dataclass(frozen=True)
-class ObservationDerivedBoundaries:
-    """All formerly external theory boundaries generated from one X."""
+class ObservationDerivedBoundaries(ObservationDerivedTheoryInterface):
+    """All formerly external theory boundaries generated from one X.
+
+    The two stored fields are themselves immutable provenance carriers built
+    from the same observation. No mathematical boundary is accepted as an
+    independent constructor argument.
+    """
 
     context: ObservationDerivedContext
     pipeline: ObservationDerivedPipeline
@@ -62,7 +69,7 @@ class ObservationDerivedBoundaries:
 
     @property
     def C_R(self):
-        """Relation candidate domain on the X-derived selected Unit family."""
+        """C_R(X): ordered candidate pairs over X-derived selected Units."""
         selected = self.pipeline.selected_units
         return tuple((i, j) for i in range(len(selected)) for j in range(len(selected)) if i != j)
 
