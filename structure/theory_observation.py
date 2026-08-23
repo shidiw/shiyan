@@ -11,10 +11,11 @@ from itertools import combinations
 from math import sqrt
 from typing import Sequence, Tuple
 
+from .theory_candidate_search import Gamma_X
 from .theory_candidates import ObservationCandidateFamily, observation_candidate_family
-from .theory_candidate_search import Gamma_X, materialize_Gamma
 from .theory_core import Partition, StructuralUnit
 from .theory_energy_model import GeometricModel, Observation3D, Stage2DEnergy, WeightedObservationGraph
+from .theory_observation_theta import observation_unit
 from .theory_stability import StabilityNeighborhood
 
 Point = Tuple[float, float, float]
@@ -128,30 +129,43 @@ def observation_neighborhood(candidate: StructuralUnit, observation: Observation
             alternatives.add(reduced)
     for index in sorted(omega - support):
         alternatives.add(tuple(sorted(support | {index})))
-    units = tuple(StructuralUnit(block, {}) for block in sorted(alternatives))
+    units = tuple(observation_unit(observation, block) for block in sorted(alternatives))
     if not units:
         units = (candidate,)
     return StabilityNeighborhood(units)
 
 
-def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-    """Frozen S_X: one-point deletions plus singleton supports."""
+def observation_proper_subcandidates(candidate: StructuralUnit, observation: Observation3D) -> Tuple[StructuralUnit, ...]:
+    """Frozen S_X: one-point deletions plus singleton supports with T_X(A)."""
     support = tuple(candidate.indices)
     if len(support) <= 1:
         return ()
     subsets = {tuple(sorted(support[:k] + support[k + 1 :])) for k in range(len(support))}
     subsets.update((index,) for index in support)
     subsets.discard(support)
-    return tuple(StructuralUnit(subset, {}) for subset in sorted(subsets))
+    return tuple(observation_unit(observation, subset) for subset in sorted(subsets))
 
 
 def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralUnit, ...]:
-    """Units appearing in the observation-derived computational family Gamma(X)."""
+    """Units appearing in Gamma(X), all carrying the frozen theta T_X(A)."""
     unique = {}
-    for partition in materialize_Gamma(observation):
-        for unit in partition.units:
+    for blocks in Gamma_X(observation):
+        for block in blocks:
+            unit = observation_unit(observation, block)
             unique[tuple(unit.indices)] = unit
     return tuple(unique[key] for key in sorted(unique))
+
+
+def observation_materialize_gamma(observation: Observation3D) -> Tuple[Partition, ...]:
+    """Materialize Gamma(X) with the unique observation-derived theta map."""
+    universe = tuple(range(len(observation.points)))
+    return tuple(
+        Partition(
+            units=tuple(observation_unit(observation, block) for block in blocks),
+            universe=universe,
+        )
+        for blocks in Gamma_X(observation)
+    )
 
 
 def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], ...]:
@@ -211,7 +225,7 @@ class ObservationDerivedContext:
         return observation_neighborhood(candidate, self.observation)
 
     def proper_subcandidates(self, candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-        return observation_proper_subcandidates(candidate)
+        return observation_proper_subcandidates(candidate, self.observation)
 
     def relation_candidates(self, unit_count: int) -> Tuple[Tuple[int, int], ...]:
         """Compatibility count API; canonical code uses relation_candidate_domain."""
@@ -221,7 +235,7 @@ class ObservationDerivedContext:
         return observation_relation_candidate_domain(units)
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
-        return materialize_Gamma(self.observation)
+        return observation_materialize_gamma(self.observation)
 
     def stage2d_energy(self) -> Stage2DEnergy:
         return Stage2DEnergy.from_observation(self)
@@ -252,6 +266,7 @@ __all__ = [
     "observation_neighborhood",
     "observation_proper_subcandidates",
     "observation_unit_candidates",
+    "observation_materialize_gamma",
     "observation_relation_candidates",
     "observation_relation_candidate_domain",
 ]
