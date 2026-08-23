@@ -29,6 +29,12 @@ class TestObservationDerivedStage2EExistence(unittest.TestCase):
         self.assertTrue(result.stable_unit_count > 0)
         self.assertEqual(len(result.unit.indices), 1)
 
+    def test_context_exposes_the_same_observation_derived_theorem(self):
+        direct = prove_observation_derived_stage2e_existence(self.context)
+        via_context = self.context.prove_stage2e_existence()
+        self.assertEqual(direct.unit, via_context.unit)
+        self.assertEqual(direct.derived_unit_margin, via_context.derived_unit_margin)
+
     def test_minimum_support_stable_witness_has_no_stable_frozen_subcandidate(self):
         result = prove_observation_derived_stage2e_existence(self.context)
         stable = []
