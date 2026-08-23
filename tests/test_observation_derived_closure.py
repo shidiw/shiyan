@@ -1,5 +1,6 @@
 import unittest
 
+from structure.theory_core import StructuralUnit
 from structure.theory_observation import ObservationDerivedContext
 from structure.theory_energy_model import Stage2DEnergy
 from structure.theory_pipeline import run_observation_derived_pipeline
@@ -63,6 +64,15 @@ class TestObservationDerivedClosure(unittest.TestCase):
         representation = phi_x(world, self.context)
         self.assertEqual(len(representation.as_tuple()), 23)
         self.assertTrue(all(value == value for value in representation.as_tuple()))
+
+    def test_phi_x_is_unit_label_quotient_compatible(self):
+        first_units = (StructuralUnit((0,), {}), StructuralUnit((1, 2), {}))
+        second_units = tuple(reversed(first_units))
+        first_relations = form_observation_relations(first_units, self.context)
+        second_relations = form_observation_relations(second_units, self.context)
+        first_world = StructuralWorld(first_units, first_relations.relations, {})
+        second_world = StructuralWorld(second_units, second_relations.relations, {})
+        self.assertEqual(phi_x(first_world, self.context).as_tuple(), phi_x(second_world, self.context).as_tuple())
 
     def test_end_to_end_observation_derived_pipeline(self):
         result = run_observation_derived_pipeline(self.points)
