@@ -37,9 +37,10 @@ are evidence, not automatic definitions.
 The theory-facing implementation uses one **single frozen Unit type**:
 `structure/theory_unit.py::StructuralUnit`.
 
-The frozen Structural invariant is `I(W)=C(W)`. Representation distance is
-`D_R=||Phi_X(W1)-Phi_X(W2)||_2` on the observation-derived coordinate map.
-These statements do not imply representation injectivity.
+The frozen Structural invariant is the **Structural invariant `I(W)=C(W)`**.
+Representation distance is `D_R=||Phi_X(W1)-Phi_X(W2)||_2` on the
+observation-derived coordinate map. These statements do not imply
+representation injectivity.
 
 ## C. Observation-derived boundary definitions
 
