@@ -33,11 +33,10 @@ class TestObservationDerivedStage2EExistence(unittest.TestCase):
         result = prove_observation_derived_stage2e_existence(self.context)
         stable = []
         energy = self.context.stage2d_energy().unit_energy
+        from structure.theory_stability import is_locally_stable
         for unit in self.context.unit_candidates:
-            if self.context.neighborhood_rule(unit).alternatives:
-                from structure.theory_stability import is_locally_stable
-                if is_locally_stable(unit, self.context.neighborhood_rule(unit), energy):
-                    stable.append(unit)
+            if is_locally_stable(unit, self.context.neighborhood_rule(unit), energy):
+                stable.append(unit)
         self.assertEqual(len(result.unit.indices), min(len(u.indices) for u in stable))
 
     def test_derived_unit_margin_is_not_an_external_input(self):
@@ -49,18 +48,21 @@ class TestObservationDerivedStage2EExistence(unittest.TestCase):
             prove_observation_derived_stage2e_existence(self.context).derived_unit_margin,
         )
 
-    def test_strict_margin_is_conditional_on_derived_gap(self):
-        result = prove_observation_derived_stage2e_existence(self.context)
-        if result.strict_margin_available:
-            strict = prove_observation_derived_stage2e_existence(
-                self.context, require_strict_margin=True
-            )
-            self.assertTrue(strict.materializable)
-        else:
-            with self.assertRaises(ValueError):
-                prove_observation_derived_stage2e_existence(
-                    self.context, require_strict_margin=True
-                )
+    def test_strict_margin_uses_an_observation_derived_witness(self):
+        # A monotone support-energy law gives the full observation support a
+        # unique global minimum. Every proper support has a lower-energy
+        # insertion alternative, so no proper support is stable; the full
+        # support is therefore Stable + MinimalStable with margin 1.
+        energy = lambda unit: -float(len(unit.indices))
+        result = prove_observation_derived_stage2e_existence(
+            self.context,
+            energy=energy,
+            require_strict_margin=True,
+        )
+        self.assertTrue(result.materializable)
+        self.assertTrue(result.strict_margin_available)
+        self.assertEqual(result.derived_unit_margin, 1.0)
+        self.assertEqual(len(result.unit.indices), 3)
 
 
 if __name__ == "__main__":
