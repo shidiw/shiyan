@@ -1,14 +1,15 @@
 """Theory-facing Structural Representation.
 
-The low-level ``represent`` API remains available for historical callers.  The
+The low-level ``represent`` API remains available for historical callers. The
 closed observation path is ``represent_observation`` / ``phi_x``: its 23
 coordinates are deterministic finite statistics of one observation X and an
-X-derived StructuralWorld.  No learned feature extractor, semantic label, or
+X-derived StructuralWorld. No learned feature extractor, semantic label, or
 external coordinate function is required.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
 from .theory_invariant import structural_invariant
@@ -18,11 +19,13 @@ from .theory_world import StructuralWorld
 RepresentationExtractor = Callable[[Any], Sequence[float]]
 
 
+@dataclass(frozen=True)
 class StructuralRepresentation:
     """A validated point of the frozen representation space R^23."""
 
-    def __init__(self, values: Sequence[float]):
-        self.values = tuple(float(v) for v in values)
+    values: tuple[float, ...]
+
+    def __post_init__(self) -> None:
         validate_grouped_representation(self.values)
 
     def as_tuple(self) -> tuple[float, ...]:
@@ -45,8 +48,7 @@ def represent(world: StructuralWorld, extractor: RepresentationExtractor) -> Str
 
 def represent_canonical(world: StructuralWorld, extractor: RepresentationExtractor) -> StructuralRepresentation:
     """Apply an explicit extractor to the frozen canonical invariant I(W)=C(W)."""
-    invariant = structural_invariant(world)
-    return _build_representation(extractor(invariant))
+    return _build_representation(extractor(structural_invariant(world)))
 
 
 def _histogram(values, bins: int):
@@ -92,17 +94,11 @@ def _relation_confidence(relation) -> float:
 
 
 def represent_observation(world: StructuralWorld, context) -> StructuralRepresentation:
-    """Construct the frozen 23-D coordinate map Phi_X(W) from X-derived data.
-
-    Every coordinate is invariant to permutation of Unit labels.  The map is
-    a well-defined coordinate map, not an injectivity theorem: distinct worlds
-    may still share the same 23-D coordinates.
-    """
+    """Construct the frozen 23-D coordinate map Phi_X(W) from X-derived data."""
     n = len(context.observation.points)
     unit_count = world.unit_count
     relation_count = world.relation_count
 
-    # Group 1: observation-derived affine model type selected for each Unit.
     model_scores = []
     for unit in world.units:
         best_index = 0
@@ -119,18 +115,15 @@ def represent_observation(world: StructuralWorld, context) -> StructuralRepresen
         model_scores.append(best_index)
     primitive_histogram = _histogram(model_scores, 3)
 
-    # Group 2: singleton / intermediate / full-support composition.
     composition = []
     for unit in world.units:
         size = len(unit.indices)
         composition.append(0 if size == 1 else 2 if size == n else 1)
     object_composition_histogram = _histogram(composition, 3)
 
-    # Group 3: object count/topology statistics.
     non_singleton = sum(1 for unit in world.units if len(unit.indices) > 1)
     object_count_topology = (float(unit_count), float(non_singleton), float(_connected_components(world)))
 
-    # Group 4: fixed relation-type histogram.
     relation_type_counts = [0.0, 0.0, 0.0]
     for relation in world.relations:
         if relation.relation_type == "adjacent":
@@ -139,26 +132,23 @@ def represent_observation(world: StructuralWorld, context) -> StructuralRepresen
             relation_type_counts[1] += 1.0
         else:
             relation_type_counts[2] += 1.0
-    if relation_count:
-        relation_type_histogram = tuple(v / relation_count for v in relation_type_counts)
-    else:
-        relation_type_histogram = (0.0, 0.0, 0.0)
+    relation_type_histogram = (
+        tuple(v / relation_count for v in relation_type_counts)
+        if relation_count else (0.0, 0.0, 0.0)
+    )
 
-    # Group 5: min/mean/max confidence.
     confidences = [_relation_confidence(r) for r in world.relations]
-    if confidences:
-        relation_confidence_statistics = (min(confidences), sum(confidences) / len(confidences), max(confidences))
-    else:
-        relation_confidence_statistics = (0.0, 0.0, 0.0)
+    relation_confidence_statistics = (
+        (min(confidences), sum(confidences) / len(confidences), max(confidences))
+        if confidences else (0.0, 0.0, 0.0)
+    )
 
-    # Group 6: min/mean/max Unit occupancy ratios.
     occupancies = [len(unit.indices) / n for unit in world.units]
-    if occupancies:
-        instance_occupancy_statistics = (min(occupancies), sum(occupancies) / len(occupancies), max(occupancies))
-    else:
-        instance_occupancy_statistics = (0.0, 0.0, 0.0)
+    instance_occupancy_statistics = (
+        (min(occupancies), sum(occupancies) / len(occupancies), max(occupancies))
+        if occupancies else (0.0, 0.0, 0.0)
+    )
 
-    # Group 7: global finite structural counts.
     relation_type_count = len({relation.relation_type for relation in world.relations})
     max_unit_size = max((len(unit.indices) for unit in world.units), default=0)
     global_structural_counts = (
