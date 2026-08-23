@@ -3,10 +3,9 @@
 Frozen definition:
     W = (U, R, Phi)
 
-The graph representation is the explicit structural graph
-    G = (V, E)
-with V indexed by world units and E copied exactly from world relations.
-No edges are inferred from unit attributes or primitive equality.
+The observation-derived execution path may attach its source context as
+non-mathematical provenance. This does not change the mathematical World
+quotient: only Units, Relations, and the representation map belong to W.
 """
 
 from __future__ import annotations
@@ -31,6 +30,7 @@ class StructuralWorld:
     units: Tuple[TheoryUnit, ...]
     relations: Tuple[StructuralRelation, ...]
     attributes: Mapping[str, Any] = field(default_factory=dict)
+    observation_context: Any = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         n = len(self.units)
@@ -49,7 +49,4 @@ class StructuralWorld:
     @property
     def graph(self) -> StructuralGraph:
         """Return the explicit graph view; never infer additional edges."""
-        return StructuralGraph(
-            vertices=tuple(range(self.unit_count)),
-            edges=self.relations,
-        )
+        return StructuralGraph(vertices=tuple(range(self.unit_count)), edges=self.relations)
