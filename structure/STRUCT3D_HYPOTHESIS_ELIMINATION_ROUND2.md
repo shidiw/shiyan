@@ -1,7 +1,7 @@
 # Struct3D Hypothesis Elimination — Round 2
 
 This round removes the remaining external theorem degrees of freedom from the
-observation-facing path.
+observation-facing path while keeping the computational approximation explicit.
 
 ## 1. Model Universe Theorem
 
@@ -11,133 +11,99 @@ For a valid finite observation `X`, define
 
 The centroid, coordinate variances, principal coordinate axis and normal axis
 are finite deterministic functions of `X`. Coordinate-axis ties are resolved
-lexicographically by the fixed index rule. Therefore `M(X)` is finite,
-deterministic, label-free, and unchanged up to relabeling of observation
-indices.
+by fixed deterministic rules. Therefore `M(X)` is finite, deterministic,
+label-free, and quotient compatible.
 
-The implementation is `ObservationModelFamily.from_observation(X)` and its
-frozen projection is `ObservationDerivedContext.model_family`.
-
-## 2. Boundary-Regularization Graph Definition/Theorem
+## 2. Boundary-Regularization Graph
 
 For `i<j`, define
 
 `w_ij(X) = 1/(1 + ||x_i-x_j||/diam(X))`.
 
-Set
+Set `G_B(X)` to the complete weighted graph on the observation index universe.
+The normalized cut `B_X(P)` is therefore observation-derived and needs no
+external adjacency graph.
 
-`G_B(X) = (Omega_X,E_B,w)` with every unordered pair as an edge.
+## 3. Candidate Universe and Computational Family
 
-For `n>1`, `G_B(X)` is finite, complete, strictly positive and permutation
-compatible. The normalized cut
+`A_max(X) = Pi(Omega_X)` is the complete finite mathematical admissible family.
+It is the theorem-level universe and is not enumerated by the scalable runtime
+for large observations.
 
-`B_X(P) = cut_w(P) / sum_E w_e`
+The canonical computational family is
 
-is therefore a deterministic observation-derived regularizer. No external
-adjacency graph is needed by the theory-facing Stage 2D path.
+`Gamma(X) subset A_max(X)`,
 
-## 3. Observation-Derived Relation Predicate Theorem
+with deterministic whole, singleton, and farthest-pair Voronoi partitions.
+Gamma is finite, non-empty, label-free, and quotient compatible.
 
-Let
+`A_search(X)` is now explicitly a compatibility/scalability approximation of
+`Gamma(X)` and is forbidden from being the provenance source of the main
+pipeline.
 
-`C_R(X) = {(i,j): i != j}`.
+## 4. Stage 2E Stability Domain
 
-For candidate Units define
+`N_X(A)` is the one-point insertion/deletion neighborhood derived from `X`.
+`S_X(A)` is the finite local proper-subcandidate family consisting of
+one-point deletions and singleton supports.
 
-`d_X(u_i,u_j) = min_{p in u_i,q in u_j} ||x_p-x_q|| / diam(X)`
+The canonical Unit formation rule is executed as
 
-and
+`Stable_X(A) -> MinimalStable_X(A) -> Unit(A)`.
 
-`c_X(u_i,u_j) = 1/(1+d_X(u_i,u_j))`.
+No externally supplied neighborhood, subcandidate family, or energy margin is
+used by the observation-facing path.
 
-Freeze
+## 5. Unique Relation Law
 
-`Q_X(u_i,u_j) <=> u_i != u_j and c_X(u_i,u_j)>0`.
+The unique frozen relation predicate is the strong observation-derived
 
-For valid finite observations, every distinct non-empty pair satisfies
-`Q_X`. Hence `Q_X` is deterministic, finite, label-free and quotient
-compatible. The materialized relation set is exactly the admitted subset of
-`C_R(X)` with distance/confidence evidence.
+`Q_X(A,B) <=> d_cross(A,B) <= median_pairwise_distance(A union B)`
 
-This theorem does not claim that proximity is the unique universal semantic
-relation law; the separate `H^2` boundary-contact relation remains an explicit
-alternative geometry theorem.
+for distinct non-empty Units.
 
-## 4. Canonical observation-derived Stage 2D energy
+The canonical materializer is
+`theory_semantic_relation.form_observation_semantic_relations`.
 
-The theory-facing energy is
+The former complete-proximity predicate and the `H^2` boundary-contact law are
+retained only as legacy/experimental regression APIs. They have no frozen
+theoretical status and cannot create canonical World relations.
+
+## 6. Canonical Energy
 
 `E_X(P) = sum_A min_{m in M(X)} [F_X(A,m)+k(m)] + B_X(P)`.
 
-The complexity and boundary coefficients are frozen dimensionless constants
-`1` and `1`; they are not caller-selected hyperparameters.
-
-The separation quantity is not an input. Define
+Complexity and boundary coefficients are frozen at one. The separation
+quantity is derived from the observation-derived Gamma family:
 
 `delta_X = min { |E_X(P)-E_X(Q)| : P,Q in Gamma(X), P not~Q,
-                 |E_X(P)-E_X(Q)| > 0 }`,
+                 |E_X(P)-E_X(Q)| > 0 }`.
 
-with `delta_X=0` when no positive gap exists.
+## 7. Unified Quotient Closure
 
-Strict-separation theorems use the derived condition `delta_X>0` rather than
-an externally supplied margin.
+For every legal observation-index permutation `pi`,
 
-## 5. Unified quotient theorem and proof
+`Gamma(pi X) = pi Gamma(X)`,
+`M(pi X) ~= M(X)`,
+`G_B(pi X) ~= G_B(X)`,
+`N_{pi X}(pi A) = pi N_X(A)`,
+`S_{pi X}(pi A) = pi S_X(A)`,
+`C_R(pi X) = pi C_R(X)`,
+`Q_{pi X}(pi u,pi v) = Q_X(u,v)`,
+`E_{pi X}(pi P) = E_X(P)`.
 
-Let `pi` be any legal permutation of the finite observation index universe.
-Every boundary construction commutes with `pi`:
+Hence the induced Unit, Relation, World and Representation constructions are
+all quotient compatible.
 
-`Gamma(pi X) = pi Gamma(X)`;
+## 8. End-to-End Closure
 
-`M(pi X) ~= M(X)` because centroids, coordinate variances and model types are
-symmetric finite statistics;
+The canonical provenance chain is
 
-`G_B(pi X) ~= G_B(X)` because `pi` only permutes the complete edge set and
-preserves each Euclidean distance;
+`X -> A_max(X), Gamma(X) -> M(X), G_B(X), N_X, S_X`
 
-`N_{pi X}(pi S) = pi N_X(S)` and
-`S_{pi X}(pi S) = pi S_X(S)` by bijectivity of insertion/deletion and subset
-maps;
+`-> E_X -> Stage2E -> U_X -> C_R(X) -> Q_X -> R_X -> W_X -> Phi_X(W_X) -> D_R`.
 
-`C_R(pi X) = pi C_R(X)` because ordered Unit pairs are transported by the
-induced Unit permutation;
-
-`Q_{pi X}(pi u,pi v) = Q_X(u,v)` because `d_X` and `c_X` are Euclidean
-statistics and therefore invariant under index relabeling;
-
-`E_{pi X}(pi P) = E_X(P)` because the model fit sum and normalized boundary
-cut are unchanged under the induced bijections;
-
-therefore `argmin E_{pi X} = pi(argmin E_X)` and `delta_{pi X}=delta_X`.
-
-The induced Unit family, relation family and World consequently satisfy
-
-`U_{pi X} ~= U_X`,
-`R_{pi X} ~= R_X`,
-`W_{pi X} ~= W_X`.
-
-Finally, every coordinate of `Phi_X(W)` is a finite histogram, count,
-min/mean/max statistic or graph-topology statistic. Such quantities are
-unchanged by Unit relabeling, hence
-
-`Phi_{pi X}(pi W) = Phi_X(W)`.
-
-Thus `Phi_X` descends to the quotient of the observation-derived World space
-by legal Unit relabeling. The quotient proof requires no external model,
-boundary graph, relation predicate, candidate family, or energy coefficient.
-
-## 6. End-to-end closure
-
-Every object in the theory-facing path is now a function of the same `X`:
-
-`X -> A_max(X)=Gamma(X) -> M(X), G_B(X), N_X,S_X,C_R(X),Q_X`
-
-`-> E_X -> argmin -> U_X -> R_X -> W_X -> Phi_X(W_X) -> D_R`.
-
-Thus the remaining theorem assumptions are finite-observation validity
-conditions, not independently supplied candidate/model/boundary/relation/
-energy hyperparameters.
-
-The generic low-level APIs remain available for mathematical regression tests,
-but they are not the provenance path used by the closed observation-facing
-pipeline.
+The only theorem assumptions left at the pipeline boundary are validity of the
+finite observation itself. `A_search`, explicit relation predicates, explicit
+boundary graphs, external margins, and caller-selected model families are no
+longer assumptions of the canonical observation-facing path.
