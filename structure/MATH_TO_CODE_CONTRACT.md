@@ -1,120 +1,118 @@
 # Struct3D mathematics → engineering-code contract
 
-This document is the release gate for the `refactor/theory-compliant-core` branch.
-The mathematical theory is authoritative. Historical engineering descriptions
-are evidence, not automatic definitions.
+This document is the release gate for the `refactor/theory-compliant-core`
+branch. The mathematical theory is authoritative. Historical engineering
+descriptions are evidence, not automatic definitions.
 
 ## A. Observation-derived closure map
 
 | Boundary | Observation-derived definition | Engineering location | Status |
 |---|---|---|---|
-| `A_max(X)` | complete finite partition lattice `Pi(Omega_X)` | `structure/theory_candidates.py` | **Implemented** |
-| `Gamma(X)` | frozen candidate family, currently `A_max(X)` | `structure/theory_candidates.py` | **Implemented** |
-| `M(X)` | three canonical affine model fits: point, line, plane | `structure/theory_observation.py` | **Frozen** by Model Universe Theorem |
-| `G_B(X)` | complete weighted observation graph with `w_ij=1/(1+d_ij/diam(X))` | `structure/theory_observation.py` | **Frozen** by Boundary-Regularization Graph Theorem |
-| `N_X` | one-index insertion/deletion neighborhood on Unit supports | `structure/theory_observation.py` | **Implemented** |
-| `S_X` | all non-empty proper support subsets | `structure/theory_observation.py` | **Implemented** |
-| `C_R(X)` | all ordered pairs of distinct materialized Units | `structure/theory_observation.py` | **Implemented** |
-| `Q_X` | finite normalized cross-support distance has positive confidence | `structure/theory_relation_formation.py` | **Frozen** by Observation-Derived Relation Predicate Theorem |
-| `Phi_X` | fixed 23-D finite structural statistics of `(X,W)` | `structure/theory_representation.py` | **Implemented coordinate map** |
+| `A_max(X)` | complete finite partition lattice `Pi(Omega_X)` | `structure/theory_candidates.py` | **Implemented mathematical universe** |
+| `Gamma(X)` | finite scalable family `Gamma(X) subset A_max(X)` | `structure/theory_candidate_search.py` | **Frozen computational family** |
+| `A_search(X)` | compatibility alias of `Gamma(X)` only | `structure/theory_candidate_search.py` | **Scalability approximation; not canonical provenance** |
+| `M(X)` | point, line, plane models fitted deterministically to X | `structure/theory_observation.py` | **Frozen** |
+| `G_B(X)` | complete weighted observation graph with `w_ij=1/(1+d_ij/diam(X))` | `structure/theory_observation.py` | **Frozen** |
+| `N_X` | one-index insertion/deletion neighborhood | `structure/theory_observation.py` | **Frozen observation-derived boundary** |
+| `S_X` | one-point deletions plus singleton supports | `structure/theory_observation.py` | **Frozen scalable local family** |
+| `C_R(X)` | all ordered pairs of distinct selected Units | `structure/theory_observation.py`, `theory_observation_pipeline.py` | **Frozen from selected Unit lineage** |
+| `Q_X` | minimum cross-support distance <= median pairwise distance on the local union | `structure/theory_semantic_observation.py` | **Unique frozen relation law** |
+| legacy H^2 / weak proximity laws | historical compatibility constructors | `structure/theory_relation_formation.py` | **Regression/experimental only; not theory** |
+| `Phi_X` | fixed 23-D structural statistics of `(X,W)` | `structure/theory_representation.py` | **Implemented coordinate map** |
 | Stage 2D `E_X` | canonical energy consuming `M(X)` and `G_B(X)` with frozen weights `(1,1)` | `structure/theory_energy_model.py` | **Frozen observation-derived constructor** |
-| `delta_X` | minimum positive quotient-distinct energy gap in `Gamma(X)` | `structure/theory_energy_model.py` | **Derived, never externally supplied** |
-| Stage 2E | consumes `N_X`, `S_X`, and Unit competitors from `X` | `structure/theory_unit_formation.py` | **Observation-derived constructor implemented** |
-| Unit → Relation | consumes `C_R(X)` and frozen `Q_X` with observation-derived evidence | `structure/theory_relation_formation.py` | **Frozen observation path** |
-| Relation → World | copies derived relations into `W=(U,R,Phi)` | `structure/theory_pipeline.py`, `structure/theory_world.py` | **Implemented** |
-| World → Representation | `Phi_X(W)` | `structure/theory_representation.py` | **Implemented** |
+| `delta_X` | minimum positive quotient-distinct energy gap in Gamma | `structure/theory_energy_model.py` | **Derived, never externally supplied** |
+| Stage 2E | `Stable -> MinimalStable -> Unit` using `N_X`, `S_X`, X-derived competitors | `structure/theory_unit_formation.py`, `theory_observation_pipeline.py` | **Executed by canonical pipeline** |
+| Unit → Relation | selected Units + unique `Q_X` | `structure/theory_semantic_relation.py` | **Canonical observation path** |
+| Relation → World | copies canonical Q_X relations into `W=(U,R,Phi)` | `structure/theory_observation_pipeline.py`, `theory_world.py` | **Implemented** |
+| World → Representation | `Phi_X(W)` from the same observation context | `structure/theory_representation.py` | **Implemented** |
 
 ## B. Preserved frozen objects
 
 - Structural Unit: `u=(G,theta)`.
 - Explicit Relation: `r=(source,target,type,evidence)`.
-- Structural Graph: `G=(V,E)` with edges copied from the relation set.
+- Structural Graph: `G=(V,E)` with edges copied from the canonical relation set.
 - Structural World: `W=(U,R,Phi)`.
 - Canonical form: exact finite `C(W)`.
 - Structural invariant: `I(W)=C(W)`.
 - Representation distance: `D_R=||Phi_X(W1)-Phi_X(W2)||_2`.
-- Finite/admissible matching and Stage 2F/2G conditional theorems remain valid.
 
-## C. Mathematical contracts of the new closure
+## C. Mathematical contracts of the upstream closure
 
-### 1. Finite candidate domain
+### 1. Candidate domain
 
-For a finite observation index universe `Omega_X={0,...,n-1}`,
+For `Omega_X={0,...,n-1}`,
 
-`A_max(X)=Pi(Omega_X)`
+`A_max(X)=Pi(Omega_X)`.
 
-is finite and non-empty. `Gamma(X)=A_max(X)` is therefore also finite,
-non-empty, and invariant under every permutation of observation indices.
+The runtime does not enumerate this exponential mathematical universe for
+large observations. It instead evaluates the frozen finite `Gamma(X)` family.
 
-### 2. Model Universe Theorem
+`Gamma(X) subset A_max(X)` and every Gamma candidate is deterministic from X,
+finite, non-empty, valid, and quotient compatible. `A_search(X)` is only a
+backward-compatible scalability approximation and is explicitly excluded from
+the canonical pipeline.
 
-`M(X)={point(X),line(X),plane(X)}`. Each model is constructed only from
-finite sums and coordinate variances of X, with deterministic coordinate-index
-tie breaking. Hence M(X) is finite, deterministic and observation-derived.
+### 2. Model and boundary objects
 
-### 3. Boundary-Regularization Graph Theorem
+`M(X)={point(X),line(X),plane(X)}`.
 
-`G_B(X)` contains every unordered point pair with
+`G_B(X)` is complete with
 
 `w_ij=1/(1+||x_i-x_j||/diam(X))`.
 
-For `n>1` it is complete, finite and strictly positive, so the normalized cut
-`B_X(P)=cut_w(P)/sum_E w_e` is a canonical X-derived regularizer.
+Both are generated directly by `ObservationDerivedContext`.
 
-### 4. Observation-derived energy domain
+### 3. Stability and Unit formation
 
-`E_X(P)=sum_A min_{m in M(X)}[F_X(A,m)+k(m)] + B_X(P)`.
+For a candidate Unit support `S`,
 
-The coefficients of model complexity and boundary regularization are frozen at
-`1`. The strict-separation quantity is not an input. Instead
+`N_X(S)` consists of one-index insertion/deletion alternatives.
+`S_X(S)` consists of one-index deletions and singleton supports.
 
-`delta_X=min{|E_X(P)-E_X(Q)|:P not~Q, gap>0}`
+The canonical pipeline explicitly evaluates
 
-over the finite `Gamma(X)`, with `delta_X=0` if no positive gap exists.
+`Stable_X(S) -> MinimalStable_X(S) -> materialize_observation_unit(S)`.
 
-### 5. Observation-derived stability domain
+Only partitions whose Units pass this Stage 2E chain are admitted to the
+Stage 2D minimization step.
 
-For a Unit support `S`, `N_X(S)` consists of one-index insertion/deletion
-moves. `S_X(S)` consists of every non-empty proper subset. Both are finite and
-closed under observation-index relabeling.
+### 4. Unique relation law
 
-### 6. Observation-derived relation domain and predicate
+For distinct non-empty Units A and B, freeze
 
-For a materialized world with `k` Units,
+`Q_X(A,B) <=> d_cross(A,B) <= median{ ||x_p-x_q|| : p,q in A union B, p<q }`.
 
-`C_R(X)={(i,j):0<=i,j<k, i!=j}`.
+This is the only relation predicate with frozen theory status.
+The previous complete-proximity predicate and H^2 boundary-contact law remain
+available solely for regression/experimental compatibility and cannot be used
+by the canonical World construction.
 
-Freeze `Q_X(u_i,u_j)` to mean that the normalized minimum cross-support
-distance is finite and its confidence `1/(1+d_X)` is positive. For valid
-finite X, every distinct non-empty pair satisfies Q_X. The relation layer
-records the distance and confidence as evidence. The separate Stage 3B
-Hausdorff-contact predicate remains available as a stronger optional relation
-theorem and is not silently identified with Q_X.
+### 5. Representation lineage
 
-### 7. Observation-derived representation
-
-`Phi_X(W)` is the fixed 23-coordinate map implemented in
-`theory_representation.py`. Its groups are finite histograms, counts,
-confidence statistics, occupancy statistics, and topology counts. Every group
-is invariant to Unit relabeling. This proves well-definedness on the finite
-quotient; it does **not** prove injectivity or semantic completeness.
+The selected Unit partition determines `C_R(X)`. The same selected Units and
+same `ObservationDerivedContext` determine `Q_X`, the relation set, World and
+`Phi_X`. Therefore the canonical path has one provenance lineage rather than
+independent external relation or representation inputs.
 
 ## D. Non-negotiable boundaries
 
 1. Legacy `structure/energy.py` remains regression-only.
 2. No semantic label enters any observation-derived boundary.
-3. No neural network is used to define `A_max`, `M`, `G_B`, `N_X`, `S_X`, `C_R`,
-`Q_X`, or `Phi_X`.
-4. Deterministic tie-breaking is not uniqueness.
-5. Object, Instance, and Hierarchy remain separate theory problems.
-6. The observation-derived representation is a well-defined coordinate map,
-not an injective encoding theorem.
-7. Stage 2D separation margin is a derived property of the finite family, not a
-circular additive energy term.
+3. No neural network defines `A_max`, `Gamma`, `M`, `G_B`, `N_X`, `S_X`, `C_R`,
+   `Q_X`, World or `Phi_X`.
+4. `A_search` must never be described as `A_max` or used as the theorem-level
+   candidate family.
+5. The legacy H^2 and weak proximity relation laws must never be described as
+   co-equal alternatives to the frozen `Q_X`.
+6. Deterministic tie-breaking is not uniqueness.
+7. Object, Instance and Hierarchy remain separate theory problems.
+8. The 23-D representation is a well-defined coordinate map, not an injectivity
+   theorem.
 
 ## E. Release criterion
 
 The theory-compliant core is regression-clean only when the full
-`python -m unittest discover -s tests -v` suite passes. The new observation path
-is complete at the interface level when the observation-derived regression
-suite also passes.
+`python -m unittest discover -s tests -v` suite passes. The observation-facing
+release path is complete only when the upstream closure tests also verify that
+`A_search` is not called, Stage 2E is executed, the unique `Q_X` law generates
+relations, and `C_R -> World -> Phi_X` uses the selected X-derived Unit lineage.
