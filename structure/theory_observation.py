@@ -1,8 +1,7 @@
 """Observation-derived Struct3D theory objects.
 
-This module closes the remaining engineering-input boundaries in the finite
-observation core. Every object below is a deterministic function of X and uses
-no semantic labels and no neural component.
+All theory-facing boundaries are deterministic functions of one finite
+observation X.  No semantic labels and no neural component are used.
 """
 
 from __future__ import annotations
@@ -13,6 +12,7 @@ from math import sqrt
 from typing import Sequence, Tuple
 
 from .theory_candidates import ObservationCandidateFamily, observation_candidate_family
+from .theory_candidate_search import Gamma_X, materialize_Gamma
 from .theory_core import Partition, StructuralUnit
 from .theory_energy_model import GeometricModel, Observation3D, Stage2DEnergy, WeightedObservationGraph
 from .theory_stability import StabilityNeighborhood
@@ -36,12 +36,7 @@ def _axis_variances(points: Sequence[Point], center: Point) -> Tuple[float, floa
 
 def _point_model(points: Tuple[Point, ...]) -> GeometricModel:
     center = _centroid(points)
-    return GeometricModel(
-        "point",
-        lambda p, c=center: _distance(p, c) ** 2,
-        0.0,
-        signature=("point", center),
-    )
+    return GeometricModel("point", lambda p, c=center: _distance(p, c) ** 2, 0.0, signature=("point", center))
 
 
 def _line_model(points: Tuple[Point, ...]) -> GeometricModel:
@@ -52,12 +47,7 @@ def _line_model(points: Tuple[Point, ...]) -> GeometricModel:
     def residual(p: Point, c=center, a=axis) -> float:
         return sum((p[k] - c[k]) ** 2 for k in range(3) if k != a)
 
-    return GeometricModel(
-        "line",
-        residual,
-        1.0,
-        signature=("line", center, axis),
-    )
+    return GeometricModel("line", residual, 1.0, signature=("line", center, axis))
 
 
 def _plane_model(points: Tuple[Point, ...]) -> GeometricModel:
@@ -68,17 +58,12 @@ def _plane_model(points: Tuple[Point, ...]) -> GeometricModel:
     def residual(p: Point, c=center, a=normal) -> float:
         return (p[a] - c[a]) ** 2
 
-    return GeometricModel(
-        "plane",
-        residual,
-        2.0,
-        signature=("plane", center, normal),
-    )
+    return GeometricModel("plane", residual, 2.0, signature=("plane", center, normal))
 
 
 @dataclass(frozen=True)
 class ObservationModelFamily:
-    """Frozen model universe M(X): point, line, and plane fitted to X."""
+    """Frozen observation-derived model universe M(X)."""
 
     observation: Observation3D
     models: Tuple[GeometricModel, ...]
@@ -101,7 +86,7 @@ class ObservationModelFamily:
 
 @dataclass(frozen=True)
 class ObservationBoundaryGraph:
-    """Frozen observation-derived boundary graph G_B(X)."""
+    """Frozen observation-derived complete boundary graph G_B(X)."""
 
     observation: Observation3D
     graph: WeightedObservationGraph
@@ -133,6 +118,7 @@ class ObservationBoundaryGraph:
 
 
 def observation_neighborhood(candidate: StructuralUnit, observation: Observation3D) -> StabilityNeighborhood[StructuralUnit]:
+    """Frozen N_X: one-point insertion/deletion neighborhood derived from X."""
     omega = set(range(len(observation.points)))
     support = set(candidate.indices)
     alternatives = set()
@@ -149,23 +135,28 @@ def observation_neighborhood(candidate: StructuralUnit, observation: Observation
 
 
 def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
+    """Frozen S_X: scalable proper subcandidate family.
+
+    It contains every one-point deletion and the singleton supports. This is a
+    finite, non-empty-for-non-singletons, quotient-compatible local family and
+    avoids enumerating the exponential full subset lattice.
+    """
     support = tuple(candidate.indices)
     if len(support) <= 1:
         return ()
-    return tuple(
-        StructuralUnit(subset, {})
-        for size in range(1, len(support))
-        for subset in combinations(support, size)
-    )
+    subsets = {tuple(sorted(support[:k] + support[k + 1 :])) for k in range(len(support))}
+    subsets.update((index,) for index in support)
+    subsets.discard(support)
+    return tuple(StructuralUnit(subset, {}) for subset in sorted(subsets))
 
 
 def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralUnit, ...]:
-    omega = tuple(range(len(observation.points)))
-    return tuple(
-        StructuralUnit(support, {})
-        for size in range(1, len(omega) + 1)
-        for support in combinations(omega, size)
-    )
+    """Units appearing in the observation-derived computational family Gamma(X)."""
+    unique = {}
+    for partition in materialize_Gamma(observation):
+        for unit in partition.units:
+            unique[tuple(unit.indices)] = unit
+    return tuple(unique[key] for key in sorted(unique))
 
 
 def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], ...]:
@@ -176,7 +167,7 @@ def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], .
 
 @dataclass(frozen=True)
 class ObservationDerivedContext:
-    """All formerly external theorem boundaries materialized from one X."""
+    """Single X-derived provenance carrier for the closed theory-facing path."""
 
     observation: Observation3D
     candidates: ObservationCandidateFamily
@@ -199,7 +190,8 @@ class ObservationDerivedContext:
 
     @property
     def gamma(self):
-        return self.candidates.gamma
+        """Primary computational Gamma(X), a strict finite subset of A_max(X)."""
+        return Gamma_X(self.observation)
 
     @property
     def model_family(self) -> Tuple[GeometricModel, ...]:
@@ -223,7 +215,7 @@ class ObservationDerivedContext:
         return observation_relation_candidates(unit_count)
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
-        return self.candidates.materialize()
+        return materialize_Gamma(self.observation)
 
     def stage2d_energy(self) -> Stage2DEnergy:
         return Stage2DEnergy.from_observation(self)
