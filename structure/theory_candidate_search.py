@@ -1,19 +1,14 @@
-"""Scalable observation-derived search family A_search(X) subset A_max(X).
+"""Observation-derived scalable candidate generator.
 
-A_max(X) remains the complete finite partition lattice.  A_search(X) is the
-small, extensible search family used by the engineering pipeline.  It is
-constructed only from metric relations in X and is therefore finite, non-empty,
-and quotient-compatible under observation relabeling.
+A_max(X) is the complete finite partition lattice and remains the mathematical
+admissible universe.  Gamma(X) is the frozen *computational* finite subfamily
+used by the theory-facing pipeline.  A_search(X) is retained only as a
+backward-compatible scalability approximation and is never the provenance
+source of the main pipeline.
 
-The default strategies are:
-    1. the one-block partition;
-    2. the singleton partition;
-    3. a deterministic farthest-pair Voronoi bipartition.
-
-The strategy interface is intentionally named rather than arbitrary callable
-in order to keep the quotient-compatibility guarantee auditable. New strategies
-must be deterministic functions of X and must return valid partitions of the
-same observation universe before they can be promoted into this registry.
+Gamma(X) is deterministic, label-free, finite, non-empty, and quotient
+compatible. Its default strategies are the whole partition, singleton
+partition, and deterministic farthest-pair Voronoi bipartition.
 """
 
 from __future__ import annotations
@@ -69,11 +64,11 @@ def _farthest_split(observation: Observation3D) -> PartitionBlocks:
     return _canonical((left, right))
 
 
-def A_search(
+def Gamma_X(
     observation: Observation3D,
     strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
 ) -> Tuple[PartitionBlocks, ...]:
-    """Construct the deterministic finite search family A_search(X)."""
+    """Construct the frozen finite computational family Gamma(X) subset A_max(X)."""
     n = len(observation.points)
     if n <= 0:
         raise ValueError("Observation must be non-empty")
@@ -86,23 +81,51 @@ def A_search(
     blocks = []
     for strategy in strategies:
         if strategy not in registry:
-            raise ValueError(f"Unknown observation search strategy: {strategy}")
+            raise ValueError(f"Unknown Gamma strategy: {strategy}")
         blocks.append(registry[strategy]())
 
     unique = tuple(dict.fromkeys(blocks))
-    # Every returned candidate is materializable as a valid partition.
     for candidate in unique:
         partition_from_blocks(candidate)
     return unique
 
 
-def materialize_A_search(observation: Observation3D, strategies: Sequence[str] = ("whole", "singletons", "farthest_split")):
-    return tuple(partition_from_blocks(blocks) for blocks in A_search(observation, strategies))
+def materialize_Gamma(
+    observation: Observation3D,
+    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
+):
+    return tuple(partition_from_blocks(blocks) for blocks in Gamma_X(observation, strategies))
+
+
+def A_search(
+    observation: Observation3D,
+    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
+) -> Tuple[PartitionBlocks, ...]:
+    """Deprecated compatibility wrapper; A_search is only a scalability approximation."""
+    return Gamma_X(observation, strategies)
+
+
+def materialize_A_search(
+    observation: Observation3D,
+    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
+):
+    """Deprecated compatibility wrapper for the scalability approximation."""
+    return materialize_Gamma(observation, strategies)
 
 
 def is_subset_of_A_max(observation: Observation3D, candidates: Sequence[PartitionBlocks]) -> bool:
     from .theory_candidates import maximal_admissible_partitions
-    return set(candidates).issubset(set(maximal_admissible_partitions(tuple(range(len(observation.points))))))
+    # This exact subset check is intended only for small regression observations;
+    # the main pipeline never enumerates A_max(X).
+    return set(candidates).issubset(
+        set(maximal_admissible_partitions(tuple(range(len(observation.points)))))
+    )
 
 
-__all__ = ["A_search", "materialize_A_search", "is_subset_of_A_max"]
+__all__ = [
+    "Gamma_X",
+    "materialize_Gamma",
+    "A_search",
+    "materialize_A_search",
+    "is_subset_of_A_max",
+]
