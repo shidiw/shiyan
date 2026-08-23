@@ -1,145 +1,98 @@
-# Struct3D Mathematical Closure — Stage 2 Audit
+# Struct3D Mathematical Closure — Stage 2 Audit (updated 2026-08-23)
 
-## Purpose
+## 1. Current closure boundary
 
-This document is a source-grounded comparison of the preserved Struct3D mathematical theory, the historical engineering description, and the current theory-compliant implementation on `refactor/theory-compliant-core`.
+The theory-compliant core now distinguishes two things that must not be conflated:
 
-The audit does **not** invent missing mathematics. A statement is marked **CLOSED** only when the mathematical statement, engineering realization, and regression contract are mutually consistent. A historical statement without a frozen definition/proof is marked **HISTORICAL / GAP**. Legacy engineering behavior is not promoted merely because it exists.
+1. **Mathematical closure of the finite observation-derived execution boundary**: every formerly caller-supplied object required by the declared finite pipeline is constructed deterministically from the observation `X`.
+2. **Unproved semantic claims**: global injectivity of the frozen 23-D representation and semantic completeness of `D_R` are deliberately *not* claimed.
 
-## 1. Authoritative upstream chain
+The resulting closed engineering path is:
 
-The preserved theory describes the early structural formation chain as:
+`X -> A_max(X)=Gamma(X) -> M(X), G_B(X), N_X, S_X, C_R(X) -> E_X -> argmin -> Unit -> R -> W -> Phi_X(W)`.
 
-`Observation X -> admissible partitions A(X) -> energy minimization -> stable region -> Structural Unit`.
+The low-level explicit-input APIs remain for generic mathematical/regression compatibility. They are not the closed raw-observation theorem path.
 
-The historical energy form recovered by Stage 1 is:
+## 2. Status matrix
 
-`E = E_fit + lambda_c C + lambda_b B`.
+| Object / claim | Previous boundary | Current status | Evidence |
+|---|---|---|---|
+| `A(X)` non-empty | caller supplied | **CLOSED for finite non-empty observations** | `ObservationCandidateFamily.from_universe` constructs `Pi(Omega_X)` |
+| `A(X)` finite | caller supplied | **CLOSED** | complete finite set-partition enumeration |
+| candidate family quotient-compatible | contract | **CLOSED** | relabeling action preserves `Gamma(X)=Pi(Omega_X)` |
+| `P*=argmin_A E` | finite theorem | **CLOSED** | finite candidate selection and regression tests |
+| `P* -> U` | identity | **CLOSED** | partition materialization is exact |
+| neighborhood `N_X(u)` | caller supplied | **CLOSED as a frozen observation-derived perturbation domain** | one-index insertion/deletion construction |
+| proper subcandidate family `S_X(u)` | caller supplied | **CLOSED as a frozen observation-derived family** | all non-empty proper support subsets |
+| geometric model family `M(X)` | caller supplied | **CLOSED** | deterministic point/line/plane model family |
+| boundary graph `G_B(X)` | caller supplied | **CLOSED** | complete observation-derived weighted graph |
+| `delta_E` | verified finite-family property | **DERIVED / CONDITIONALLY POSITIVE** | `Stage2DEnergy.derived_separation_margin`; positive only when no quotient-distinct energy ties occur |
+| `U -> R` candidate pairs `C_R` | caller supplied | **CLOSED** | all ordered pairs of distinct materialized units |
+| geometry evidence | caller supplied | **CLOSED** | all geometric terms are derived from `X` and `M(X)` |
+| `R -> W` | explicit construction | **CLOSED** | `StructuralWorld` materialization |
+| quotient World | existing boundary | **CLOSED** | canonical/relabeling tests |
+| `W -> Phi` coordinate schema | frozen | **CLOSED** | frozen 23-D schema |
+| concrete `Phi_X` formulas | caller extractor | **CLOSED** | `represent_observation` / `phi_x` implement all 23 coordinates |
+| `Phi` global injectivity | not established | **NOT CLAIMED** | finite-set checker exists only as evidence tool |
+| `D_R` semantic completeness | not established | **NOT CLAIMED** | Euclidean distance is defined, but completeness requires an independent theorem |
 
-The historical theory also states the idea that a structural unit should be internally coherent and that splitting a candidate should increase the overall structural cost. However, the exact admissibility predicate and exact split/merge inequality are not frozen in the current authoritative theory.
+## 3. Important qualification about the upstream theory
 
-Therefore this audit preserves the chain without assigning new formulas to its missing links.
+The current implementation closes the **observation-derived finite boundary**. This does not retroactively prove that the historical prose contained a unique intended definition for every object.
 
-## 2. Theory -> code -> tests matrix
+The frozen implementation choices are now explicit:
 
-| Stage | Mathematical statement | Current engineering realization | Tests / evidence | Verdict |
-|---|---|---|---|---|
-| Observation | An observation universe X is the input domain | `Partition.universe` is an explicit finite indexed universe | partition validation tests | CLOSED at finite indexed boundary |
-| Candidate family | `A(X)` is the admissible partition family | Candidate partitions are supplied explicitly to selection functions | empty-set and minimizer tests | BOUNDARY; construction of `A(X)` is not frozen |
-| Partition | Units are non-empty, disjoint, and complete over X | `Partition.__post_init__` enforces non-empty universe, domain validity, pairwise disjointness, and complete coverage | `test_partition_is_disjoint_and_complete`, overlap/incomplete/empty tests | CLOSED |
-| Energy | Historical form `E_fit + lambda_c C + lambda_b B` | `StructuralEnergy` accepts an externally supplied scalar functional; no additive decomposition is invented | energy finite/NaN tests | BOUNDARY; exact E is a THEORY GAP |
-| Legacy energy | Historical implementation exists | `structure/energy.py` remains legacy/regression code | legacy energy regression suite | LEGACY ONLY |
-| Energy minimization | `P* in argmin_{P in A(X)} E(P)` for an explicit admissible finite set | `select_minimum_energy_partition` evaluates supplied energy and selects a minimum | minimizer tests | CLOSED for explicit finite candidate sets |
-| Stable region | Candidate is structurally stable; historical text links stability to splitting cost | No frozen `Stable(A)` theorem or exact perturbation/split neighborhood is implemented | no valid theorem test exists yet | THEORY GAP |
-| Pairwise merge delta | `E(A_i union A_j)-E(A_i)-E(A_j)` | No frozen merge-energy API/theorem | no theorem test | NOT FROZEN; do not add as law yet |
-| Stability score | `exp(-E) log(|A|+1)` | No theory-facing implementation | none | NOT FROZEN; prior proposal must not be treated as theory |
-| Fixed threshold | e.g. `S > 0.1` | Legacy thresholds exist in historical engineering | legacy regression tests | ENGINEERING CHOICE ONLY |
-| Minimality | A formal minimal stable Unit | No frozen minimality definition/proof | none | THEORY GAP |
-| Unit | `u_i=(G_i,theta_i)` | Single frozen `StructuralUnit` type | Unit boundary tests | CLOSED |
-| Materialization | A valid partition cell can be materialized as a Unit | `theory_materialization.py` materializes already-valid cells without discovering them | materialization identity tests | CLOSED as a boundary operation |
-| Relation | Explicit relation object; graph must use supplied relations | `theory_world.py` maps supplied Relations exactly | graph/relation tests | CLOSED |
-| World | `W=(U,R,Phi)` | `StructuralWorld` implementation | world validation tests | CLOSED |
-| Canonical form | Finite relabeling-invariant canonical representation | exact finite canonicalization | canonicalization tests | CLOSED for the declared finite regime |
-| Invariant | Frozen finite invariant `I(W)=C(W)` | `theory_invariant.py` | determinism/relabeling tests | CLOSED at declared boundary |
-| Representation | `phi(W) in R^23` with frozen grouping/dimension | explicit 23-D schema/interface | dimension/schema tests | CLOSED as a representation contract; extractor semantics remain bounded by the specification |
-| Distance | `D_R(W1,W2)=||phi(W1)-phi(W2)||_2` | representation-space Euclidean distance | Euclidean/nonfinite/zero-distance tests | CLOSED |
-| Matching | `M* in argmin_{M in A} C(M)` over explicit admissible set | explicit admissible-set matching | matching tests | CLOSED |
-| Neural extension | latent metric preservation is a future property, not reconstruction alone | reconstruction/objective boundary only | neural objective contract tests | NOT A THEOREM; future research stage |
+- `Gamma(X)=Pi(Omega_X)`;
+- `M(X)` contains point, line, and plane models;
+- `G_B(X)` is complete with normalized inverse-distance weights;
+- `N_X(u)` uses one-index insertion/deletion moves;
+- `S_X(u)` contains all non-empty proper support subsets;
+- `C_R(X)` contains all ordered pairs of distinct materialized units.
 
-## 3. Energy audit
+These are frozen definitions of the current theory-compliant finite core. They must not be presented as historical facts unless the authoritative mathematical manuscript independently supports them.
 
-### 3.1 What is actually preserved
+## 4. Energy and separation
 
-The historical theory supports an additive energy skeleton:
+The observation-derived Stage 2D energy is frozen as
 
-`E = E_fit + lambda_c C + lambda_b B`.
+`E_X(P) = sum_A [min_{m in M(X)} F_X(A,m) + k(m)] + B_X(P)`,
 
-The current theory-facing implementation deliberately refuses to identify legacy implementation quantities with these abstract terms. In particular, the legacy primitive-specific fitting, primitive parameter-count complexity, and centroid/radius-variance boundary surrogate are not silently promoted to `E_fit`, `C`, or `B`.
+with normalized geometric residuals, fixed unit complexity coefficients, and the observation-derived boundary graph.
 
-### 3.2 What is not justified
+The separation statistic is
 
-The following are **not** frozen Struct3D mathematics at this stage:
+`delta_X = min { |E_X(P)-E_X(Q)| : P,Q in Gamma(X), P not~ Q, E_X(P) != E_X(Q) }`,
 
-- `E = w_g E_geometry + w_b E_boundary + w_s E_spatial`;
-- `S(A) = exp(-E(A)) log(|A|+1)`;
-- a universal stability threshold such as `0.1`;
-- the pairwise merge delta as the official emergence theorem;
-- a claim that low absolute energy alone defines a Unit.
+with `delta_X=0` when no positive gap exists.
 
-These may be candidate research formulations later, but they are not to be represented as recovered historical theory.
+Therefore `delta_X > 0` is **not** a universal theorem. It is a verifiable property of a particular finite observation/candidate family.
 
-## 4. Stability audit
+## 5. Representation boundary
 
-The historical idea is stronger than "low energy": a Unit should be stable against an allowed structural perturbation, and the preserved text specifically mentions the cost increase caused by splitting.
+The frozen representation is a concrete 23-coordinate map `Phi_X(W)`. Its coordinate construction is now fully implemented and regression-tested.
 
-The missing formal objects are therefore:
+However, a fixed summary vector is not automatically injective over all possible Structural Worlds. The project therefore provides a finite-set `representation_injective_on(...)` checker, but deliberately does not promote a successful finite check to a global injectivity theorem.
 
-1. a neighborhood / admissible perturbation family around a candidate;
-2. an exact stability predicate;
-3. the relation between stability and partition optimality;
-4. the minimality condition for a Unit;
-5. existence conditions guaranteeing at least one admissible candidate.
+Consequently:
 
-Until these are recovered or explicitly derived and then frozen, the implementation must not invent a stability score or threshold.
+`D_R(W_1,W_2)=||Phi_X(W_1)-Phi_X(W_2)||_2`
 
-## 5. Correct current mathematical closure
+is a well-defined representation-space distance, but **semantic completeness** of this distance remains an open mathematical claim.
 
-The part that can currently be written as a theorem-safe chain is:
+## 6. Regression contract added in this update
 
-`X (finite indexed universe)`
+`structure/theory_closure.py` provides `ClosureCertificate` and `audit_observation_context(...)`.
 
-`-> A (explicit finite admissible candidate family)`
+`tests/test_theory_closure_certificate.py` verifies that the finite observation-derived boundary is non-empty, finite, quotient-compatible, geometrically derived, relation-complete, and concretely 23-dimensional, while explicitly asserting that representation injectivity and semantic completeness remain unclaimed.
 
-`-> P* in argmin_{P in A} E(P)`
+## 7. Current release verdict
 
-`-> materialize valid partition cells as Structural Units`
+**The caller-supplied boundaries listed in the current closure table are now removed from the closed raw-observation execution path.**
 
-`-> W=(U,R,Phi)`
+The remaining non-closed mathematical claims are intentionally limited to:
 
-The first arrow is an external boundary, the argmin is implemented, and Unit materialization is implemented. The missing implication is:
+1. a universal strict separation theorem `delta_X > 0`;
+2. global injectivity of `Phi_X`;
+3. semantic completeness of `D_R`.
 
-`stable/minimal candidate -> Structural Unit`
-
-because `stable` and `minimal` are not yet mathematically frozen.
-
-## 6. Required Stage 2 closure targets
-
-The next mathematical work must proceed in this order:
-
-### Target A — Admissibility
-
-Recover or formally define `A(X)` without importing thresholds, connected components, primitive classifiers, or minimum point counts unless the mathematical specification explicitly requires them.
-
-### Target B — Exact energy
-
-Recover the exact definitions and domains of `E_fit`, `C`, and `B`, including their units, normalization, and dependence on the observation. Establish conditions under which the resulting functional is finite and comparable across admissible candidates.
-
-### Target C — Stability
-
-Recover the exact perturbation/splitting family and define `Stable(A)` from the authoritative theory. Only then decide whether a merge inequality is equivalent, sufficient, or merely a heuristic.
-
-### Target D — Minimality
-
-Define what "minimal Structural Unit" means and prove the relation between minimality and the chosen stability predicate.
-
-### Target E — Existence / selection
-
-State assumptions under which `A(X)` is non-empty and the energy minimization problem is well-posed. The current implementation already rejects an empty candidate family; that is an engineering contract, not an existence theorem.
-
-### Target F — Engineering realization
-
-Only after A-E are frozen should the theory-facing code gain concrete candidate generation, exact energy components, stability checks, or merge operations.
-
-## 7. Release rule
-
-No code change is justified merely because it makes the upstream chain look complete. A new theory-facing implementation is admissible only when:
-
-`mathematical definition -> proof/derivation -> implementation -> regression contract`
-
-is traceable for that object.
-
-Until then, legacy code remains regression evidence and the current explicit-input boundary remains the correct implementation.
-
-## 8. Current verdict
-
-**Stage 2 audit established the comparison matrix. The downstream v3.x/v4.0 theory-to-code chain is substantially closed at its declared finite boundaries. The upstream formation problem is not yet mathematically closed. The highest-priority gaps are `A(X)`, exact `E`, stability, and minimality.**
+These are not patched by arbitrary engineering assumptions. They require independent mathematical results or a deliberately frozen restricted theorem domain.
