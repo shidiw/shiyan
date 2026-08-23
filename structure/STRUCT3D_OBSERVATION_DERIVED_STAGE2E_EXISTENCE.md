@@ -62,17 +62,20 @@ appears in the proof.
 
 ## Strict-margin corollary
 
-Define the observation-derived unit separation quantity
+Define the observation-derived Unit separation quantity
 
-`Delta_U(X) = min { |E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v,
-                   |E_U,X(u)-E_U,X(v)| > 0 }`,
+`Delta_U(X) = min { |E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v }`.
 
-with value `0` when no positive gap exists.
+Because `U_X` is finite, this minimum exists. If any two distinct Units are
+energy-tied, `Delta_U(X)=0`. Therefore
 
-If `Delta_U(X)>0`, every distinct Unit has a strictly positive energy gap from
-every other Unit. In particular, the Stage 2E witness can be materialized with
-any requested margin `0 < delta <= Delta_U(X)` without introducing an external
-margin assumption.
+`Delta_U(X)>0`
+
+is exactly the strict pairwise Unit-energy separation condition. Under this
+condition, every distinct Unit has a strictly positive energy gap from every
+other Unit, and the Stage 2E witness can be materialized with any requested
+margin `0 < delta <= Delta_U(X)` without introducing an external margin
+assumption.
 
 If `Delta_U(X)=0`, the existence theorem remains valid for the frozen
 zero-margin Stage 2E contract, but strict-margin materialization is not a
