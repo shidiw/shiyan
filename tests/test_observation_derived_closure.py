@@ -5,7 +5,7 @@ from structure.theory_observation import ObservationDerivedContext
 from structure.theory_energy_model import Stage2DEnergy
 from structure.theory_pipeline import run_observation_derived_pipeline
 from structure.theory_representation import phi_x
-from structure.theory_relation_formation import form_observation_relations
+from structure.theory_semantic_relation import form_observation_semantic_relations
 from structure.theory_world import StructuralWorld
 
 
@@ -20,15 +20,17 @@ class TestObservationDerivedClosure(unittest.TestCase):
 
     def test_all_external_boundaries_are_functions_of_x(self):
         self.assertTrue(self.context.a_max)
-        self.assertEqual(self.context.gamma, self.context.a_max)
+        self.assertTrue(self.context.gamma)
+        self.assertLessEqual(len(self.context.gamma), len(self.context.a_max))
         self.assertEqual(len(self.context.model_family), 3)
         self.assertEqual(len(self.context.boundary_graph.edges), 3)
         self.assertTrue(self.context.unit_candidates)
         self.assertTrue(self.context.relation_candidates(2))
 
-    def test_a_max_is_finite_and_non_empty(self):
+    def test_a_max_and_gamma_are_distinct_mathematical_vs_computational_domains(self):
         self.assertEqual(len(self.context.a_max), 5)
-        self.assertEqual(len(self.context.gamma), 5)
+        self.assertEqual(len(self.context.gamma), 3)
+        self.assertTrue(set(self.context.gamma).issubset(set(self.context.a_max)))
 
     def test_boundary_graph_is_observation_derived(self):
         weights = [weight for _, _, weight in self.context.boundary_graph.edges]
@@ -36,11 +38,11 @@ class TestObservationDerivedClosure(unittest.TestCase):
         self.assertTrue(all(weight > 0.0 for weight in weights))
 
     def test_neighborhood_and_subcandidate_families_are_finite(self):
-        candidate = self.context.unit_candidates[3]
+        candidate = StructuralUnit((0, 1, 2), {})
         neighborhood = self.context.neighborhood_rule(candidate)
         subcandidates = self.context.proper_subcandidates(candidate)
         self.assertTrue(neighborhood.alternatives)
-        self.assertEqual(len(subcandidates), 2)
+        self.assertEqual(len(subcandidates), 6)
 
     def test_stage2d_consumes_observation_derived_m_and_boundary(self):
         energy = Stage2DEnergy.from_observation(self.context)
@@ -50,17 +52,28 @@ class TestObservationDerivedClosure(unittest.TestCase):
         partition = self.context.materialize_partitions()[0]
         self.assertTrue(energy(partition) >= 0.0)
 
-    def test_relation_candidates_and_world_are_observation_derived(self):
-        partition = self.context.materialize_partitions()[0]
-        relations = form_observation_relations(partition.units, self.context)
-        world = StructuralWorld(partition.units, relations.relations, {})
+    def test_unique_qx_forms_the_canonical_relation_set(self):
+        partition = self.context.materialize_partitions()[1]  # singleton partition
+        relations = form_observation_semantic_relations(partition.units, self.context)
+        world = StructuralWorld(
+            partition.units,
+            relations.relations,
+            {},
+            observation_context=self.context,
+        )
         self.assertEqual(relations.unit_count, world.unit_count)
         self.assertEqual(world.relation_count, world.unit_count * (world.unit_count - 1))
+        self.assertTrue(all(r.relation_type == "semantic_proximity" for r in relations.relations))
 
     def test_phi_x_is_well_defined_and_23_dimensional(self):
-        partition = self.context.materialize_partitions()[0]
-        relations = form_observation_relations(partition.units, self.context)
-        world = StructuralWorld(partition.units, relations.relations, {})
+        partition = self.context.materialize_partitions()[1]
+        relations = form_observation_semantic_relations(partition.units, self.context)
+        world = StructuralWorld(
+            partition.units,
+            relations.relations,
+            {},
+            observation_context=self.context,
+        )
         representation = phi_x(world, self.context)
         self.assertEqual(len(representation.as_tuple()), 23)
         self.assertTrue(all(value == value for value in representation.as_tuple()))
@@ -68,13 +81,13 @@ class TestObservationDerivedClosure(unittest.TestCase):
     def test_phi_x_is_unit_label_quotient_compatible(self):
         first_units = (StructuralUnit((0,), {}), StructuralUnit((1, 2), {}))
         second_units = tuple(reversed(first_units))
-        first_relations = form_observation_relations(first_units, self.context)
-        second_relations = form_observation_relations(second_units, self.context)
-        first_world = StructuralWorld(first_units, first_relations.relations, {})
-        second_world = StructuralWorld(second_units, second_relations.relations, {})
+        first_relations = form_observation_semantic_relations(first_units, self.context)
+        second_relations = form_observation_semantic_relations(second_units, self.context)
+        first_world = StructuralWorld(first_units, first_relations.relations, {}, observation_context=self.context)
+        second_world = StructuralWorld(second_units, second_relations.relations, {}, observation_context=self.context)
         self.assertEqual(phi_x(first_world, self.context).as_tuple(), phi_x(second_world, self.context).as_tuple())
 
-    def test_end_to_end_observation_derived_pipeline(self):
+    def test_end_to_end_observation_derived_pipeline_executes_stage2e(self):
         result = run_observation_derived_pipeline(self.points)
         self.assertGreaterEqual(result.world.unit_count, 1)
         self.assertEqual(len(result.representation.as_tuple()), 23)
@@ -84,6 +97,7 @@ class TestObservationDerivedClosure(unittest.TestCase):
         relabeled = tuple(self.points[i] for i in permutation)
         other = ObservationDerivedContext.from_points(relabeled)
         self.assertEqual(len(other.a_max), len(self.context.a_max))
+        self.assertEqual(len(other.gamma), len(self.context.gamma))
         self.assertEqual(len(other.unit_candidates), len(self.context.unit_candidates))
         self.assertEqual(len(other.boundary_graph.edges), len(self.context.boundary_graph.edges))
         self.assertEqual(len(other.relation_candidates(3)), len(self.context.relation_candidates(3)))
