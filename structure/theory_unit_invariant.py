@@ -1,7 +1,7 @@
 """Complete observation-aware invariant for Structural Units.
 
 The current ``StructuralUnit`` stores finite observation indices in ``G``.
-Those indices are labels, not semantic content.  Therefore a quotient
+Those indices are labels, not semantic content. Therefore a quotient
 invariant for Units must be computed relative to the observation X and must
 remove the arbitrary index names while retaining the observed geometry and
 frozen Unit attributes ``theta``.
@@ -11,7 +11,7 @@ For X=(x_0,...,x_{n-1}) and u=(G,theta), define
     Can_U^X(u) = ( multiset{ x_i : i in G }, Freeze(theta) ).
 
 The point coordinates are sorted lexicographically, so this is a finite,
-deterministic canonical representative.  The historical ``primitive`` field
+deterministic canonical representative. The historical ``primitive`` field
 is deliberately excluded because the frozen mathematical Unit is
 u=(G,theta); primitive is compatibility metadata.
 
@@ -21,7 +21,7 @@ Unit equivalence is defined by observation-index relabeling:
 
 iff there exists a bijection between their supports induced by a permutation
 of the finite observation indices that preserves the observed point values
-and theta.  For the finite observation model this is equivalent to equality
+and theta. For the finite observation model this is equivalent to equality
 of ``Can_U^X``.
 """
 
@@ -59,7 +59,7 @@ def Can_U(unit: StructuralUnit, observation: Observation3D):
     """Return the frozen complete invariant ``Can_U^X(u)``.
 
     The output is hashable and deterministic for every finite valid Unit and
-    finite valid observation.  It is independent of observation index labels
+    finite valid observation. It is independent of observation index labels
     and retains exactly the geometric support multiset plus theta.
     """
     n = len(observation.points)
@@ -84,7 +84,12 @@ def relabel_unit(
     unit: StructuralUnit,
     permutation: Sequence[int],
 ) -> StructuralUnit:
-    """Transport a Unit through a finite observation-index permutation."""
+    """Transport a Unit through a finite observation-index permutation.
+
+    ``permutation[new_index] = old_index`` is the convention used by the
+    relabeled observation ``x'_j = x_{permutation[j]}``; the transported Unit
+    therefore uses the inverse permutation.
+    """
     if len(permutation) == 0:
         raise ValueError("permutation must be non-empty")
     mapping = tuple(int(v) for v in permutation)
@@ -92,7 +97,8 @@ def relabel_unit(
         raise ValueError("permutation must contain each index exactly once")
     if any(i < 0 or i >= len(mapping) for i in unit.indices):
         raise ValueError("Unit support lies outside permutation domain")
-    return StructuralUnit(tuple(sorted(mapping[i] for i in unit.indices)), dict(unit.attributes), unit.primitive)
+    inverse = {old: new for new, old in enumerate(mapping)}
+    return StructuralUnit(tuple(sorted(inverse[i] for i in unit.indices)), dict(unit.attributes), unit.primitive)
 
 
 def can_u_is_invariant_under_relabeling(
