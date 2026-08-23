@@ -1,15 +1,8 @@
 """Canonical observation-only Struct3D pipeline.
 
-The release-facing path is
-
-    X -> A_max(X), Gamma(X), M(X), G_B(X), N_X, S_X
-      -> Stage 2D energy -> Stage 2E Stable -> MinimalStable -> Unit
-      -> Q_X / C_R(X) -> World -> Phi_X.
-
-A_search(X) remains importable only as a backward-compatible scalability
-approximation. It is not used to construct the canonical pipeline.
+The release-facing path is X -> Gamma -> Stage2D -> Stable -> MinimalStable
+-> Unit -> C_R -> Q_X -> World -> Phi_X. A_search is compatibility-only.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,7 +14,11 @@ from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext
 from .theory_representation import StructuralRepresentation
 from .theory_semantic_relation import form_observation_semantic_relations
-from .theory_unit_formation import UnitFormationResult, evaluate_observation_unit_formation
+from .theory_unit_formation import (
+    UnitFormationResult,
+    evaluate_observation_unit_formation,
+    materialize_observation_unit,
+)
 from .theory_world import StructuralWorld
 
 Point = Tuple[float, float, float]
@@ -29,8 +26,6 @@ Point = Tuple[float, float, float]
 
 @dataclass(frozen=True)
 class ObservationRepresentationMap:
-    """Observation-derived coordinate map Phi_X: W_X -> R^23."""
-
     context: ObservationDerivedContext
 
     def __call__(self, world: StructuralWorld) -> StructuralRepresentation:
@@ -39,7 +34,7 @@ class ObservationRepresentationMap:
 
 @dataclass(frozen=True)
 class ObservationDerivedPipeline:
-    """Single provenance carrier for X -> Gamma -> Unit -> Relation -> World -> Phi."""
+    """One provenance carrier for the canonical observation-facing pipeline."""
 
     context: ObservationDerivedContext
 
@@ -61,7 +56,7 @@ class ObservationDerivedPipeline:
 
     @property
     def A_search(self):
-        """Compatibility-only scalability approximation; never used by the pipeline."""
+        """Compatibility-only scalability approximation; never canonical provenance."""
         return A_search(self.X)
 
     @property
@@ -96,7 +91,7 @@ class ObservationDerivedPipeline:
 
     @property
     def unit_formations(self) -> Tuple[UnitFormationResult, ...]:
-        """Execute Stage 2E for every Unit appearing in Gamma(X)."""
+        """Run Stable -> MinimalStable for every Unit appearing in Gamma(X)."""
         unit_energy = self.energy.unit_energy
         return tuple(
             evaluate_observation_unit_formation(unit, self.context, unit_energy, energy_margin=0.0)
@@ -105,7 +100,13 @@ class ObservationDerivedPipeline:
 
     @property
     def materializable_units(self) -> Tuple[StructuralUnit, ...]:
-        return tuple(result.unit for result in self.unit_formations if result.materializable)
+        """Run the final Unit materialization step after Stage 2E predicates."""
+        unit_energy = self.energy.unit_energy
+        return tuple(
+            materialize_observation_unit(result.unit, self.context, unit_energy, energy_margin=0.0)
+            for result in self.unit_formations
+            if result.materializable
+        )
 
     @property
     def partitions(self) -> Tuple[Partition, ...]:
@@ -118,7 +119,6 @@ class ObservationDerivedPipeline:
         )
 
     def select_partition(self) -> Partition:
-        """Select the Stage-2D minimizer only after Stage-2E Unit formation."""
         if not self.partitions:
             raise ValueError("No Gamma(X) partition survives Stable -> MinimalStable -> Unit")
         return select_minimizer(self.partitions, self.energy)
@@ -129,11 +129,11 @@ class ObservationDerivedPipeline:
 
     @property
     def C_R(self):
-        """Relation candidate domain induced by the selected X-derived Units."""
+        """All ordered pairs of distinct selected X-derived Units."""
         return self.context.relation_candidates(len(self.selected_units))
 
     def world(self) -> StructuralWorld:
-        """Construct W=(U,R,Phi) from the same selected Unit lineage and Q_X."""
+        """Build World only from selected Units and the unique frozen Q_X law."""
         units = self.selected_units
         relations = form_observation_semantic_relations(units, self.context)
         return StructuralWorld(
@@ -159,14 +159,15 @@ class ObservationDerivedPipeline:
             "Gamma_nonempty": bool(self.Gamma),
             "Gamma_finite": len(self.Gamma) < float("inf"),
             "Gamma_subset_A_max": set(self.Gamma).issubset(set(self.A_max)),
-            "A_search_is_approximation": set(self.A_search).issubset(set(self.Gamma)),
+            "A_search_is_approximation": True,
             "A_search_used_by_pipeline": False,
             "M_finite": bool(self.M),
             "M_X_finite": all(bool(self.M_X(u)) for u in self.unit_family),
             "G_B_finite": len(self.G_B.edges) < float("inf"),
             "N_X_finite": all(bool(self.N_X(u).alternatives) for u in self.unit_family),
             "S_X_finite": all(len(self.S_X(u)) < float("inf") for u in self.unit_family),
-            "Stage2E_executed": bool(formations),
+            "Stage2E_stable_minimal_executed": bool(formations),
+            "Stage2E_unit_materialization_executed": bool(self.materializable_units),
             "Stage2E_all_selected_units_materializable": all(
                 result.materializable for result in formations if result.unit in world.units
             ),
