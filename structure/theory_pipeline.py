@@ -65,14 +65,16 @@ def select_stage2d_partition(
 
 def run_observation_derived_pipeline(
     points: Sequence[Tuple[float, float, float]],
-    separation_margin: float = 0.0,
 ) -> TheoryPipelineResult:
-    """Run the closed path X -> Stage2D -> Unit -> Relation -> World -> Phi_X."""
+    """Run the closed path X -> E_X -> Unit -> Relation -> World -> Phi_X.
+
+    No caller-supplied energy weights or separation margin are accepted. Both
+    the Stage 2D coefficients and the separation statistic are fixed/derived
+    by the observation-derived theory.
+    """
     context = ObservationDerivedContext.from_points(points)
-    energy = Stage2DEnergy.from_observation(context, separation_margin=separation_margin)
+    energy = context.stage2d_energy()
     partitions = context.materialize_partitions()
-    if separation_margin > 0.0:
-        energy.require_separation_margin(partitions, separation_margin)
     selection = select_stable_partition(partitions, StructuralEnergy(energy))
     partition = selection.partition
     relations = form_observation_relations(partition.units, context)
