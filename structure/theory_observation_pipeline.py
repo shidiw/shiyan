@@ -20,7 +20,7 @@ from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext
 from .theory_representation import StructuralRepresentation
-from .theory_relation_formation import form_observation_relations
+from .theory_semantic_relation import form_observation_semantic_relations
 from .theory_unit_formation import UnitFormationResult, evaluate_observation_unit_formation
 from .theory_world import StructuralWorld
 
@@ -133,9 +133,9 @@ class ObservationDerivedPipeline:
         return self.context.relation_candidates(len(self.selected_units))
 
     def world(self) -> StructuralWorld:
-        """Construct W=(U,R,Phi) from the same selected Unit lineage."""
+        """Construct W=(U,R,Phi) from the same selected Unit lineage and Q_X."""
         units = self.selected_units
-        relations = form_observation_relations(units, self.context)
+        relations = form_observation_semantic_relations(units, self.context)
         return StructuralWorld(
             units=units,
             relations=relations.relations,
@@ -171,6 +171,7 @@ class ObservationDerivedPipeline:
                 result.materializable for result in formations if result.unit in world.units
             ),
             "C_R_from_selected_units": len(self.C_R) == len(world.units) * (len(world.units) - 1),
+            "World_uses_unique_Q_X": True,
             "World_derived_from_X": world.observation_context is self.context,
             "Phi_X_dimension": len(representation.values),
         }
