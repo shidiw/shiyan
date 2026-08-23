@@ -82,7 +82,51 @@ with `delta_X=0` when no positive gap exists.
 Strict-separation theorems use the derived condition `delta_X>0` rather than
 an externally supplied margin.
 
-## 5. Unified quotient closure
+## 5. Unified quotient theorem and proof
+
+Let `pi` be any legal permutation of the finite observation index universe.
+Every boundary construction commutes with `pi`:
+
+`Gamma(pi X) = pi Gamma(X)`;
+
+`M(pi X) ~= M(X)` because centroids, coordinate variances and model types are
+symmetric finite statistics;
+
+`G_B(pi X) ~= G_B(X)` because `pi` only permutes the complete edge set and
+preserves each Euclidean distance;
+
+`N_{pi X}(pi S) = pi N_X(S)` and
+`S_{pi X}(pi S) = pi S_X(S)` by bijectivity of insertion/deletion and subset
+maps;
+
+`C_R(pi X) = pi C_R(X)` because ordered Unit pairs are transported by the
+induced Unit permutation;
+
+`Q_{pi X}(pi u,pi v) = Q_X(u,v)` because `d_X` and `c_X` are Euclidean
+statistics and therefore invariant under index relabeling;
+
+`E_{pi X}(pi P) = E_X(P)` because the model fit sum and normalized boundary
+cut are unchanged under the induced bijections;
+
+therefore `argmin E_{pi X} = pi(argmin E_X)` and `delta_{pi X}=delta_X`.
+
+The induced Unit family, relation family and World consequently satisfy
+
+`U_{pi X} ~= U_X`,
+`R_{pi X} ~= R_X`,
+`W_{pi X} ~= W_X`.
+
+Finally, every coordinate of `Phi_X(W)` is a finite histogram, count,
+min/mean/max statistic or graph-topology statistic. Such quantities are
+unchanged by Unit relabeling, hence
+
+`Phi_{pi X}(pi W) = Phi_X(W)`.
+
+Thus `Phi_X` descends to the quotient of the observation-derived World space
+by legal Unit relabeling. The quotient proof requires no external model,
+boundary graph, relation predicate, candidate family, or energy coefficient.
+
+## 6. End-to-end closure
 
 Every object in the theory-facing path is now a function of the same `X`:
 
