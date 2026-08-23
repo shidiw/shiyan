@@ -62,24 +62,31 @@ appears in the proof.
 
 ## Strict-margin corollary
 
-Define the observation-derived Unit separation quantity
+Define the global pairwise Unit separation quantity
 
 `Delta_U(X) = min { |E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v }`.
 
-Because `U_X` is finite, this minimum exists. If any two distinct Units are
-energy-tied, `Delta_U(X)=0`. Therefore
+Because `U_X` is finite, this minimum exists. Any energy tie forces
+`Delta_U(X)=0`, so `Delta_U(X)>0` is exactly strict pairwise separation of the
+entire Unit family.
 
-`Delta_U(X)>0`
+However, `Delta_U(X)>0` alone does **not** prove that the zero-margin Stage 2E
+witness is MinimalStable. The strict Stage 2E margin requires the stronger,
+fully observation-derived witness condition
 
-is exactly the strict pairwise Unit-energy separation condition. Under this
-condition, every distinct Unit has a strictly positive energy gap from every
-other Unit, and the Stage 2E witness can be materialized with any requested
-margin `0 < delta <= Delta_U(X)` without introducing an external margin
-assumption.
+`Stable_X(u) and MinimalStable_X(u)`
 
-If `Delta_U(X)=0`, the existence theorem remains valid for the frozen
-zero-margin Stage 2E contract, but strict-margin materialization is not a
-universal theorem for that observation.
+and
+
+`E_U,X(v)-E_U,X(u) >= delta > 0` for every distinct `v in U_X`.
+
+The implementation searches the finite X-derived Unit family for such a
+witness when `require_strict_margin=True`. Thus a positive strict margin is
+never imported as a hyperparameter or hidden assumption.
+
+If no such witness exists, the theorem still closes Stage 2E existence under
+the canonical zero-margin contract; strict separation is correctly reported
+as an observation-dependent property.
 
 ## Boundary status
 
