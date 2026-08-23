@@ -21,6 +21,21 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Tuple
 
 
+def _freeze_value(value: Any):
+    """Return a deterministic hashable representation of an attribute value."""
+    if isinstance(value, Mapping):
+        return tuple(sorted((repr(key), _freeze_value(item)) for key, item in value.items()))
+    if isinstance(value, (tuple, list)):
+        return tuple(_freeze_value(item) for item in value)
+    if isinstance(value, (set, frozenset)):
+        return tuple(sorted((_freeze_value(item) for item in value), key=repr))
+    try:
+        hash(value)
+    except TypeError:
+        return repr(value)
+    return value
+
+
 @dataclass(frozen=True, init=False)
 class StructuralUnit:
     indices: Tuple[int, ...]
@@ -78,6 +93,16 @@ class StructuralUnit:
             raise ValueError("primitive metadata must be a string or None")
         object.__setattr__(self, "indices", normalized)
         object.__setattr__(self, "attributes", dict(self.attributes))
+
+    def __hash__(self) -> int:
+        """Hash the mathematical Unit without assuming ``theta`` is hashable.
+
+        ``attributes`` is intentionally exposed as a mapping for compatibility,
+        so the dataclass-generated hash cannot be used directly. Unit equality
+        remains the dataclass field equality; this hash is the corresponding
+        canonical value for finite observation-derived Units.
+        """
+        return hash((self.indices, _freeze_value(self.attributes), self.primitive))
 
     @property
     def support(self) -> Tuple[int, ...]:
