@@ -11,13 +11,13 @@ from .theory_semantic_observation import Q_X, Q_X_strength
 def form_observation_semantic_relations(units: Sequence[object], context) -> StructuralRelations:
     """Materialize R_Q(X) from the unique observation-derived C_R(X) domain.
 
-    The candidate relation domain is no longer re-created locally with
-    ``range(n)``.  This makes C_R(X) an actual upstream theorem object consumed
-    by Stage 3 rather than a descriptive duplicate of the implementation.
+    The candidate relation domain is obtained from the actual X-derived Unit
+    family. Stage 3 therefore consumes C_R(X) as a first-class upstream object,
+    rather than reconstructing another pair universe from an integer count.
     """
     units = tuple(units)
     n = len(units)
-    candidate_pairs = context.relation_candidates(n)
+    candidate_pairs = context.relation_candidate_domain(units)
     expected = {(i, j) for i in range(n) for j in range(n) if i != j}
     if set(candidate_pairs) != expected:
         raise ValueError("Observation-derived C_R(X) must contain exactly all ordered distinct Unit pairs")
