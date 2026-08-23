@@ -5,6 +5,9 @@ on:
     branches:
       - refactor/theory-compliant-core
       - refactor/observation-derived-boundaries-final
+  pull_request:
+    branches:
+      - refactor/theory-compliant-core
   workflow_dispatch:
 
 jobs:
