@@ -1,50 +1,32 @@
 """Theory-facing Structural Representation.
 
-Frozen mathematical chain::
-
-    W -> C(W) -> I(W) -> phi(W) in R^23.
-
-Important boundary:
-    The current theory freezes the 23-dimensional coordinate schema, but does
-    not freeze numerical formulas for the seven coordinate groups. Therefore
-    numeric coordinates must always come from an explicit caller-supplied
-    extractor. This module never invents statistics and never treats an
-    arbitrary extractor as invariant or information-complete.
+The low-level ``represent`` API remains available for historical callers.  The
+closed observation path is ``represent_observation`` / ``phi_x``: its 23
+coordinates are deterministic finite statistics of one observation X and an
+X-derived StructuralWorld.  No learned feature extractor, semantic label, or
+external coordinate function is required.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
 from .theory_invariant import structural_invariant
-from .theory_representation_schema import (
-    REPRESENTATION_DIM,
-    group_slices,
-    validate_grouped_representation,
-)
+from .theory_representation_schema import REPRESENTATION_DIM, group_slices, validate_grouped_representation
 from .theory_world import StructuralWorld
-
 
 RepresentationExtractor = Callable[[Any], Sequence[float]]
 
 
-@dataclass(frozen=True)
 class StructuralRepresentation:
-    """A validated point of the frozen representation space ``R^23``.
+    """A validated point of the frozen representation space R^23."""
 
-    Validation here establishes only membership in the frozen coordinate
-    contract. It does not establish relabeling invariance, injectivity, or
-    structural completeness.
-    """
-
-    values: tuple[float, ...]
-
-    def __post_init__(self) -> None:
+    def __init__(self, values: Sequence[float]):
+        self.values = tuple(float(v) for v in values)
         validate_grouped_representation(self.values)
 
     def as_tuple(self) -> tuple[float, ...]:
-        return tuple(float(v) for v in self.values)
+        return self.values
 
     @property
     def groups(self):
@@ -53,37 +35,157 @@ class StructuralRepresentation:
 
 
 def _build_representation(values: Sequence[float]) -> StructuralRepresentation:
-    """Materialize coordinates without supplying any unstated feature formula."""
     return StructuralRepresentation(tuple(float(v) for v in values))
 
 
-def represent(
-    world: StructuralWorld,
-    extractor: RepresentationExtractor,
-) -> StructuralRepresentation:
-    """Apply an explicit extractor directly to ``world``.
-
-    This is intentionally a low-level engineering boundary. Calling this
-    function does *not* certify that ``extractor`` is relabeling-invariant or
-    that it is the mathematical Struct3D representation. Those properties
-    require a separately specified extractor and separate validation.
-    """
+def represent(world: StructuralWorld, extractor: RepresentationExtractor) -> StructuralRepresentation:
+    """Legacy low-level representation boundary using an explicit extractor."""
     return _build_representation(extractor(world))
 
 
-def represent_canonical(
-    world: StructuralWorld,
-    extractor: RepresentationExtractor,
-) -> StructuralRepresentation:
-    """Apply an explicit extractor to the frozen invariant ``I(W)=C(W)``.
-
-    The canonical input removes dependence on the current finite unit-label
-    ordering. This establishes the correct *input path* for a proposed
-    invariant extractor, but does not by itself prove any stronger property
-    such as injectivity or information completeness.
-    """
+def represent_canonical(world: StructuralWorld, extractor: RepresentationExtractor) -> StructuralRepresentation:
+    """Apply an explicit extractor to the frozen canonical invariant I(W)=C(W)."""
     invariant = structural_invariant(world)
     return _build_representation(extractor(invariant))
+
+
+def _histogram(values, bins: int):
+    counts = [0.0] * bins
+    for value in values:
+        counts[int(value)] += 1.0
+    total = float(len(values))
+    return tuple(c / total for c in counts) if total else tuple(counts)
+
+
+def _connected_components(world: StructuralWorld) -> int:
+    n = world.unit_count
+    if n == 0:
+        return 0
+    adjacency = [set() for _ in range(n)]
+    for relation in world.relations:
+        adjacency[relation.source].add(relation.target)
+        adjacency[relation.target].add(relation.source)
+    seen = set()
+    components = 0
+    for root in range(n):
+        if root in seen:
+            continue
+        components += 1
+        stack = [root]
+        seen.add(root)
+        while stack:
+            current = stack.pop()
+            for neighbor in adjacency[current]:
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    stack.append(neighbor)
+    return components
+
+
+def _relation_confidence(relation) -> float:
+    value = relation.evidence.get("confidence", 0.0)
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        numeric = 0.0
+    return numeric if numeric == numeric and numeric not in (float("inf"), float("-inf")) else 0.0
+
+
+def represent_observation(world: StructuralWorld, context) -> StructuralRepresentation:
+    """Construct the frozen 23-D coordinate map Phi_X(W) from X-derived data.
+
+    Every coordinate is invariant to permutation of Unit labels.  The map is
+    a well-defined coordinate map, not an injectivity theorem: distinct worlds
+    may still share the same 23-D coordinates.
+    """
+    n = len(context.observation.points)
+    unit_count = world.unit_count
+    relation_count = world.relation_count
+
+    # Group 1: observation-derived affine model type selected for each Unit.
+    model_scores = []
+    for unit in world.units:
+        best_index = 0
+        best_value = float("inf")
+        for index, model in enumerate(context.model_family):
+            total = 0.0
+            for point_index in unit.indices:
+                residual = float(model.squared_distance(context.observation.points[point_index]))
+                total += residual
+            score = total / (len(unit.indices) * context.observation.scale ** 2) + model.complexity
+            if score < best_value:
+                best_value = score
+                best_index = index
+        model_scores.append(best_index)
+    primitive_histogram = _histogram(model_scores, 3)
+
+    # Group 2: singleton / intermediate / full-support composition.
+    composition = []
+    for unit in world.units:
+        size = len(unit.indices)
+        composition.append(0 if size == 1 else 2 if size == n else 1)
+    object_composition_histogram = _histogram(composition, 3)
+
+    # Group 3: object count/topology statistics.
+    non_singleton = sum(1 for unit in world.units if len(unit.indices) > 1)
+    object_count_topology = (float(unit_count), float(non_singleton), float(_connected_components(world)))
+
+    # Group 4: fixed relation-type histogram.
+    relation_type_counts = [0.0, 0.0, 0.0]
+    for relation in world.relations:
+        if relation.relation_type == "adjacent":
+            relation_type_counts[0] += 1.0
+        elif relation.relation_type == "proximity":
+            relation_type_counts[1] += 1.0
+        else:
+            relation_type_counts[2] += 1.0
+    if relation_count:
+        relation_type_histogram = tuple(v / relation_count for v in relation_type_counts)
+    else:
+        relation_type_histogram = (0.0, 0.0, 0.0)
+
+    # Group 5: min/mean/max confidence.
+    confidences = [_relation_confidence(r) for r in world.relations]
+    if confidences:
+        relation_confidence_statistics = (min(confidences), sum(confidences) / len(confidences), max(confidences))
+    else:
+        relation_confidence_statistics = (0.0, 0.0, 0.0)
+
+    # Group 6: min/mean/max Unit occupancy ratios.
+    occupancies = [len(unit.indices) / n for unit in world.units]
+    if occupancies:
+        instance_occupancy_statistics = (min(occupancies), sum(occupancies) / len(occupancies), max(occupancies))
+    else:
+        instance_occupancy_statistics = (0.0, 0.0, 0.0)
+
+    # Group 7: global finite structural counts.
+    relation_type_count = len({relation.relation_type for relation in world.relations})
+    max_unit_size = max((len(unit.indices) for unit in world.units), default=0)
+    global_structural_counts = (
+        float(n),
+        float(unit_count),
+        float(relation_count),
+        float(relation_type_count),
+        float(max_unit_size),
+    )
+
+    values = (
+        primitive_histogram
+        + object_composition_histogram
+        + object_count_topology
+        + relation_type_histogram
+        + relation_confidence_statistics
+        + instance_occupancy_statistics
+        + global_structural_counts
+    )
+    if len(values) != REPRESENTATION_DIM:
+        raise AssertionError("Phi_X construction must produce exactly 23 coordinates")
+    return _build_representation(values)
+
+
+def phi_x(world: StructuralWorld, context) -> StructuralRepresentation:
+    """Canonical name for the observation-derived representation Phi_X(W)."""
+    return represent_observation(world, context)
 
 
 __all__ = [
@@ -92,4 +194,6 @@ __all__ = [
     "StructuralRepresentation",
     "represent",
     "represent_canonical",
+    "represent_observation",
+    "phi_x",
 ]
