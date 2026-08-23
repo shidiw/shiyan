@@ -63,7 +63,7 @@ def partition_quotient_key(partition: Partition):
 
 
 def structurally_equivalent_partitions(a: Partition, b: Partition) -> bool:
-    return partition_quotient_key(a, b) == partition_quotient_key(b, a)
+    return partition_quotient_key(a) == partition_quotient_key(b)
 
 
 @dataclass(frozen=True)
