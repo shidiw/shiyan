@@ -100,8 +100,7 @@ Injectivity and semantic completeness are not claimed.
 ## 4. Energy and historical regression boundary
 
 The Stage 2D functional remains a **DERIVED EXTENSION**. It is a mathematically
-explicit extension, not a historical recovery. The `legacy `structure/energy.py`
-remains regression-only` and is not part of the observation-derived proof path.
+explicit extension, not a historical recovery. The legacy `structure/energy.py` remains regression-only and is not part of the observation-derived proof path.
 
 The observation-derived constructor now consumes `M(X)` and `G_B(X)` directly.
 The Stage 2D separation margin remains a verified property of a finite family,
