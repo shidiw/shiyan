@@ -26,7 +26,6 @@ class TestObservationDerivedClosure(unittest.TestCase):
         self.assertTrue(self.context.relation_candidates(2))
 
     def test_a_max_is_finite_and_non_empty(self):
-        # Bell(3) = 5 set partitions.
         self.assertEqual(len(self.context.a_max), 5)
         self.assertEqual(len(self.context.gamma), 5)
 
@@ -36,7 +35,7 @@ class TestObservationDerivedClosure(unittest.TestCase):
         self.assertTrue(all(weight > 0.0 for weight in weights))
 
     def test_neighborhood_and_subcandidate_families_are_finite(self):
-        candidate = self.context.unit_candidates[-1]
+        candidate = self.context.unit_candidates[3]
         neighborhood = self.context.neighborhood_rule(candidate)
         subcandidates = self.context.proper_subcandidates(candidate)
         self.assertTrue(neighborhood.alternatives)
