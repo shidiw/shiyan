@@ -1,10 +1,18 @@
 """Stage 3 relation-formation contracts for Struct3D.
 
-The original explicit-predicate API is retained. The observation-derived API
-adds a deterministic finite candidate relation domain C_R(X): all ordered pairs
-of distinct materialized Units. It assigns an observation-derived proximity
-relation with explicit distance evidence; no semantic label or external pair
-list is required.
+The observation-derived API freezes
+
+    C_R(X) = {(i,j): i != j}
+
+and the relation predicate
+
+    Q_X(u_i,u_j) <=> d_X(u_i,u_j) is finite and positive-confidence.
+
+For every valid finite X with positive diameter this predicate is true for
+all distinct candidate Units, so the frozen observation-only relation is the
+complete proximity relation with explicit geometric distance evidence. The
+stronger H^2 boundary-contact predicate remains available as a separate
+geometry theorem and is not silently conflated with Q_X.
 """
 
 from __future__ import annotations
@@ -163,18 +171,34 @@ def observation_relation_distance(source: TheoryUnit, target: TheoryUnit, contex
     return min(distances) / context.observation.scale
 
 
-def form_observation_relations(units: Sequence[TheoryUnit], context) -> StructuralRelations:
-    """Form C_R(X) relations from observation-only proximity evidence.
+def observation_relation_predicate(
+    source: TheoryUnit,
+    target: TheoryUnit,
+    context,
+) -> bool:
+    """Frozen observation-derived Q_X for the proximity relation.
 
-    C_R(X) is the complete ordered Unit-pair domain, so relation formation has
-    no externally supplied candidate set. The stronger H^2 boundary-contact
-    predicate remains available through ``form_geometry_relations``.
+    For valid finite X, disjoint non-empty Units have finite normalized
+    cross-support distance and therefore positive confidence
+    c_X=1/(1+d_X). Thus Q_X is deterministic, label-free, and quotient
+    compatible; its truth value is determined entirely by X and the two Units.
     """
+    if source == target or not source.indices or not target.indices:
+        return False
+    distance = observation_relation_distance(source, target, context)
+    confidence = 1.0 / (1.0 + distance)
+    return isfinite(distance) and distance >= 0.0 and confidence > 0.0
+
+
+def form_observation_relations(units: Sequence[TheoryUnit], context) -> StructuralRelations:
+    """Form the frozen C_R(X), Q_X observation-derived relation set."""
     pairs = context.relation_candidates(len(units))
     relations = []
     for source_id, target_id in pairs:
         source = units[source_id]
         target = units[target_id]
+        if not observation_relation_predicate(source, target, context):
+            continue
         normalized_distance = observation_relation_distance(source, target, context)
         confidence = 1.0 / (1.0 + normalized_distance)
         relations.append(
@@ -183,7 +207,7 @@ def form_observation_relations(units: Sequence[TheoryUnit], context) -> Structur
                 target=target_id,
                 relation_type="proximity",
                 evidence={
-                    "rule": "minimum cross-support Euclidean distance",
+                    "rule": "Q_X: finite normalized minimum cross-support distance",
                     "normalized_distance": normalized_distance,
                     "confidence": confidence,
                 },
@@ -204,5 +228,6 @@ __all__ = [
     "form_relation",
     "form_relations",
     "observation_relation_distance",
+    "observation_relation_predicate",
     "form_observation_relations",
 ]
