@@ -12,8 +12,11 @@ class TestDebugObservationStage2E(unittest.TestCase):
             (0.0, 0.0, 1.0),
         ))
         for result in p.unit_formations:
-            print("DEBUG", result.unit.indices, result.unit.attributes, result.stable, result.minimal_stable, result.margin_separated, result.materializable, p.energy.unit_energy(result.unit))
-        print("DEBUG partitions", [(tuple(u.indices for u in q.units), float(p.energy(q))) for q in p.context.materialize_partitions()])
+            unit = result.unit
+            print("DEBUG UNIT", unit.indices, result.stable, result.minimal_stable, "E", p.energy.unit_energy(unit))
+            for other in p.N_X(unit).alternatives:
+                print("DEBUG NEIGHBOR", unit.indices, "vs", other.indices, "E", p.energy.unit_energy(other), "same", other == unit)
+            print("DEBUG SUBS", unit.indices, [(sub.indices, p.energy.unit_energy(sub)) for sub in p.S_X(unit)])
         self.assertTrue(True)
 
 
