@@ -34,6 +34,7 @@ import math
 from typing import Any, Callable, Optional, Tuple
 
 from .theory_core import Partition, StructuralUnit
+from .theory_unit_invariant import Can_U
 
 Point = Tuple[float, float, float]
 Residual = Callable[[Point], float]
@@ -53,17 +54,35 @@ def _freeze(value: Any):
         return repr(value)
 
 
-def unit_quotient_key(unit: StructuralUnit):
+def unit_quotient_key(unit: StructuralUnit, observation: Optional["Observation3D"] = None):
+    """Return the quotient-safe Unit key.
+
+    With an observation, the complete observation-aware invariant ``Can_U`` is
+    used. Without one, the historical raw-index key is retained only for
+    low-level regression compatibility and must not be interpreted as a
+    semantic quotient invariant.
+    """
+    if observation is not None:
+        return Can_U(unit, observation)
     return (tuple(unit.indices), _freeze(unit.attributes))
 
 
-def partition_quotient_key(partition: Partition):
-    unit_keys = tuple(sorted((unit_quotient_key(unit) for unit in partition.units), key=repr))
+def partition_quotient_key(
+    partition: Partition,
+    observation: Optional["Observation3D"] = None,
+):
+    unit_keys = tuple(
+        sorted((unit_quotient_key(unit, observation) for unit in partition.units), key=repr)
+    )
     return (tuple(partition.universe), unit_keys)
 
 
-def structurally_equivalent_partitions(a: Partition, b: Partition) -> bool:
-    return partition_quotient_key(a) == partition_quotient_key(b)
+def structurally_equivalent_partitions(
+    a: Partition,
+    b: Partition,
+    observation: Optional["Observation3D"] = None,
+) -> bool:
+    return partition_quotient_key(a, observation) == partition_quotient_key(b, observation)
 
 
 @dataclass(frozen=True)
@@ -136,14 +155,6 @@ class GeometricModel:
             raise ValueError("Model complexity must be finite and non-negative")
 
     def __eq__(self, other: object) -> bool:
-        """Compare frozen model identity, never the closure object identity.
-
-        Observation-derived models contain Python callables for residuals.
-        Callable identity is allocation-dependent, so the default dataclass
-        equality would make two constructions from the same X unequal. The
-        explicit signature records the mathematical parameters of the model
-        and makes deterministic reconstruction testable.
-        """
         if not isinstance(other, GeometricModel):
             return NotImplemented
         return (
@@ -281,22 +292,17 @@ class Stage2DEnergy:
     def energy_gap(self, a: Partition, b: Partition) -> float:
         self._validate_partition_universe(a)
         self._validate_partition_universe(b)
-        if structurally_equivalent_partitions(a, b):
+        if structurally_equivalent_partitions(a, b, self.observation):
             return 0.0
         return abs(float(self(a)) - float(self(b)))
 
     def derived_separation_margin(self, candidates: Tuple[Partition, ...]) -> float:
-        """Return delta_X, the minimum positive quotient-distinct energy gap.
-
-        No caller supplies delta. The value is a deterministic finite statistic
-        of X through the canonical finite candidate family and E_X. It is zero
-        exactly when quotient-distinct candidates are energy-tied.
-        """
+        """Return delta_X, the minimum positive energy gap over quotient-distinct candidates."""
         minimum_gap = math.inf
         for i, first in enumerate(candidates):
             first_energy = float(self(first))
             for second in candidates[i + 1 :]:
-                if structurally_equivalent_partitions(first, second):
+                if structurally_equivalent_partitions(first, second, self.observation):
                     continue
                 gap = abs(first_energy - float(self(second)))
                 if gap > 0.0:
@@ -308,7 +314,7 @@ class Stage2DEnergy:
         compared_pairs = 0
         for i, first in enumerate(candidates):
             for second in candidates[i + 1 :]:
-                if not structurally_equivalent_partitions(first, second):
+                if not structurally_equivalent_partitions(first, second, self.observation):
                     compared_pairs += 1
         return SeparationMarginResult(derived, derived, compared_pairs, derived > 0.0)
 
@@ -317,10 +323,6 @@ class Stage2DEnergy:
         candidates: Tuple[Partition, ...],
         margin: Optional[float] = None,
     ) -> SeparationMarginResult:
-        """Verify an explicitly requested margin for generic regression use.
-
-        Theory-facing code should use ``verify_derived_separation`` instead.
-        """
         requested = self.separation_margin if margin is None else float(margin)
         requested = self._validate_margin(requested)
         minimum_gap = math.inf
@@ -330,7 +332,7 @@ class Stage2DEnergy:
             if not math.isfinite(first_energy):
                 raise ValueError("Candidate energy must be finite")
             for second in candidates[i + 1 :]:
-                if structurally_equivalent_partitions(first, second):
+                if structurally_equivalent_partitions(first, second, self.observation):
                     continue
                 second_energy = float(self(second))
                 if not math.isfinite(second_energy):
