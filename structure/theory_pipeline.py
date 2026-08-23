@@ -1,12 +1,9 @@
 """End-to-end theory-facing Struct3D pipeline.
 
-Two paths are exposed:
-
-* the historical low-level path with explicit inputs, retained for regression;
-* the closed observation-derived path ``run_observation_derived_pipeline``.
-
-The latter consumes one X-derived context for candidates, models, boundary,
-relations, and representation.
+Two paths are exposed: the historical low-level compatibility path and the
+closed observation-derived path. The latter consumes one X-derived context for
+candidate generation, energy, stability domains, relations, World provenance,
+and representation.
 """
 
 from __future__ import annotations
@@ -16,14 +13,14 @@ from typing import Callable, Sequence, Tuple
 
 from .theory_canonical import canonical_form
 from .theory_candidates import ObservationCandidateFamily, observation_candidate_family
-from .theory_core import Partition, TheoryUnit, evaluate_energy, StructuralUnit
+from .theory_core import Partition, evaluate_energy, StructuralUnit
 from .theory_energy import StructuralEnergy
 from .theory_energy_model import Observation3D, Stage2DEnergy
+from .theory_observation import ObservationDerivedContext
 from .theory_partition import PartitionSelection, select_stable_partition
 from .theory_relation import StructuralRelation
 from .theory_relation_formation import form_observation_relations
 from .theory_representation import StructuralRepresentation, represent, phi_x
-from .theory_observation import ObservationDerivedContext
 from .theory_world import StructuralWorld
 
 
@@ -44,16 +41,10 @@ def run_theory_pipeline(
     selection = select_stable_partition(candidate_partitions, StructuralEnergy(energy))
     partition = selection.partition
     world = StructuralWorld(units=partition.units, relations=tuple(relations), attributes={})
-    return TheoryPipelineResult(
-        partition_selection=selection,
-        world=world,
-        canonical=canonical_form(world),
-        representation=represent(world, representation_extractor),
-    )
+    return TheoryPipelineResult(selection, world, canonical_form(world), represent(world, representation_extractor))
 
 
 def build_gamma(observation: Sequence[object]) -> ObservationCandidateFamily:
-    """Build Gamma(X)=A_max(X) from the finite observation index universe."""
     return observation_candidate_family(observation)
 
 
@@ -76,27 +67,22 @@ def run_observation_derived_pipeline(
     points: Sequence[Tuple[float, float, float]],
     separation_margin: float = 0.0,
 ) -> TheoryPipelineResult:
-    """Run X -> A_max/Gamma -> E_2D -> Unit -> C_R -> Relation -> World -> Phi_X."""
+    """Run the closed path X -> Stage2D -> Unit -> Relation -> World -> Phi_X."""
     context = ObservationDerivedContext.from_points(points)
-    energy = Stage2DEnergy.from_observation(
-        context,
-        lambda_complexity=1.0,
-        lambda_boundary=1.0,
-        separation_margin=separation_margin,
-    )
+    energy = Stage2DEnergy.from_observation(context, separation_margin=separation_margin)
     partitions = context.materialize_partitions()
     if separation_margin > 0.0:
         energy.require_separation_margin(partitions, separation_margin)
     selection = select_stable_partition(partitions, StructuralEnergy(energy))
     partition = selection.partition
     relations = form_observation_relations(partition.units, context)
-    world = StructuralWorld(units=partition.units, relations=relations.relations, attributes={})
-    return TheoryPipelineResult(
-        partition_selection=selection,
-        world=world,
-        canonical=canonical_form(world),
-        representation=phi_x(world, context),
+    world = StructuralWorld(
+        units=partition.units,
+        relations=relations.relations,
+        attributes={},
+        observation_context=context,
     )
+    return TheoryPipelineResult(selection, world, canonical_form(world), phi_x(world, context))
 
 
 __all__ = [
