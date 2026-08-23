@@ -15,6 +15,7 @@ descriptions are evidence, not automatic definitions.
 | `G_B(X)` | complete weighted observation graph with `w_ij=1/(1+d_ij/diam(X))` | `structure/theory_observation.py` | **Frozen** |
 | `N_X` | one-index insertion/deletion neighborhood | `structure/theory_observation.py` | **Frozen observation-derived boundary** |
 | `S_X` | one-point deletions plus singleton supports | `structure/theory_observation.py` | **Frozen scalable local family** |
+| `Can_U^X` | sorted observed support multiset + frozen `theta`; complete invariant of the finite Unit quotient | `structure/theory_unit_invariant.py` | **Frozen complete invariant** |
 | `C_R(X)` | all ordered pairs of distinct selected Units | `structure/theory_observation.py`, `theory_observation_pipeline.py` | **Frozen from selected Unit lineage** |
 | `Q_X` | minimum cross-support distance <= median pairwise distance on the local union | `structure/theory_semantic_observation.py` | **Unique frozen relation law** |
 | legacy H^2 / weak proximity laws | historical compatibility constructors | `structure/theory_relation_formation.py` | **Regression/experimental only; not theory** |
@@ -34,6 +35,7 @@ descriptions are evidence, not automatic definitions.
 - Structural World: `W=(U,R,Phi)`.
 - Canonical form: exact finite `C(W)`.
 - Structural invariant: `I(W)=C(W)`.
+- Unit quotient invariant: `Can_U^X(u)`.
 - Representation distance: `D_R=||Phi_X(W1)-Phi_X(W2)||_2`.
 
 ## C. Mathematical contracts of the upstream closure
@@ -90,7 +92,28 @@ The proof is implemented and regression-tested in
 `structure/theory_stage2e_existence.py` and
 `tests/test_observation_stage2e_existence.py`.
 
-### 5. Strict Unit margin is derived, not assumed
+### 5. Complete Unit quotient invariant
+
+For `u=(G,theta)`, freeze
+
+`Can_U^X(u) = ( sort({x_i : i in G}), Freeze(theta) )`.
+
+The index names are removed, while the complete finite observed support
+multiset and frozen Unit attributes are retained. Therefore
+
+`Can_U^X(u)=Can_U^X(v) <=> u ~_X v`.
+
+The theorem and regression implementation are in
+`structure/STRUCT3D_ENERGY_INDUCED_UNIT_EQUIVALENCE_THEOREM.md`,
+`structure/theory_unit_invariant.py`, and
+`tests/test_theory_unit_invariant.py`.
+
+Stage 2D now accepts the observation-aware invariant through
+`unit_quotient_key(unit, observation)` and uses it for quotient-distinct
+energy-gap calculations. The old raw-index key remains only as a compatibility
+API when no observation is supplied.
+
+### 6. Strict Unit margin is derived, not assumed
 
 Define the global pairwise Unit separation
 
@@ -105,11 +128,7 @@ both `Stable_X` and `MinimalStable_X` and the directional condition
 
 `E_U,X(v)-E_U,X(u) >= delta > 0` for every distinct `v in U_X`.
 
-The implementation searches the finite X-derived family for such a witness
-when `require_strict_margin=True`. Thus even a positive margin is never an
-external theorem assumption or hidden hyperparameter.
-
-### 6. Unique relation law
+### 7. Unique relation law
 
 For distinct non-empty Units A and B, freeze
 
@@ -120,7 +139,7 @@ The previous complete-proximity predicate and H^2 boundary-contact law remain
 available solely for regression/experimental compatibility and cannot be used
 by the canonical World construction.
 
-### 7. Representation lineage
+### 8. Representation lineage
 
 The selected Unit partition determines `C_R(X)`. The same selected Units and
 same `ObservationDerivedContext` determine `Q_X`, the relation set, World and
@@ -139,14 +158,14 @@ independent external relation or representation inputs.
    co-equal alternatives to the frozen `Q_X`.
 6. Deterministic tie-breaking is not uniqueness.
 7. Object, Instance and Hierarchy remain separate theory problems.
-8. The 23-D representation is a well-defined coordinate map, not an injectivity
-   theorem.
+8. `Can_U^X` is complete only for the frozen finite Unit quotient; it does not
+   prove that the 23-D `Phi_X` is injective on World space.
 
 ## E. Release criterion
 
 The theory-compliant core is regression-clean only when the full
 `python -m unittest discover -s tests -v` suite passes. The observation-facing
 release path is complete only when the upstream closure tests also verify that
-`A_search` is not called, Stage 2E existence is observation-derived, the unique
-`Q_X` law generates relations, and `C_R -> World -> Phi_X` uses the selected
-X-derived Unit lineage.
+`A_search` is not called, Stage 2E existence is observation-derived, `Can_U^X`
+is invariant and complete for Unit relabeling, the unique `Q_X` law generates
+relations, and `C_R -> World -> Phi_X` uses the selected X-derived Unit lineage.
