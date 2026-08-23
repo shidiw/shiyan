@@ -41,10 +41,13 @@ class TestSemanticBoundaryStrength(unittest.TestCase):
         )
 
     def test_Q_X_is_stronger_than_positive_confidence(self):
-        near_a = self.context.unit_candidates[0]
-        near_b = self.context.unit_candidates[1]
-        separated_cluster = self.context.unit_candidates[10]  # (0,1,2)
-        separated_singleton = self.context.unit_candidates[3]  # (3)
+        # Do not encode semantic meaning in positional indices of the Unit
+        # family.  Locate the intended observation-derived supports directly.
+        by_support = {unit.indices: unit for unit in self.context.unit_candidates}
+        near_a = by_support[(0,)]
+        near_b = by_support[(1,)]
+        separated_cluster = by_support[(0, 1, 2)]
+        separated_singleton = by_support[(3,)]
         self.assertTrue(Q_X(near_a, near_b, self.context))
         self.assertGreaterEqual(Q_X_strength(near_a, near_b, self.context), 0.0)
         self.assertLessEqual(Q_X_strength(near_a, near_b, self.context), 1.0)
@@ -56,8 +59,8 @@ class TestSemanticBoundaryStrength(unittest.TestCase):
         other = ObservationDerivedContext.from_points(relabeled)
         a = self.context.unit_candidates[0]
         b = self.context.unit_candidates[1]
-        mapped_a = type(a)(tuple(permutation.index(i) for i in a.indices), dict(a.attributes))
-        mapped_b = type(b)(tuple(permutation.index(i) for i in b.indices), dict(b.attributes))
+        mapped_a = type(a)(tuple(sorted(permutation.index(i) for i in a.indices)), dict(a.attributes))
+        mapped_b = type(b)(tuple(sorted(permutation.index(i) for i in b.indices)), dict(b.attributes))
         self.assertEqual(Q_X(a, b, self.context), Q_X(mapped_a, mapped_b, other))
 
     def test_A_search_is_finite_nonempty_and_proper_for_nontrivial_X(self):
