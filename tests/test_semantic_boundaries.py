@@ -9,9 +9,9 @@ class TestSemanticBoundaryStrength(unittest.TestCase):
     def setUp(self):
         self.points = (
             (0.0, 0.0, 0.0),
-            (1.0, 0.0, 0.0),
-            (0.0, 1.0, 0.0),
-            (5.0, 5.0, 5.0),
+            (0.1, 0.0, 0.0),
+            (0.2, 0.0, 0.0),
+            (10.0, 0.0, 0.0),
         )
         self.context = ObservationDerivedContext.from_points(self.points)
 
@@ -43,12 +43,12 @@ class TestSemanticBoundaryStrength(unittest.TestCase):
     def test_Q_X_is_stronger_than_positive_confidence(self):
         near_a = self.context.unit_candidates[0]
         near_b = self.context.unit_candidates[1]
-        far_a = self.context.unit_candidates[0]
-        far_b = self.context.unit_candidates[-1]
+        separated_cluster = self.context.unit_candidates[10]  # (0,1,2)
+        separated_singleton = self.context.unit_candidates[3]  # (3)
         self.assertTrue(Q_X(near_a, near_b, self.context))
         self.assertGreaterEqual(Q_X_strength(near_a, near_b, self.context), 0.0)
         self.assertLessEqual(Q_X_strength(near_a, near_b, self.context), 1.0)
-        self.assertFalse(Q_X(far_a, far_b, self.context) and Q_X_strength(far_a, far_b, self.context) <= 0.0)
+        self.assertFalse(Q_X(separated_cluster, separated_singleton, self.context))
 
     def test_Q_X_is_relabeling_compatible(self):
         permutation = (3, 1, 0, 2)
