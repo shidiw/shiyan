@@ -15,7 +15,10 @@ class TestHypothesisElimination(unittest.TestCase):
         self.context = ObservationDerivedContext.from_points(self.points)
 
     def test_six_former_external_boundaries_are_x_derived(self):
-        self.assertEqual(self.context.gamma, self.context.a_max)
+        # Gamma(X) is the frozen computational subfamily; A_max(X) is the
+        # complete theorem-level admissible universe.  The correct contract is
+        # Gamma(X) subset A_max(X), not equality.
+        self.assertTrue(set(self.context.gamma).issubset(set(self.context.a_max)))
         self.assertEqual(self.context.models.observation, self.context.observation)
         self.assertEqual(self.context.boundary.observation, self.context.observation)
         self.assertTrue(self.context.unit_candidates)
