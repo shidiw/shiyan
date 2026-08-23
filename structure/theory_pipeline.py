@@ -46,8 +46,15 @@ def run_theory_pipeline(
 
 
 def build_gamma(observation: Sequence[object]):
-    """Compatibility accessor for the observation-derived Gamma family."""
-    return ObservationDerivedContext.from_points(tuple(observation)).gamma
+    """Return the observation-derived Gamma-family object.
+
+    ``Gamma(X)`` is a finite computational subfamily of ``A_max(X)``.  The
+    family object exposes ``.gamma``, ``.materialize()`` and
+    ``.is_quotient_compatible()``; returning the raw tuple here silently
+    discarded that theorem-level interface and caused downstream contract
+    failures.
+    """
+    return ObservationDerivedContext.from_points(tuple(observation)).candidates
 
 
 def select_stage2d_partition(
