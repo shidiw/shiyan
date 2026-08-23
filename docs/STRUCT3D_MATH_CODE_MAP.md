@@ -32,7 +32,16 @@ are evidence, not automatic definitions.
 | Stage 3 | relation formation | `structure/theory_relation_formation.py` | **C_R(X) derived; proximity relation path implemented** |
 | Neural Struct3D | latent objective | neural code | **Objective/validation boundary only** |
 
-## B. Observation-derived boundary definitions
+## B. Frozen mathematical objects
+
+The theory-facing implementation uses one **single frozen Unit type**:
+`structure/theory_unit.py::StructuralUnit`.
+
+The frozen Structural invariant is `I(W)=C(W)`. Representation distance is
+`D_R=||Phi_X(W1)-Phi_X(W2)||_2` on the observation-derived coordinate map.
+These statements do not imply representation injectivity.
+
+## C. Observation-derived boundary definitions
 
 For finite `X=(x_0,...,x_{n-1})`, let `Omega_X={0,...,n-1}`.
 
@@ -45,11 +54,11 @@ For finite `X=(x_0,...,x_{n-1})`, let `Omega_X={0,...,n-1}`.
 - `C_R(X)` — all ordered pairs of distinct materialized Units.
 - `Phi_X(W)` — fixed 23-D finite statistics of X and W, implemented by `phi_x`.
 
-These objects are all deterministic functions of X (and, where mathematically
+These objects are deterministic functions of X (and, where mathematically
 necessary, the X-derived materialized world), finite in the declared regime,
 and quotient-compatible under observation/Unit relabeling.
 
-## C. Critical theory ↔ engineering boundaries
+## D. Critical theory ↔ engineering boundaries
 
 ### X → A(X)
 
@@ -89,7 +98,7 @@ World construction copies the derived relation set. `Phi_X` then computes its
 23 coordinates from X and the resulting world without an external extractor.
 The coordinate map is quotient-compatible but is **not** claimed injective.
 
-## D. Preserved mathematical boundaries
+## E. Preserved mathematical boundaries
 
 1. `Object`, `Instance`, and `Hierarchy` must not be promoted into the frozen theory merely because an engineering representation exists.
 2. `D_R=0` means equality of the supplied 23-D representations only.
@@ -98,7 +107,7 @@ The coordinate map is quotient-compatible but is **not** claimed injective.
 5. Neural objectives **must not be reported as a proof** of latent metric equality.
 6. The observation-derived model/relation definitions are explicitly marked as derived extensions, not historical recovery.
 
-## E. Regression interpretation
+## F. Regression interpretation
 
 The full regression suite remains the release gate. The observation-derived tests
 add the new closure contract and verify finite/non-empty generation,
