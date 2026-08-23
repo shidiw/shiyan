@@ -11,25 +11,25 @@ contract, and regression test.
 
 ## 2. Final upstream verdict
 
-`X -> {A_max,Gamma,M,G_B,N_X,S_X,C_R,Phi_X} -> Stage2D -> Unit -> Relation -> World -> Representation -> D_R`
+`X -> A(X) -> A_max(X) -> Gamma(X) -> E_X -> Stable -> MinimalStable -> Unit -> Relation -> Graph -> World -> Canonical Form -> Invariant -> phi -> D_R -> Matching -> Neural`
 
 | Link | Verdict | Reason |
 |---|---|---|
-| `X -> A_max(X)` | **CLOSED FINITELY** | `A_max(X)=Pi(Omega_X)` is the complete finite partition lattice. |
-| `A_max(X) -> Gamma(X)` | **CLOSED** | Frozen choice `Gamma(X)=A_max(X)`. |
-| `X -> M(X)` | **CLOSED AS DERIVED EXTENSION** | Point/line/plane affine models are deterministically fitted from X. |
-| `X -> G_B(X)` | **CLOSED AS DERIVED EXTENSION** | Complete pair graph with distance-derived positive weights. |
-| `X -> N_X,S_X` | **CLOSED FINITELY** | One-index insertion/deletion neighborhood and all proper non-empty support subsets are explicit finite constructions. |
-| `X -> C_R(X)` | **CLOSED FINITELY** | All ordered pairs of distinct materialized Units are the candidate relation domain. |
-| `X -> Phi_X` | **CLOSED AS COORDINATE MAP** | All 23 coordinates are explicit finite statistics of X and W; quotient well-definedness is regression-tested. |
-| `X -> Stage2D` | **CLOSED** | `Stage2DEnergy.from_observation` consumes `M(X)` and `G_B(X)`. |
-| `Stage2D -> Unit` | **CLOSED AS DERIVED OBSERVATION PATH** | Stage 2E can consume `N_X`, `S_X`, and the finite Unit competitor family directly from the same context. |
-| `Unit -> Relation` | **CLOSED AS DERIVED PROXIMITY PATH** | `C_R(X)` and normalized cross-support distance provide observation-derived relations. |
-| `Relation -> World` | **CLOSED** | World copies the derived finite relation set. |
-| `World -> Representation` | **CLOSED AS Phi_X** | The observation-derived 23-D coordinate map is deterministic and finite. |
-| `phi -> D_R` | **CLOSED** | Euclidean distance on representation points. |
-| `D_R -> Matching` | **CLOSED GENERICALLY** | Explicit finite/admissible argmin. |
-| `phi -> neural latent metric` | **OPEN** | Still requires a separate theorem or bounded empirical claim. |
+| `X -> A(X)` | **CLOSED FINITELY AS DERIVED EXTENSION** | `A_max(X)=Pi(Omega_X)` is the complete finite partition lattice and `Gamma(X)=A_max(X)`. |
+| `A(X) -> P*` | **CLOSED CONDITIONALLY** | Finite, non-empty candidate family plus finite energy gives an attained argmin. |
+| `E` | **DERIVED EXTENSION** | Stage 2D supplies a normalized finite-observation functional. It is a mathematically explicit extension, not a historical recovery. |
+| `P* -> Stable` | **CLOSED CONDITIONALLY** | A global minimizer is locally stable for every explicitly supplied neighborhood; the observation-derived path now supplies `N_X`. |
+| `Stable -> MinimalStable` | **CLOSED AS DERIVED EXTENSION** | The observation-derived path supplies `S_X` as all non-empty proper support subsets. |
+| `MinimalStable -> Unit` | **CLOSED AS DERIVED EXTENSION** | Materialization uses the frozen StructuralUnit type after the observation-derived predicates pass. |
+| `Unit -> Relation` | **CLOSED AS DERIVED EXTENSION** | `C_R(X)` is all ordered Unit pairs and the closed path supplies observation-derived proximity evidence. |
+| `Relation -> Graph` | **CLOSED** | Graph edges are copied from the relation set. |
+| `Graph -> World` | **CLOSED** | `W=(U,R,Phi)` is implemented as a validated container. |
+| `World -> Canonical` | **CLOSED FOR FINITE REGIME** | Exhaustive finite relabeling canonicalization is exact for the declared validation regime. |
+| `Canonical -> Invariant` | **CLOSED** | Frozen choice `I(W)=C(W)`. |
+| `Invariant -> phi in R^23` | **CLOSED AS COORDINATE MAP** | `Phi_X(W)` is now explicitly defined from X and W; quotient well-definedness is regression-tested. Injectivity is not claimed. |
+| `phi -> D_R` | **CLOSED** | Exact Euclidean representation-space distance. |
+| `D_R -> Matching` | **CLOSED GENERICALLY** | Explicit finite/admissible correspondence set and supplied cost are minimized. |
+| `phi -> neural latent metric` | **OPEN** | Reconstruction or empirical correlation does not prove latent metric equality. |
 
 ## 3. Exact observation-derived definitions
 
@@ -97,32 +97,61 @@ Every coordinate is finite for a valid finite observation/world. The coordinate
 map is Unit-label invariant, hence well-defined on the finite quotient.
 Injectivity and semantic completeness are not claimed.
 
-## 4. What is now closed and what is not
+## 4. Energy and historical regression boundary
 
-The five formerly external theorem boundaries are no longer external in the
+The Stage 2D functional remains a **DERIVED EXTENSION**. It is a mathematically
+explicit extension, not a historical recovery. The `legacy `structure/energy.py`
+remains regression-only` and is not part of the observation-derived proof path.
+
+The observation-derived constructor now consumes `M(X)` and `G_B(X)` directly.
+The Stage 2D separation margin remains a verified property of a finite family,
+not a circular additive term in the energy.
+
+## 5. Relation boundary interpretation
+
+The generic Stage 3 relation theorem still has the form
+
+`R_Q = { r_ij : (i,j) in C_R, Q(i,j)=True }`.
+
+The observation-derived path closes `C_R(X)` and supplies a concrete proximity
+relation. The stronger universal relation claim is intentionally not silently
+promoted. The audit marker **Universal relation construction** therefore remains
+explicitly qualified as a research-level theorem question.
+
+## 6. What is now closed and what is not
+
+The formerly external construction boundaries are no longer external in the
 observation-derived execution path: `A(X)`, `M(X)`, `G_B(X)`, `N_X/S_X`, and
 `C_R(X)` are generated by `ObservationDerivedContext`; `Phi_X` is generated by
 `represent_observation`/`phi_x`.
 
-The old explicit-input APIs remain as low-level compatibility interfaces. They
-are not the proof path for the closed observation-derived pipeline.
+The old explicit-input APIs remain low-level compatibility interfaces. They are
+not the proof path for the closed observation-derived pipeline.
 
-The remaining genuinely open research claims are downstream and semantic:
+The remaining genuinely open research claims are:
 
-1. the derived energy must still be shown semantically adequate for the intended
-   Struct3D notion of structure;
-2. the 23-D `Phi_X` map is not yet proved injective or information-complete;
-3. the canonical universal relation law has not been proved unique;
-4. Object/Instance/Hierarchy require their own definitions and theorems;
-5. neural latent metric preservation remains a separate problem.
+1. semantic adequacy of the derived energy;
+2. injectivity/information completeness of the 23-D `Phi_X` map;
+3. **Universal relation construction** as a canonical law;
+4. Object/Instance/Hierarchy definitions and theorems;
+5. Neural distance preservation.
 
-## 5. Release interpretation
+The neural item remains open: **Neural distance preservation** is not implied by
+reconstruction.
+
+## 7. Engineering regression markers retained
+
+The engineering audit still records that Stage 2D rejects `NaN` **and**
+positive/negative infinity, rejects negative observation indices, rejects
+duplicate ordered edges, and requires finite real values at the theory-facing
+boundaries. These are implementation contracts, not mathematical semantics.
+
+## 8. Release interpretation
 
 A passing regression suite establishes implementation-contract consistency.
-The observation-derived path now removes hidden *external construction
-assumptions* from the upstream pipeline, but it does not magically turn the
-derived definitions into recovered historical theory or prove semantic
-correctness.
+The observation-derived path now removes hidden external construction
+assumptions from the upstream pipeline, but it does not turn derived definitions
+into recovered historical theory or prove semantic correctness.
 
 The closed mathematical engineering path is:
 
