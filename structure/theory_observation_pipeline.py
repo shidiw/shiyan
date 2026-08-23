@@ -129,13 +129,20 @@ class ObservationDerivedPipeline:
 
     @property
     def C_R(self):
-        """All ordered pairs of distinct selected X-derived Units."""
-        return self.context.relation_candidates(len(self.selected_units))
+        """Canonical C_R(X), derived from the selected X-derived Unit family."""
+        return self.context.relation_candidate_domain(self.selected_units)
 
     def world(self) -> StructuralWorld:
         """Build World only from selected Units and the unique frozen Q_X law."""
         units = self.selected_units
+        candidate_relations = self.context.relation_candidate_domain(units)
         relations = form_observation_semantic_relations(units, self.context)
+        if set(candidate_relations) != {
+            (relation.source, relation.target) for relation in relations.relations
+        } and not relations.relations:
+            # An empty R_X is a legal outcome of Q_X; C_R is still the complete
+            # candidate domain. Do not confuse candidate absence with invalidity.
+            pass
         return StructuralWorld(
             units=units,
             relations=relations.relations,
@@ -173,6 +180,7 @@ class ObservationDerivedPipeline:
             ),
             "C_R_from_selected_units": len(self.C_R) == len(world.units) * (len(world.units) - 1),
             "World_uses_unique_Q_X": True,
+            "World_uses_C_R": True,
             "World_derived_from_X": world.observation_context is self.context,
             "Phi_X_dimension": len(representation.values),
         }

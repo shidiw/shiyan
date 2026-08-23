@@ -95,6 +95,9 @@ def _relation_confidence(relation) -> float:
 
 def represent_observation(world: StructuralWorld, context) -> StructuralRepresentation:
     """Construct the frozen 23-D coordinate map Phi_X(W) from X-derived data."""
+    if world.observation_context is not context:
+        raise ValueError("Phi_X requires a World carrying the same observation-derived context")
+
     n = len(context.observation.points)
     unit_count = world.unit_count
     relation_count = world.relation_count
@@ -174,7 +177,7 @@ def represent_observation(world: StructuralWorld, context) -> StructuralRepresen
 
 
 def phi_x(world: StructuralWorld, context) -> StructuralRepresentation:
-    """Canonical name for the observation-derived representation Phi_X(W)."""
+    """Canonical name for the unique observation-derived representation Phi_X(W)."""
     return represent_observation(world, context)
 
 

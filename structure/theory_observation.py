@@ -160,6 +160,14 @@ def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], .
     return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
 
 
+def observation_relation_candidate_domain(units: Sequence[StructuralUnit]) -> Tuple[Tuple[int, int], ...]:
+    """Frozen C_R(X): every ordered pair of distinct Units in U_X."""
+    units = tuple(units)
+    if any(not unit.indices for unit in units):
+        raise ValueError("C_R(X) requires non-empty Unit supports")
+    return observation_relation_candidates(len(units))
+
+
 @dataclass(frozen=True)
 class ObservationDerivedContext:
     """Single X-derived provenance carrier for the closed theory-facing path."""
@@ -206,7 +214,11 @@ class ObservationDerivedContext:
         return observation_proper_subcandidates(candidate)
 
     def relation_candidates(self, unit_count: int) -> Tuple[Tuple[int, int], ...]:
+        """Compatibility count API; canonical code uses relation_candidate_domain."""
         return observation_relation_candidates(unit_count)
+
+    def relation_candidate_domain(self, units: Sequence[StructuralUnit]) -> Tuple[Tuple[int, int], ...]:
+        return observation_relation_candidate_domain(units)
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
         return materialize_Gamma(self.observation)
@@ -241,4 +253,5 @@ __all__ = [
     "observation_proper_subcandidates",
     "observation_unit_candidates",
     "observation_relation_candidates",
+    "observation_relation_candidate_domain",
 ]
