@@ -21,7 +21,7 @@ descriptions are evidence, not automatic definitions.
 | `Phi_X` | fixed 23-D structural statistics of `(X,W)` | `structure/theory_representation.py` | **Implemented coordinate map** |
 | Stage 2D `E_X` | canonical energy consuming `M(X)` and `G_B(X)` with frozen weights `(1,1)` | `structure/theory_energy_model.py` | **Frozen observation-derived constructor** |
 | `delta_X` | minimum positive quotient-distinct energy gap in Gamma | `structure/theory_energy_model.py` | **Derived, never externally supplied** |
-| Stage 2E | `Stable -> MinimalStable -> Unit` using `N_X`, `S_X`, X-derived competitors | `structure/theory_unit_formation.py`, `theory_observation_pipeline.py` | **Executed by canonical pipeline** |
+| Stage 2E | `Stable -> MinimalStable -> Unit` using `N_X`, `S_X`, X-derived competitors | `structure/theory_unit_formation.py`, `theory_stage2e_existence.py` | **Executed and existence-closed by canonical observation-derived theorem** |
 | Unit → Relation | selected Units + unique `Q_X` | `structure/theory_semantic_relation.py` | **Canonical observation path** |
 | Relation → World | copies canonical Q_X relations into `W=(U,R,Phi)` | `structure/theory_observation_pipeline.py`, `theory_world.py` | **Implemented** |
 | World → Representation | `Phi_X(W)` from the same observation context | `structure/theory_representation.py` | **Implemented** |
@@ -73,10 +73,35 @@ The canonical pipeline explicitly evaluates
 
 `Stable_X(S) -> MinimalStable_X(S) -> materialize_observation_unit(S)`.
 
-Only partitions whose Units pass this Stage 2E chain are admitted to the
-Stage 2D minimization step.
+### 4. Observation-Derived Stage 2E Existence Theorem
 
-### 4. Unique relation law
+Because `Gamma(X)=A_max(X)=Pi(Omega_X)`, the X-derived Unit family contains
+every non-empty support of the finite observation. Therefore every `N_X`
+alternative is another member of the same finite Unit family. The Stage 2D
+unit energy is finite on this family, so a global unit-energy minimizer exists
+and is locally stable. The stable Unit subset is consequently finite and
+non-empty. Selecting a stable Unit with minimum support cardinality eliminates
+every stable proper subcandidate in the frozen `S_X` family, whose members have
+strictly smaller support cardinality. Hence a legal `Stable_X ∧ MinimalStable_X`
+Unit exists for every valid finite observation under the canonical zero-margin
+Stage 2E contract.
+
+The proof is implemented and regression-tested in
+`structure/theory_stage2e_existence.py` and
+`tests/test_observation_stage2e_existence.py`.
+
+### 5. Strict Unit margin is derived, not assumed
+
+Define
+
+`Delta_U(X) = min^+ {|E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v}`.
+
+If `Delta_U(X)>0`, strict Stage 2E energy separation is available from the
+observation itself. If `Delta_U(X)=0`, Stage 2E existence remains closed for the
+canonical zero-margin contract, but strict separation is correctly reported as
+an observation-dependent condition rather than promoted to a universal axiom.
+
+### 6. Unique relation law
 
 For distinct non-empty Units A and B, freeze
 
@@ -87,7 +112,7 @@ The previous complete-proximity predicate and H^2 boundary-contact law remain
 available solely for regression/experimental compatibility and cannot be used
 by the canonical World construction.
 
-### 5. Representation lineage
+### 7. Representation lineage
 
 The selected Unit partition determines `C_R(X)`. The same selected Units and
 same `ObservationDerivedContext` determine `Q_X`, the relation set, World and
@@ -114,5 +139,6 @@ independent external relation or representation inputs.
 The theory-compliant core is regression-clean only when the full
 `python -m unittest discover -s tests -v` suite passes. The observation-facing
 release path is complete only when the upstream closure tests also verify that
-`A_search` is not called, Stage 2E is executed, the unique `Q_X` law generates
-relations, and `C_R -> World -> Phi_X` uses the selected X-derived Unit lineage.
+`A_search` is not called, Stage 2E existence is observation-derived, the unique
+`Q_X` law generates relations, and `C_R -> World -> Phi_X` uses the selected
+X-derived Unit lineage.
