@@ -8,6 +8,11 @@ no semantic labels and no neural component:
       -> M(X) + G_B(X) + (N_X,S_X) + C_R(X)
       -> Stage 2D -> Unit -> Relation -> World -> Phi_X.
 
+The ``ObservationDerivedContext`` is the single provenance carrier for this
+closed path. Theory-facing stages should consume its derived objects rather
+than independently accepting external candidate/model/boundary/relation/
+representation providers.
+
 All constructions are finite and permutation-compatible on the observation
 index universe.
 """
@@ -21,7 +26,7 @@ from typing import Sequence, Tuple
 
 from .theory_candidates import ObservationCandidateFamily, observation_candidate_family
 from .theory_core import Partition, StructuralUnit
-from .theory_energy_model import GeometricModel, Observation3D, WeightedObservationGraph
+from .theory_energy_model import GeometricModel, Observation3D, Stage2DEnergy, WeightedObservationGraph
 from .theory_stability import StabilityNeighborhood
 
 Point = Tuple[float, float, float]
@@ -154,7 +159,17 @@ def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], .
 
 @dataclass(frozen=True)
 class ObservationDerivedContext:
-    """All formerly external theorem boundaries materialized from one X."""
+    """All formerly external theorem boundaries materialized from one X.
+
+    This context is the canonical observation-derived interface. The six
+    former boundaries are exposed as named projections:
+
+    A_max/Gamma, M, G_B, N_X/S_X, C_R, and Phi_X.
+
+    ``Stage2DEnergy``, relation formation, World construction, and Phi_X are
+    reachable from this same context, preventing a theory-facing caller from
+    silently substituting an external object at one of those boundaries.
+    """
 
     observation: Observation3D
     candidates: ObservationCandidateFamily
@@ -200,6 +215,45 @@ class ObservationDerivedContext:
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
         return self.candidates.materialize()
+
+    def stage2d_energy(
+        self,
+        *,
+        lambda_complexity: float = 1.0,
+        lambda_boundary: float = 1.0,
+        separation_margin: float = 0.0,
+    ) -> Stage2DEnergy:
+        """Return the unique Stage 2D energy attached to this observation."""
+        return Stage2DEnergy.from_observation(
+            self,
+            lambda_complexity=lambda_complexity,
+            lambda_boundary=lambda_boundary,
+            separation_margin=separation_margin,
+        )
+
+    def form_relations(self, units: Sequence[StructuralUnit]):
+        """Return C_R(X)-derived relations for the supplied materialized Units."""
+        from .theory_relation_formation import form_observation_relations
+
+        return form_observation_relations(tuple(units), self)
+
+    def build_world(self, partition: Partition):
+        """Materialize W=(U,R,Phi) from an X-derived partition."""
+        from .theory_world import StructuralWorld
+
+        relations = self.form_relations(partition.units)
+        return StructuralWorld(
+            units=partition.units,
+            relations=relations.relations,
+            attributes={},
+            observation_context=self,
+        )
+
+    def phi_x(self, world):
+        """Return the observation-derived representation Phi_X(W)."""
+        from .theory_representation import phi_x
+
+        return phi_x(world, self)
 
 
 __all__ = [
