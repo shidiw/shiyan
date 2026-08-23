@@ -9,9 +9,8 @@ minimizer is stable. The finite stable subset has a minimum-support element,
 which is MinimalStable under the existing S_X contract.
 
 A strict positive Stage 2E margin is a separate, observation-derived property:
-Delta_U(X) is the minimum positive pairwise unit-energy gap. It is not assumed
-or supplied by a caller. Strict-margin materialization is available exactly
-when this derived gap is positive.
+Delta_U(X) is the minimum pairwise unit-energy gap, with any energy tie forcing
+Delta_U(X)=0. It is not assumed or supplied by a caller.
 """
 
 from __future__ import annotations
@@ -68,22 +67,23 @@ def derived_unit_energy_margin(
     candidates: Sequence[StructuralUnit],
     energy: Energy,
 ) -> float:
-    """Return Delta_U(X): the minimum positive pairwise unit-energy gap.
+    """Return Delta_U(X), the minimum pairwise unit-energy gap.
 
-    The value is zero when there is no positive pairwise gap. It is a
-    deterministic statistic of the observation through its canonical candidate
-    family and Stage 2D unit energy.
+    The value is zero whenever two distinct candidates are energy-tied. Hence
+    Delta_U(X)>0 is exactly the strict pairwise separation condition required
+    for a positive Unit margin. The quantity is a deterministic statistic of X
+    through its canonical candidate family and Stage 2D unit energy.
     """
     if not candidates:
         raise ValueError("Stage 2E requires a non-empty Unit candidate family")
     values = [_finite_unit_energy(unit, energy) for unit in candidates]
+    if len(values) == 1:
+        return 0.0
     minimum = math.inf
     for i, first in enumerate(values):
         for second in values[i + 1 :]:
-            gap = abs(first - second)
-            if gap > 0.0:
-                minimum = min(minimum, gap)
-    return 0.0 if minimum is math.inf else minimum
+            minimum = min(minimum, abs(first - second))
+    return float(minimum)
 
 
 def prove_observation_derived_stage2e_existence(
@@ -155,8 +155,6 @@ def prove_observation_derived_stage2e_existence(
             f"derived Delta_U={margin}"
         )
 
-    # Keep the attained global minimum explicit in the proof witness contract;
-    # it need not equal the selected minimum-support stable unit's energy.
     if not math.isfinite(global_min):
         raise AssertionError("Finite candidate energies must attain a finite minimum")
 
