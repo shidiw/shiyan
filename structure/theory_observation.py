@@ -214,6 +214,14 @@ class ObservationDerivedContext:
     def stage2d_energy(self) -> Stage2DEnergy:
         return Stage2DEnergy.from_observation(self)
 
+    def prove_stage2e_existence(self, *, require_strict_margin: bool = False):
+        """Run the observation-derived Stage 2E existence theorem from this X."""
+        from .theory_stage2e_existence import prove_observation_derived_stage2e_existence
+        return prove_observation_derived_stage2e_existence(
+            self,
+            require_strict_margin=require_strict_margin,
+        )
+
     def form_relations(self, units: Sequence[StructuralUnit]):
         from .theory_semantic_relation import form_observation_semantic_relations
         return form_observation_semantic_relations(tuple(units), self)
