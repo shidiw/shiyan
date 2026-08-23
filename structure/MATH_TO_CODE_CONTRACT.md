@@ -92,14 +92,22 @@ The proof is implemented and regression-tested in
 
 ### 5. Strict Unit margin is derived, not assumed
 
-Define
+Define the global pairwise Unit separation
 
-`Delta_U(X) = min^+ {|E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v}`.
+`Delta_U(X) = min { |E_U,X(u)-E_U,X(v)| : u,v in U_X, u != v }`.
 
-If `Delta_U(X)>0`, strict Stage 2E energy separation is available from the
-observation itself. If `Delta_U(X)=0`, Stage 2E existence remains closed for the
-canonical zero-margin contract, but strict separation is correctly reported as
-an observation-dependent condition rather than promoted to a universal axiom.
+A tie forces `Delta_U(X)=0`; hence `Delta_U(X)>0` is exactly strict pairwise
+separation of the complete X-derived Unit family. This quantity is diagnostic
+and observation-derived, but it does not by itself prove MinimalStable.
+
+The actual strict Stage 2E margin is checked only for a witness satisfying
+both `Stable_X` and `MinimalStable_X` and the directional condition
+
+`E_U,X(v)-E_U,X(u) >= delta > 0` for every distinct `v in U_X`.
+
+The implementation searches the finite X-derived family for such a witness
+when `require_strict_margin=True`. Thus even a positive margin is never an
+external theorem assumption or hidden hyperparameter.
 
 ### 6. Unique relation law
 
