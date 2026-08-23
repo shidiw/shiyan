@@ -55,9 +55,9 @@ def is_unique_minimizer(
 
     ``equivalence`` is an explicit quotient relation. When supplied, competitors
     in the same quotient class as the candidate are ignored. With ``margin=0``
-    this preserves the original Stage 2G strict-minimum contract. With
-    ``margin>0`` every quotient-distinct competitor must exceed the candidate by
-    at least that margin.
+    uniqueness means strict energy separation, so an equal-energy competitor
+    correctly makes the result false. With ``margin>0`` every quotient-distinct
+    competitor must exceed the candidate by at least that margin.
     """
     required_margin = _validate_margin(margin)
     equivalent = equivalence or (lambda a, b: a == b)
@@ -71,7 +71,10 @@ def is_unique_minimizer(
         competitor_energy = float(energy(competitor))
         if not math.isfinite(competitor_energy):
             raise ValueError("competitor energy must be finite")
-        if competitor_energy - candidate_energy < required_margin:
+        gap = competitor_energy - candidate_energy
+        # margin == 0 encodes strict minimization: gap must be > 0.
+        # margin > 0 encodes the stronger closed separation condition gap >= margin.
+        if (gap <= 0.0) if required_margin == 0.0 else (gap < required_margin):
             return False
     return True
 
