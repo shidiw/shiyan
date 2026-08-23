@@ -1,6 +1,5 @@
 """Observation-derived Stage 2E existence theorem for Struct3D.
 
-The theorem removes the last existence assumption at the Stage 2E boundary.
 For a valid finite observation X, the canonical Unit candidate family is the
 set of all non-empty observation supports because Gamma(X)=A_max(X)=Pi(Omega_X).
 The Stage 2D unit energy is finite on this family. A finite non-empty family
@@ -22,7 +21,7 @@ import math
 from typing import Callable, Optional, Sequence, Tuple
 
 from .theory_core import StructuralUnit
-from .theory_unit_formation import UnitFormationResult, evaluate_observation_unit_formation
+from .theory_unit_formation import evaluate_observation_unit_formation
 from .theory_stability import is_locally_stable
 
 Energy = Callable[[StructuralUnit], float]
@@ -57,7 +56,10 @@ def _support_key(unit: StructuralUnit) -> Tuple[int, ...]:
 def observation_unit_family_is_complete(context) -> bool:
     """Verify that the X-derived Unit family contains every non-empty support."""
     n = len(context.observation.points)
-    expected = {tuple(i for i in range(n) if mask & (1 << i)) for mask in range(1, 1 << n)}
+    expected = {
+        tuple(i for i in range(n) if mask & (1 << i))
+        for mask in range(1, 1 << n)
+    }
     actual = {_support_key(unit) for unit in context.unit_candidates}
     return actual == expected
 
@@ -68,9 +70,9 @@ def derived_unit_energy_margin(
 ) -> float:
     """Return Delta_U(X): the minimum positive pairwise unit-energy gap.
 
-    The value is zero iff all pairwise gaps are zero or at least one distinct
-    pair is energy-tied. It is a deterministic statistic of the observation
-    through its canonical candidate family and Stage 2D unit energy.
+    The value is zero when there is no positive pairwise gap. It is a
+    deterministic statistic of the observation through its canonical candidate
+    family and Stage 2D unit energy.
     """
     if not candidates:
         raise ValueError("Stage 2E requires a non-empty Unit candidate family")
@@ -90,23 +92,22 @@ def prove_observation_derived_stage2e_existence(
     *,
     require_strict_margin: bool = False,
 ) -> Stage2EExistenceResult:
-    """Prove and return a canonical observation-derived Stage 2E Unit witness.
+    """Prove and return an observation-derived Stage 2E Unit witness.
 
-    Proof structure encoded by the implementation:
+    Proof structure:
       1. X is finite and non-empty, so the canonical Unit family is finite and
          non-empty.
-      2. Gamma(X)=A_max(X) contains every non-empty support; therefore every
-         N_X insertion/deletion alternative belongs to the same finite family.
-      3. Finite unit energy values attain a global minimum at some u*.
+      2. Gamma(X)=A_max(X) contains every non-empty support; every N_X
+         insertion/deletion alternative therefore belongs to the same family.
+      3. Finite unit-energy values attain a global minimum at some u*.
       4. u* is locally stable because no candidate, hence no N_X alternative,
          has lower unit energy.
       5. The stable subset is finite and non-empty. Choosing a stable unit of
          minimum support cardinality makes it MinimalStable under the frozen
-         S_X family, whose members are proper supports of strictly smaller
-         cardinality.
+         S_X family, whose members have strictly smaller support cardinality.
       6. With the default zero-margin Stage 2E contract, this witness is
-         materializable. If strict margin is requested, Delta_U(X)>0 is the
-         additional derived condition; no external margin is accepted.
+         materializable. Strict-margin materialization additionally requires
+         the derived Delta_U(X)>0; no external margin is accepted.
     """
     candidates = tuple(context.unit_candidates)
     if not candidates:
@@ -119,6 +120,7 @@ def prove_observation_derived_stage2e_existence(
     if unit_energy is None:
         raise ValueError("An observation-derived Stage 2D unit energy is required")
 
+    # Finite global minimization proves that the stable subset is non-empty.
     scored = tuple((unit, _finite_unit_energy(unit, unit_energy)) for unit in candidates)
     global_min = min(value for _, value in scored)
 
@@ -131,9 +133,10 @@ def prove_observation_derived_stage2e_existence(
     if not stable_units:
         raise AssertionError("Finite global minimization must produce at least one stable Unit")
 
-    # The frozen S_X consists only of proper subcandidates. Its stable members
-    # have strictly smaller support cardinality than a stable minimum-support
-    # witness, so minimum cardinality is sufficient to establish MinimalStable.
+    # Among the finite stable set, choose minimum support cardinality. Every
+    # member of the frozen S_X(candidate) family has strictly smaller support,
+    # so no such member can itself be stable. This is exactly the current
+    # MinimalStable contract, without introducing a new semantic predicate.
     selected = min(stable_units, key=lambda u: (len(u.indices), _support_key(u)))
     formation = evaluate_observation_unit_formation(
         selected,
@@ -142,7 +145,7 @@ def prove_observation_derived_stage2e_existence(
         energy_margin=0.0,
     )
     if not formation.materializable:
-        raise AssertionError("The canonical minimum-support stable Unit must be materializable")
+        raise AssertionError("Minimum-support stable Unit must satisfy the Stage 2E contract")
 
     margin = derived_unit_energy_margin(candidates, unit_energy)
     strict_available = margin > 0.0
@@ -152,14 +155,10 @@ def prove_observation_derived_stage2e_existence(
             f"derived Delta_U={margin}"
         )
 
-    # global_min is intentionally evaluated above as part of the finite argmin
-    # proof; keep the witness tied to that attained minimum in the contract.
-    selected_energy = _finite_unit_energy(selected, unit_energy)
-    if selected_energy != global_min:
-        # This cannot happen because a global minimizer is stable and the
-        # minimum-support selection is taken from the stable set, but retaining
-        # the check makes the theorem implementation auditable.
-        raise AssertionError("Selected Stage 2E witness must attain the global Unit-energy minimum")
+    # Keep the attained global minimum explicit in the proof witness contract;
+    # it need not equal the selected minimum-support stable unit's energy.
+    if not math.isfinite(global_min):
+        raise AssertionError("Finite candidate energies must attain a finite minimum")
 
     return Stage2EExistenceResult(
         unit=selected,
