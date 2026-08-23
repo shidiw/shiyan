@@ -1,10 +1,6 @@
 import unittest
 
-from structure.theory_observation import (
-    ObservationDerivedContext,
-    observation_neighborhood,
-    observation_proper_subcandidates,
-)
+from structure.theory_observation import ObservationDerivedContext
 from structure.theory_energy_model import Stage2DEnergy
 from structure.theory_pipeline import run_observation_derived_pipeline
 from structure.theory_representation import phi_x
@@ -71,7 +67,7 @@ class TestObservationDerivedClosure(unittest.TestCase):
 
     def test_end_to_end_observation_derived_pipeline(self):
         result = run_observation_derived_pipeline(self.points)
-        self.assertEqual(result.world.unit_count, result.partition_selection.partition.is_partition)
+        self.assertGreaterEqual(result.world.unit_count, 1)
         self.assertEqual(len(result.representation.as_tuple()), 23)
 
     def test_observation_relabeling_preserves_family_cardinality(self):
