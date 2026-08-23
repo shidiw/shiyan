@@ -1,130 +1,106 @@
 # Struct3D mathematics → engineering-code contract
 
-This document is the release gate for the `refactor/theory-compliant-core` branch.
+This document is the release gate for `refactor/theory-compliant-core`.
 The mathematical theory is authoritative. Historical engineering descriptions
-are evidence of project history, not automatic definitions.
+are evidence, not automatic definitions.
 
-A row is **implemented** only when the Python object and its regression contract
-match the mathematical statement. A legacy implementation is never promoted by
-naming alone.
-
-## A. Complete theory → code map
+## A. Version chain and observation-derived closure
 
 | Theory stage | Mathematical content | Engineering location | Status |
 |---|---|---|---|
-| v0.0 Geometry / observation | Observation is the input to structural construction | `data/` and legacy geometry modules | **Legacy implementation; not frozen theory** |
-| v0.1 Geometric field | Geometry-derived quantities | `geometry/` | **Legacy implementation; no frozen theorem** |
-| v0.2 Primitive Structural Unit | Historical primitive/geometry construction | legacy `structure/` modules | **Legacy implementation; primitive is optional metadata in the frozen Unit model** |
-| v0.3 Structural Graph | Explicit `G=(V,E)` | `structure/theory_world.py` | **Implemented**; vertices are world Units and edges are exactly supplied Relations |
-| v0.4 Structural Refinement | Refinement/optimization procedure | legacy optimization/refinement code | **Theory gap; intentionally not promoted** |
-| v0.5 Structural Unit Discovery | A mathematically defined discovery operator | `structure/theory_materialization.py` | **Boundary only**; discovery is not silently invented |
-| v0.6 Primitive Discovery | Primitive inference from geometry | legacy primitive modules | **Theory gap; intentionally not implemented in the frozen core** |
-| v0.7 Primitive Energy | A frozen mathematical primitive energy functional | Legacy `structure/energy.py` | **Theory gap**; legacy energy remains a regression baseline |
-| v0.8 Hierarchy + Relation | Explicit Relations; higher hierarchy | `structure/theory_relation.py`, `structure/theory_world.py` | **Relation object implemented; hierarchy not promoted** |
-| v0.9 Memory + Prototype | Structural memory/prototype theory | legacy memory/prototype modules | **Theory gap; intentionally not implemented** |
-| v1.0 Structural World | `W=(U,R,Phi)` | `structure/theory_world.py` | **Implemented** |
-| v1.x Unit | `u_i=(G_i,theta_i)` | `structure/theory_unit.py::StructuralUnit` | **Implemented** as the single frozen Unit type |
-| v2.x Assembly / Object | Object emerges from explicitly defined assembly relations | `structure/theory_object.py` | **Derived engineering construction only**; not a frozen theorem |
-| v2.x Instance | Instance identity and invariance | — | **Theory gap** |
-| v2.x Hierarchy | Hierarchical structural object | — | **Theory gap** |
-| v3.1–v3.5 equivalence/isomorphism/quotient | Structural equivalence machinery | `structure/theory_canonical.py` | **Finite canonical boundary implemented** |
-| v3.6 Canonical Structural Form | `C: W -> C`, invariant under legal relabeling | `structure/theory_canonical.py` | **Implemented** |
-| v3.7 Structural Invariant | `I(W)=I(pi(W))`; frozen finite choice `I(W)=C(W)` | `structure/theory_invariant.py` | **Implemented** |
-| v3.8 Structural Distance | `D_R(W1,W2)=||phi(W1)-phi(W2)||_2` | `structure/theory_distance.py` | **Implemented** |
-| v3.9 Structural Matching | `M* in argmin_{M in A} C(M)` | `structure/theory_matching.py` | **Implemented** over an explicit admissible set |
-| v4.0 Structural Representation | `phi(W) in R^23` | `structure/theory_representation.py`, `structure/theory_representation_schema.py` | **Schema/interface implemented** |
-| Neural Struct3D v1.0 | `z=f_theta(phi(W))`, reconstruction objective | `structure/theory_neural_objective.py` and neural code | **Objective/validation boundary only** |
-| Distance-preserving neural extension | `D_Z approx D_R` | future neural implementation | **Not yet a theorem or completed algorithm** |
-| Stage 2A–2D | Explicit candidates, energy domain, stability, derived normalized energy | `structure/theory_admissible.py`, `structure/theory_stability.py`, `structure/theory_energy_model.py` | **Conditional/derived extension; not recovered historical theory** |
-| Stage 2E | `Materializable(u) <=> Stable(u) and MinimalStable(u)` | `structure/theory_unit_formation.py` | **Explicit conditional interface; not a universal emergence theorem** |
-| Stage 2F | finite non-empty `A(X)` + finite `E` => attained `argmin` | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
-| Stage 2G | strict energy separation => singleton `argmin` | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested; optional positive margin is verified explicitly** |
-| Stage 3A | `R_Q={r_ij:(i,j) in C_R, Q(u_i,u_j)=True}` | `structure/theory_relation_formation.py` | **Explicit candidate/predicate boundary** |
-| Stage 3B extension | `Q_adj(G_i,G_j)=1 iff H^2(boundary(G_i)∩boundary(G_j))>0` with supplied measure evidence | `structure/theory_relation_formation.py` | **Derived geometry predicate boundary; evidence supplied externally** |
+| v0.0 | Geometry / observation | `data/` | **Legacy implementation; not frozen theory** |
+| v0.1 | Geometric field | `geometry/` | **Legacy implementation; no frozen theorem** |
+| v0.2 | Primitive Structural Unit | legacy `structure/` | **Legacy; primitive metadata only** |
+| v0.3 | Structural Graph `G=(V,E)` | `structure/theory_world.py` | **Implemented** |
+| v0.4 | Structural Refinement | legacy optimization code | **Theory gap; intentionally not implemented** |
+| v0.5 | Structural Unit Discovery | `structure/theory_candidates.py` | **Closed by observation-derived candidate construction** |
+| v0.6 | Primitive Discovery | legacy primitive modules | **Theory gap; intentionally not implemented** |
+| v0.7 | Primitive Energy | `structure/energy.py` | **Theory gap; Legacy `structure/energy.py` remains regression-only** |
+| v0.8 | Hierarchy + Relation | `structure/theory_relation.py`, `theory_world.py` | **Relation implemented; hierarchy blocked** |
+| v0.9 | Memory + Prototype | legacy modules | **Theory gap; intentionally not implemented** |
+| v1.0 | Structural World `W=(U,R,Phi)` | `structure/theory_world.py` | **Implemented** |
+| v2.x | Object / Instance / Hierarchy | `structure/theory_object.py` and legacy modules | **Object derived only; Instance and Hierarchy theory gaps** |
+| v3.6 | Canonical Structural Form | `structure/theory_canonical.py` | **Implemented** |
+| v3.7 | Structural Invariant `I(W)=C(W)` | `structure/theory_invariant.py` | **Implemented** |
+| v3.8 | Structural Distance | `structure/theory_distance.py` | **Implemented** |
+| v3.9 | Structural Matching | `structure/theory_matching.py` | **Implemented** |
+| v4.0 | Structural Representation `phi(W) in R^23` | `structure/theory_representation.py` | **Coordinate contract implemented; Phi_X now derived from X** |
+| Stage 2A–2D | Candidate / Energy / stability closure | `structure/theory_observation.py`, `theory_energy_model.py` | **DERIVED EXTENSION; observation-derived execution path implemented** |
+| Stage 2E | Unit materialization predicate | `structure/theory_unit_formation.py` | **Observation-derived N_X/S_X path implemented** |
+| Stage 2F | finite non-empty argmin existence | `structure/theory_existence.py` | **Conditional theorem implemented and tested** |
+| Stage 2G | strict energy separation uniqueness | `structure/theory_uniqueness.py` | **Conditional theorem implemented and tested** |
+| Stage 3 | relation formation | `structure/theory_relation_formation.py` | **C_R(X) derived; proximity relation path implemented** |
+| Neural Struct3D | latent objective | neural code | **Objective/validation boundary only** |
 
-## B. Frozen mathematical objects
+## B. Observation-derived boundary definitions
 
-- Structural Unit: `u=(G,theta)`.
-- Explicit Relation: `r=(source,target,type,evidence)`.
-- Structural Graph: `G=(V,E)` with `V` indexed by world Units and `E` copied exactly from Relations.
-- Structural World: `W=(U,R,Phi)`.
-- Canonical form: exact finite `C(W)`.
-- Structural invariant `I(W)=C(W)`.
-- Representation distance: `D_R=||phi(W1)-phi(W2)||_2`.
-- Matching: explicit finite/admissible argmin.
-- Stage 2E local stability and minimal stability for explicit neighborhoods/subcandidates.
-- Stage 2F conditional existence and Stage 2G conditional uniqueness.
-- Stage 3 explicit candidate relation domain `C_R`, admissibility predicate `Q`, and exact relation set `R_Q`.
+For finite `X=(x_0,...,x_{n-1})`, let `Omega_X={0,...,n-1}`.
+
+- `A_max(X)=Pi(Omega_X)` — complete finite partition lattice.
+- `Gamma(X)=A_max(X)` — frozen candidate family.
+- `M(X)={point(X),line(X),plane(X)}` — three canonical affine fits derived from X.
+- `G_B(X)` — complete pair graph with `w_ij=1/(1+||x_i-x_j||/diam(X))`.
+- `N_X(S)` — one-index insertion/deletion neighborhood.
+- `S_X(S)` — all non-empty proper subsets of S.
+- `C_R(X)` — all ordered pairs of distinct materialized Units.
+- `Phi_X(W)` — fixed 23-D finite statistics of X and W, implemented by `phi_x`.
+
+These objects are all deterministic functions of X (and, where mathematically
+necessary, the X-derived materialized world), finite in the declared regime,
+and quotient-compatible under observation/Unit relabeling.
 
 ## C. Critical theory ↔ engineering boundaries
 
-### Relation formation is explicit, not heuristic
+### X → A(X)
 
-The frozen graph consumes a supplied relation set. Stage 3 exposes the formation
-boundary as `(C_R, Q, evidence)` and materializes exactly the admitted pairs.
-Primitive equality, distance thresholds, connectivity, curvature thresholds,
-or hidden neighborhood inference cannot create relations.
+The raw-observation construction is now closed in the derived finite regime:
 
-### Local stability ≠ global optimality
+`A(X)=A_max(X)=Pi(Omega_X)`, `Gamma(X)=A_max(X)`.
 
-Stage 2E uses an explicitly supplied perturbation neighborhood. Global selection
-remains the separate `argmin` problem over an explicit admissible partition
-family.
+No semantic labels, neural network, primitive classifier, hidden threshold, or
+legacy heuristic enters candidate existence.
 
-### Materialization ≠ universal existence
+### Stage 2D Energy
 
-Stage 2F only proves existence conditional on a finite, non-empty admissible
-family with finite energy. Stage 2G only proves uniqueness under strict energy
-separation.
+The Stage 2D functional is a **DERIVED EXTENSION**. It is a mathematically
+explicit extension, not a historical recovery.
 
-### Relation formation ≠ a universal geometry-to-relation theorem
+`E_X(P)=sum_A min_{m in M(X)}[F_X(A,m)+lambda_c kappa(m)] + lambda_b B_X(P)`.
 
-Stage 3 deliberately does not invent a geometry formula for `Q`. A future
-geometry-derived relation theorem must define `Q` and prove the required
-properties before promotion. Stage 3B is a separately marked derived extension
-because its Hausdorff-contact predicate is not stated in the preserved source
-as the universal relation law.
+The observation-derived constructor consumes `M(X)` and `G_B(X)` directly.
+The historical `structure/energy.py` remains regression-only.
 
-### Stage 2D energy ≠ recovered historical energy
+### Stage 2E stability/minimality
 
-`E_X(P) = sum_A min_m [F_X(A,m) + lambda_c kappa(m)] + lambda_b B_X(P)` is a
-parameterized derived closure proposal. It is not evidence that the old
-primitive-specific `structure/energy.py` formula was the original theorem.
+`N_X` and `S_X` are generated by the observation-derived context. The generic
+Stage 2E functions remain explicit-input compatibility APIs, while the closed
+path uses `evaluate_observation_unit_formation`.
 
-### Structural Assembly Separation is a verification condition
+### Unit → Relation
 
-The frozen Stage 2D functional remains exactly `unit term + boundary term`.
-A positive `delta_E` is **not** injected as a new pairwise energy term. Instead,
-for an explicit finite admissible family `A(X)`, quotient-distinct partitions
-must satisfy
+`C_R(X)` is no longer an externally supplied pair set in the closed path. The
+observation-derived relation constructor assigns normalized cross-support
+distance evidence to every ordered Unit pair. The stronger H^2 boundary-contact
+predicate remains a separate derived relation theorem.
 
-`|E(P_1) - E(P_2)| >= delta_E > 0`.
+### Relation → World → Phi_X
 
-`structure/theory_energy_model.py` now exposes the exact finite quotient key,
-`verify_separation_margin`, and `require_separation_margin` for this condition.
-Stage 2G consumes the corresponding one-sided condition
-`E(C)-E(P) >= delta_E` when a positive margin is requested. This makes the
-margin an auditable hypothesis rather than a circular definition of Energy.
+World construction copies the derived relation set. `Phi_X` then computes its
+23 coordinates from X and the resulting world without an external extractor.
+The coordinate map is quotient-compatible but is **not** claimed injective.
 
-## D. Non-negotiable boundaries
+## D. Preserved mathematical boundaries
 
-1. Legacy energy/partition/primitive inference remains regression baseline code.
-2. No hidden threshold may become a mathematical definition.
-3. `D_R=0` means equality of supplied 23-D representations only.
-4. Deterministic tie-breaking is not uniqueness.
-5. `Object`, `Instance`, and `Hierarchy` require their own definitions/proofs and **must not be promoted into the frozen theory** merely because an engineering representation exists.
-6. Neural objectives do not prove latent metric equality; any empirical agreement between `D_Z` and `D_R` **must not be reported as a proof** of metric equality without an independent mathematical theorem.
-7. Stage 2E neighborhoods/subcandidate families must be explicit inputs.
-8. Stage 2F/2G hypotheses must not be promoted to universal claims.
-9. Stage 3 candidate pairs and relation predicate must be explicit inputs.
-10. Stage 2D/3B derived extensions must remain explicitly labeled as extensions until the theory is formally adopted.
-11. A positive `delta_E` must be verified on the explicit finite admissible family; it must never be manufactured by adding a circular separation term to the Energy definition.
-12. Any future contradiction must update the mathematics first or remain legacy/experimental.
+1. `Object`, `Instance`, and `Hierarchy` must not be promoted into the frozen theory merely because an engineering representation exists.
+2. `D_R=0` means equality of the supplied 23-D representations only.
+3. Deterministic tie-breaking is not uniqueness.
+4. A positive `delta_E` is verified on a finite family; it is never added as a circular Energy term.
+5. Neural objectives **must not be reported as a proof** of latent metric equality.
+6. The observation-derived model/relation definitions are explicitly marked as derived extensions, not historical recovery.
 
-## E. Release criterion
+## E. Regression interpretation
 
-The theory-compliant core is regression-clean only when the full
-`python -m unittest discover -s tests -v` suite passes and no theory test relies
-on legacy heuristics to construct a theory object. Passing tests establish
-implementation-contract consistency, not universal existence, uniqueness, or a
-universal geometry-to-relation law.
+The full regression suite remains the release gate. The observation-derived tests
+add the new closure contract and verify finite/non-empty generation,
+Stage2D consumption, relation formation, Phi_X well-definedness, and quotient
+compatibility.
