@@ -2,19 +2,7 @@
 
 This module closes the remaining engineering-input boundaries in the finite
 observation core. Every object below is a deterministic function of X and uses
-no semantic labels and no neural component:
-
-    X -> A_max(X) -> Gamma(X)
-      -> M(X) + G_B(X) + (N_X,S_X) + C_R(X)
-      -> Stage 2D -> Unit -> Relation -> World -> Phi_X.
-
-The ``ObservationDerivedContext`` is the single provenance carrier for this
-closed path. Theory-facing stages should consume its derived objects rather
-than independently accepting external candidate/model/boundary/relation/
-representation providers.
-
-All constructions are finite and permutation-compatible on the observation
-index universe.
+no semantic labels and no neural component.
 """
 
 from __future__ import annotations
@@ -48,7 +36,12 @@ def _axis_variances(points: Sequence[Point], center: Point) -> Tuple[float, floa
 
 def _point_model(points: Tuple[Point, ...]) -> GeometricModel:
     center = _centroid(points)
-    return GeometricModel("point", lambda p, c=center: _distance(p, c) ** 2, 0.0)
+    return GeometricModel(
+        "point",
+        lambda p, c=center: _distance(p, c) ** 2,
+        0.0,
+        signature=("point", center),
+    )
 
 
 def _line_model(points: Tuple[Point, ...]) -> GeometricModel:
@@ -59,7 +52,12 @@ def _line_model(points: Tuple[Point, ...]) -> GeometricModel:
     def residual(p: Point, c=center, a=axis) -> float:
         return sum((p[k] - c[k]) ** 2 for k in range(3) if k != a)
 
-    return GeometricModel("line", residual, 1.0)
+    return GeometricModel(
+        "line",
+        residual,
+        1.0,
+        signature=("line", center, axis),
+    )
 
 
 def _plane_model(points: Tuple[Point, ...]) -> GeometricModel:
@@ -70,17 +68,17 @@ def _plane_model(points: Tuple[Point, ...]) -> GeometricModel:
     def residual(p: Point, c=center, a=normal) -> float:
         return (p[a] - c[a]) ** 2
 
-    return GeometricModel("plane", residual, 2.0)
+    return GeometricModel(
+        "plane",
+        residual,
+        2.0,
+        signature=("plane", center, normal),
+    )
 
 
 @dataclass(frozen=True)
 class ObservationModelFamily:
-    """Frozen model universe M(X): point, line, and plane fitted to X.
-
-    The three models are not semantic labels. They are the complete finite
-    model universe of the frozen Struct3D Stage-2D theory. Axis ties are
-    resolved by the deterministic coordinate-index rule above.
-    """
+    """Frozen model universe M(X): point, line, and plane fitted to X."""
 
     observation: Observation3D
     models: Tuple[GeometricModel, ...]
@@ -88,33 +86,22 @@ class ObservationModelFamily:
     @classmethod
     def from_observation(cls, observation: Observation3D) -> "ObservationModelFamily":
         points = observation.points
-        models = (_point_model(points), _line_model(points), _plane_model(points))
-        return cls(observation, models)
+        return cls(observation, (_point_model(points), _line_model(points), _plane_model(points)))
 
     @property
     def universe(self) -> Tuple[GeometricModel, ...]:
-        """The frozen finite model universe M(X)."""
         return self.models
 
     def is_deterministic_for(self, observation: Observation3D) -> bool:
         return self == ObservationModelFamily.from_observation(observation)
 
     def is_quotient_compatible(self) -> bool:
-        """Model identity is tied to X's geometric set, not point labels."""
         return self.observation == Observation3D(tuple(self.observation.points))
 
 
 @dataclass(frozen=True)
 class ObservationBoundaryGraph:
-    """Frozen observation-derived boundary-regularization graph G_B(X).
-
-    Every unordered point pair is an edge with
-    w_ij = 1 / (1 + ||x_i-x_j|| / diam(X)).
-
-    The graph is complete for n>1, finite, strictly positive, and depends only
-    on geometric observations. It therefore supplies a canonical normalized
-    cut regularizer without an externally supplied adjacency graph.
-    """
+    """Frozen observation-derived boundary graph G_B(X)."""
 
     observation: Observation3D
     graph: WeightedObservationGraph
@@ -142,12 +129,10 @@ class ObservationBoundaryGraph:
         return len(self.graph.edges) == n * (n - 1) // 2
 
     def is_quotient_compatible(self) -> bool:
-        n = len(self.observation.points)
-        return len(self.graph.edges) == n * (n - 1) // 2
+        return self.is_complete
 
 
 def observation_neighborhood(candidate: StructuralUnit, observation: Observation3D) -> StabilityNeighborhood[StructuralUnit]:
-    """Define N_X(candidate) by one-index insertion/deletion moves."""
     omega = set(range(len(observation.points)))
     support = set(candidate.indices)
     alternatives = set()
@@ -164,7 +149,6 @@ def observation_neighborhood(candidate: StructuralUnit, observation: Observation
 
 
 def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-    """Define S_X(candidate) as every non-empty proper support subset."""
     support = tuple(candidate.indices)
     if len(support) <= 1:
         return ()
@@ -176,7 +160,6 @@ def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[Structu
 
 
 def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralUnit, ...]:
-    """Define the finite Unit-candidate family of all non-empty supports."""
     omega = tuple(range(len(observation.points)))
     return tuple(
         StructuralUnit(support, {})
@@ -186,7 +169,6 @@ def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralU
 
 
 def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], ...]:
-    """Define C_R(X) as all ordered pairs of distinct materialized Units."""
     if unit_count < 0:
         raise ValueError("unit_count must be non-negative")
     return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
@@ -194,17 +176,7 @@ def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], .
 
 @dataclass(frozen=True)
 class ObservationDerivedContext:
-    """All formerly external theorem boundaries materialized from one X.
-
-    This context is the canonical observation-derived interface. The six
-    former boundaries are exposed as named projections:
-
-    A_max/Gamma, M, G_B, N_X/S_X, C_R, and Phi_X.
-
-    ``Stage2DEnergy``, relation formation, World construction, and Phi_X are
-    reachable from this same context, preventing a theory-facing caller from
-    silently substituting an external object at one of those boundaries.
-    """
+    """All formerly external theorem boundaries materialized from one X."""
 
     observation: Observation3D
     candidates: ObservationCandidateFamily
@@ -214,10 +186,12 @@ class ObservationDerivedContext:
     @classmethod
     def from_points(cls, points: Sequence[Point]) -> "ObservationDerivedContext":
         observation = Observation3D(tuple(points))
-        candidates = observation_candidate_family(observation.points)
-        models = ObservationModelFamily.from_observation(observation)
-        boundary = ObservationBoundaryGraph.from_observation(observation)
-        return cls(observation, candidates, models, boundary)
+        return cls(
+            observation,
+            observation_candidate_family(observation.points),
+            ObservationModelFamily.from_observation(observation),
+            ObservationBoundaryGraph.from_observation(observation),
+        )
 
     @property
     def a_max(self):
@@ -252,19 +226,14 @@ class ObservationDerivedContext:
         return self.candidates.materialize()
 
     def stage2d_energy(self) -> Stage2DEnergy:
-        """Return the canonical Stage 2D energy E_X with no external weights."""
         return Stage2DEnergy.from_observation(self)
 
     def form_relations(self, units: Sequence[StructuralUnit]):
-        """Return C_R(X)-derived relations for the supplied materialized Units."""
         from .theory_relation_formation import form_observation_relations
-
         return form_observation_relations(tuple(units), self)
 
     def build_world(self, partition: Partition):
-        """Materialize W=(U,R,Phi) from an X-derived partition."""
         from .theory_world import StructuralWorld
-
         relations = self.form_relations(partition.units)
         return StructuralWorld(
             units=partition.units,
@@ -274,9 +243,7 @@ class ObservationDerivedContext:
         )
 
     def phi_x(self, world):
-        """Return the observation-derived representation Phi_X(W)."""
         from .theory_representation import phi_x
-
         return phi_x(world, self)
 
 
