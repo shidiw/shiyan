@@ -109,9 +109,10 @@ class TestStage2DEnergy(unittest.TestCase):
             self.energy.fit_energy(unit, nonfinite)
 
     def test_negative_unit_index_is_rejected(self):
-        unit = TheoryUnit((-1,), {})
+        # Unit validity is a constructor-level mathematical contract. An
+        # invalid Unit must never be materialized and rejected only downstream.
         with self.assertRaises(ValueError):
-            self.energy.fit_energy(unit, self.plane)
+            TheoryUnit((-1,), {})
 
     def test_duplicate_boundary_edge_is_rejected(self):
         with self.assertRaises(ValueError):
