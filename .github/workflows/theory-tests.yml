@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - refactor/theory-compliant-core
+      - refactor/observation-derived-boundaries-final
   workflow_dispatch:
 
 jobs:
