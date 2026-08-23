@@ -1,14 +1,15 @@
 """Observation-derived scalable candidate generator.
 
 A_max(X) is the complete finite partition lattice and remains the mathematical
-admissible universe.  Gamma(X) is the frozen *computational* finite subfamily
-used by the theory-facing pipeline.  A_search(X) is retained only as a
+admissible universe. Gamma(X) is the frozen *computational* finite subfamily
+used by the theory-facing pipeline. A_search(X) is retained only as a
 backward-compatible scalability approximation and is never the provenance
 source of the main pipeline.
 
-Gamma(X) is deterministic, label-free, finite, non-empty, and quotient
-compatible. Its default strategies are the whole partition, singleton
-partition, and deterministic farthest-pair Voronoi bipartition.
+Canonical rule: Gamma(X) has no caller-selectable strategy. It is uniquely
+determined by the finite observation X using the whole-observation partition,
+the singleton partition, and a deterministic farthest-pair Voronoi
+bipartition. This removes the final strategy argument from the theory boundary.
 """
 
 from __future__ import annotations
@@ -64,15 +65,46 @@ def _farthest_split(observation: Observation3D) -> PartitionBlocks:
     return _canonical((left, right))
 
 
-def Gamma_X(
-    observation: Observation3D,
-    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
-) -> Tuple[PartitionBlocks, ...]:
-    """Construct the frozen finite computational family Gamma(X) subset A_max(X)."""
+def Gamma_X(observation: Observation3D) -> Tuple[PartitionBlocks, ...]:
+    """Construct the unique frozen finite computational family Gamma(X).
+
+    Gamma is now a true function of X alone: callers cannot inject a strategy,
+    candidate subset, threshold, or other hidden admissibility choice.
+    """
     n = len(observation.points)
     if n <= 0:
         raise ValueError("Observation must be non-empty")
 
+    blocks = (
+        _whole(n),
+        _singletons(n),
+        _farthest_split(observation) if n > 1 else _whole(n),
+    )
+    unique = tuple(dict.fromkeys(blocks))
+    for candidate in unique:
+        partition_from_blocks(candidate)
+    return unique
+
+
+def materialize_Gamma(observation: Observation3D):
+    """Materialize the unique observation-derived Gamma(X) family."""
+    return tuple(partition_from_blocks(blocks) for blocks in Gamma_X(observation))
+
+
+def A_search(
+    observation: Observation3D,
+    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
+) -> Tuple[PartitionBlocks, ...]:
+    """Deprecated compatibility wrapper; never canonical provenance.
+
+    Historical callers may still request the old strategy subset. The canonical
+    theory boundary is Gamma_X(X), which has no strategy argument.
+    """
+    if tuple(strategies) == ("whole", "singletons", "farthest_split"):
+        return Gamma_X(observation)
+    n = len(observation.points)
+    if n <= 0:
+        raise ValueError("Observation must be non-empty")
     registry = {
         "whole": lambda: _whole(n),
         "singletons": lambda: _singletons(n),
@@ -81,28 +113,9 @@ def Gamma_X(
     blocks = []
     for strategy in strategies:
         if strategy not in registry:
-            raise ValueError(f"Unknown Gamma strategy: {strategy}")
+            raise ValueError(f"Unknown A_search strategy: {strategy}")
         blocks.append(registry[strategy]())
-
-    unique = tuple(dict.fromkeys(blocks))
-    for candidate in unique:
-        partition_from_blocks(candidate)
-    return unique
-
-
-def materialize_Gamma(
-    observation: Observation3D,
-    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
-):
-    return tuple(partition_from_blocks(blocks) for blocks in Gamma_X(observation, strategies))
-
-
-def A_search(
-    observation: Observation3D,
-    strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
-) -> Tuple[PartitionBlocks, ...]:
-    """Deprecated compatibility wrapper; A_search is only a scalability approximation."""
-    return Gamma_X(observation, strategies)
+    return tuple(dict.fromkeys(blocks))
 
 
 def materialize_A_search(
@@ -110,7 +123,7 @@ def materialize_A_search(
     strategies: Sequence[str] = ("whole", "singletons", "farthest_split"),
 ):
     """Deprecated compatibility wrapper for the scalability approximation."""
-    return materialize_Gamma(observation, strategies)
+    return tuple(partition_from_blocks(blocks) for blocks in A_search(observation, strategies))
 
 
 def is_subset_of_A_max(observation: Observation3D, candidates: Sequence[PartitionBlocks]) -> bool:
