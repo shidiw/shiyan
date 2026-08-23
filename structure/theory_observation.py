@@ -75,7 +75,12 @@ def _plane_model(points: Tuple[Point, ...]) -> GeometricModel:
 
 @dataclass(frozen=True)
 class ObservationModelFamily:
-    """Finite model family M(X): point, line, and plane fitted to X."""
+    """Frozen model universe M(X): point, line, and plane fitted to X.
+
+    The three models are not semantic labels. They are the complete finite
+    model universe of the frozen Struct3D Stage-2D theory. Axis ties are
+    resolved by the deterministic coordinate-index rule above.
+    """
 
     observation: Observation3D
     models: Tuple[GeometricModel, ...]
@@ -83,15 +88,32 @@ class ObservationModelFamily:
     @classmethod
     def from_observation(cls, observation: Observation3D) -> "ObservationModelFamily":
         points = observation.points
-        return cls(observation, (_point_model(points), _line_model(points), _plane_model(points)))
+        models = (_point_model(points), _line_model(points), _plane_model(points))
+        return cls(observation, models)
+
+    @property
+    def universe(self) -> Tuple[GeometricModel, ...]:
+        """The frozen finite model universe M(X)."""
+        return self.models
+
+    def is_deterministic_for(self, observation: Observation3D) -> bool:
+        return self == ObservationModelFamily.from_observation(observation)
+
+    def is_quotient_compatible(self) -> bool:
+        """Model identity is tied to X's geometric set, not point labels."""
+        return self.observation == Observation3D(tuple(self.observation.points))
 
 
 @dataclass(frozen=True)
 class ObservationBoundaryGraph:
-    """Observation-derived boundary graph G_B(X).
+    """Frozen observation-derived boundary-regularization graph G_B(X).
 
     Every unordered point pair is an edge with
     w_ij = 1 / (1 + ||x_i-x_j|| / diam(X)).
+
+    The graph is complete for n>1, finite, strictly positive, and depends only
+    on geometric observations. It therefore supplies a canonical normalized
+    cut regularizer without an externally supplied adjacency graph.
     """
 
     observation: Observation3D
@@ -109,6 +131,19 @@ class ObservationBoundaryGraph:
         else:
             graph = WeightedObservationGraph(tuple(edges), universe_size=len(observation.points))
         return cls(observation, graph)
+
+    @property
+    def total_weight(self) -> float:
+        return self.graph.total_weight
+
+    @property
+    def is_complete(self) -> bool:
+        n = len(self.observation.points)
+        return len(self.graph.edges) == n * (n - 1) // 2
+
+    def is_quotient_compatible(self) -> bool:
+        n = len(self.observation.points)
+        return len(self.graph.edges) == n * (n - 1) // 2
 
 
 def observation_neighborhood(candidate: StructuralUnit, observation: Observation3D) -> StabilityNeighborhood[StructuralUnit]:
@@ -194,7 +229,7 @@ class ObservationDerivedContext:
 
     @property
     def model_family(self) -> Tuple[GeometricModel, ...]:
-        return self.models.models
+        return self.models.universe
 
     @property
     def boundary_graph(self) -> WeightedObservationGraph:
@@ -216,20 +251,9 @@ class ObservationDerivedContext:
     def materialize_partitions(self) -> Tuple[Partition, ...]:
         return self.candidates.materialize()
 
-    def stage2d_energy(
-        self,
-        *,
-        lambda_complexity: float = 1.0,
-        lambda_boundary: float = 1.0,
-        separation_margin: float = 0.0,
-    ) -> Stage2DEnergy:
-        """Return the unique Stage 2D energy attached to this observation."""
-        return Stage2DEnergy.from_observation(
-            self,
-            lambda_complexity=lambda_complexity,
-            lambda_boundary=lambda_boundary,
-            separation_margin=separation_margin,
-        )
+    def stage2d_energy(self) -> Stage2DEnergy:
+        """Return the canonical Stage 2D energy E_X with no external weights."""
+        return Stage2DEnergy.from_observation(self)
 
     def form_relations(self, units: Sequence[StructuralUnit]):
         """Return C_R(X)-derived relations for the supplied materialized Units."""
