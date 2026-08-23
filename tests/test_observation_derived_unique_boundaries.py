@@ -56,7 +56,7 @@ class TestObservationDerivedUniqueBoundaries(unittest.TestCase):
             observation = self.context.observation
             model_family = self.context.model_family
 
-            def relation_candidates(self, count):
+            def relation_candidate_domain(self, units):
                 return ()
 
         units = self.context.materialize_partitions()[1].units
