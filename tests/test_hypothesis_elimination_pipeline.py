@@ -1,7 +1,9 @@
 import unittest
 
+import structure.theory_observation_pipeline as observation_pipeline_module
 from structure.theory_observation_pipeline import ObservationDerivedPipeline
 from structure.theory_observation import ObservationDerivedContext
+from structure.theory_pipeline import run_observation_derived_pipeline
 
 
 class TestObservationDerivedHypothesisElimination(unittest.TestCase):
@@ -48,6 +50,18 @@ class TestObservationDerivedHypothesisElimination(unittest.TestCase):
         self.assertIn(selected, p.partitions)
         self.assertEqual(float(p.energy(selected)), min(float(p.energy(q)) for q in p.partitions))
         self.assertEqual(p.A_search, p.Gamma)
+
+    def test_canonical_pipeline_does_not_call_a_search(self):
+        original = observation_pipeline_module.A_search
+        try:
+            observation_pipeline_module.A_search = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                AssertionError("A_search must not be called by the canonical pipeline")
+            )
+            result = run_observation_derived_pipeline(self.points)
+            self.assertGreaterEqual(result.world.unit_count, 1)
+            self.assertEqual(len(result.representation.values), 23)
+        finally:
+            observation_pipeline_module.A_search = original
 
     def test_derived_margin_is_observation_statistic(self):
         p = self.pipeline
