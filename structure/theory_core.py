@@ -1,17 +1,15 @@
 """Theory-safe structural primitives for Struct3D.
 
-Frozen definitions from the mathematical specification:
+Frozen definitions:
     Structural Unit u_i = (G_i, theta_i)
     Structural World W = (U, R, Phi)
     Structural Graph G = (V, E)
 
-The implementation uses one StructuralUnit type throughout the theory-facing
-layer. ``TheoryUnit`` is retained only as a compatibility alias; there are not
-two different mathematical Unit classes.
-
-The specification does not freeze a unique energy functional or a construction
-of admissible partitions from raw observations. Partition discovery and energy
-therefore remain explicit external inputs.
+The low-level ``Partition``/``select_minimizer`` API intentionally accepts an
+explicit family for generic mathematical use and regression compatibility.
+The closed raw-observation execution path is defined separately by
+``ObservationDerivedContext`` and no longer relies on that explicit family as
+an upstream theorem assumption.
 """
 
 from __future__ import annotations
@@ -56,13 +54,7 @@ class Partition:
 
 
 def evaluate_energy(partition: Partition, functional: Callable[[Partition], float]) -> float:
-    """Evaluate an externally supplied scalar functional.
-
-    The finite-selection theorem requires real-valued (not NaN/inf) energy on
-    every candidate.  Enforcing that requirement here keeps the generic core
-    consistent with Stage 2F and prevents a non-finite value from silently
-    becoming an argmin witness.
-    """
+    """Evaluate a finite real-valued scalar functional."""
     value = float(functional(partition))
     if not math.isfinite(value):
         raise ValueError("Energy functional must return a finite real scalar")
@@ -73,7 +65,11 @@ def select_minimizer(
     candidates: Sequence[Partition],
     functional: Callable[[Partition], float],
 ) -> Partition:
-    """Select an argmin from an explicit finite admissible set."""
+    """Select an argmin from an explicit finite family.
+
+    This is a generic theorem-facing primitive.  For raw observations, the
+    candidate family should be obtained from ``ObservationDerivedContext``.
+    """
     if not candidates:
         raise ValueError("At least one admissible partition is required")
     return min(candidates, key=lambda p: evaluate_energy(p, functional))
