@@ -1,28 +1,30 @@
-"""Stage 2D: explicit mathematical energy model for Struct3D.
+"""Stage 2D: explicit and observation-derived mathematical energy models.
 
-The frozen finite-observation closure now permits a fully observation-derived
-constructor. The historical explicit-input constructor remains available for
-regression tests, while ``Stage2DEnergy.from_observation`` consumes the
-observation-derived ``M(X)`` and ``G_B(X)`` objects.
+For a finite observation X={x_i} and a partition P={A_j}, the frozen
+observation-derived energy is
 
-For a finite observation X={x_i} and a partition P={A_j}, define
+    E_X(P) = sum_A e_X(A) + B_X(P),
 
-    e(A) = min_{m in M(X)} [ F(A,m) + lambda_c k(m) ]
+where
 
-with
+    e_X(A) = min_{m in M(X)} F_X(A,m) + k(m),
 
-    F(A,m) = 1/(|A| s(X)^2) sum_{i in A} d(x_i,M_m)^2,
+    F_X(A,m) = 1/(|A| s(X)^2) sum_{i in A} d(x_i,M_m)^2,
 
 and
 
-    B(P) = cut_w(P) / total_w.
+    B_X(P) = cut_w(P) / total_w.
 
-The partition energy is
+The complexity and boundary weights are frozen constants equal to one in the
+observation-derived theory. They are therefore not external theorem degrees
+of freedom. The separation margin is also not an input: the canonical
+observation-derived margin is the minimum positive energy gap between
+quotient-distinct members of the finite candidate family. A theorem requiring
+strict separation may test that derived quantity is positive.
 
-    E(P) = sum_A e(A) + lambda_b B(P).
-
-A positive separation margin is a verified property of a finite candidate
-family; it is not inserted into E itself.
+The historical explicit-input constructor remains available for low-level
+regression compatibility; theory-facing execution must use
+``Stage2DEnergy.from_observation(context)``.
 """
 
 from __future__ import annotations
@@ -61,7 +63,7 @@ def partition_quotient_key(partition: Partition):
 
 
 def structurally_equivalent_partitions(a: Partition, b: Partition) -> bool:
-    return partition_quotient_key(a) == partition_quotient_key(b)
+    return partition_quotient_key(a, b) == partition_quotient_key(b, a)
 
 
 @dataclass(frozen=True)
@@ -70,6 +72,25 @@ class SeparationMarginResult:
     minimum_gap: float
     compared_pairs: int
     satisfied: bool
+
+
+@dataclass(frozen=True)
+class ObservationEnergyParameters:
+    """Canonical Stage 2D parameters derived from X.
+
+    The values are frozen dimensionless constants. Their provenance is the
+    observation-derived energy definition itself, not caller-selected
+    hyperparameters.
+    """
+
+    lambda_complexity: float = 1.0
+    lambda_boundary: float = 1.0
+
+    @classmethod
+    def from_observation(cls, observation: "Observation3D") -> "ObservationEnergyParameters":
+        if not observation.points:
+            raise ValueError("Observation must be non-empty")
+        return cls()
 
 
 @dataclass(frozen=True)
@@ -172,21 +193,16 @@ class Stage2DEnergy:
             raise ValueError("Separation margin must be non-negative")
 
     @classmethod
-    def from_observation(
-        cls,
-        context,
-        lambda_complexity: float = 1.0,
-        lambda_boundary: float = 1.0,
-        separation_margin: float = 0.0,
-    ) -> "Stage2DEnergy":
-        """Construct E_X directly from observation-derived M(X), G_B(X)."""
+    def from_observation(cls, context) -> "Stage2DEnergy":
+        """Construct the canonical E_X directly from observation-derived M(X), G_B(X)."""
+        parameters = ObservationEnergyParameters.from_observation(context.observation)
         return cls(
             observation=context.observation,
             models=tuple(context.model_family),
             boundary_graph=context.boundary_graph,
-            lambda_complexity=lambda_complexity,
-            lambda_boundary=lambda_boundary,
-            separation_margin=separation_margin,
+            lambda_complexity=parameters.lambda_complexity,
+            lambda_boundary=parameters.lambda_boundary,
+            separation_margin=0.0,
             observation_context=context,
         )
 
@@ -248,11 +264,42 @@ class Stage2DEnergy:
             return 0.0
         return abs(float(self(a)) - float(self(b)))
 
+    def derived_separation_margin(self, candidates: Tuple[Partition, ...]) -> float:
+        """Return delta_X, the minimum positive quotient-distinct energy gap.
+
+        No caller supplies delta. The value is a deterministic finite statistic
+        of X through the canonical finite candidate family and E_X. It is zero
+        exactly when quotient-distinct candidates are energy-tied.
+        """
+        minimum_gap = math.inf
+        for i, first in enumerate(candidates):
+            first_energy = float(self(first))
+            for second in candidates[i + 1 :]:
+                if structurally_equivalent_partitions(first, second):
+                    continue
+                gap = abs(first_energy - float(self(second)))
+                if gap > 0.0:
+                    minimum_gap = min(minimum_gap, gap)
+        return 0.0 if minimum_gap is math.inf else minimum_gap
+
+    def verify_derived_separation(self, candidates: Tuple[Partition, ...]) -> SeparationMarginResult:
+        derived = self.derived_separation_margin(candidates)
+        compared_pairs = 0
+        for i, first in enumerate(candidates):
+            for second in candidates[i + 1 :]:
+                if not structurally_equivalent_partitions(first, second):
+                    compared_pairs += 1
+        return SeparationMarginResult(derived, derived, compared_pairs, derived > 0.0)
+
     def verify_separation_margin(
         self,
         candidates: Tuple[Partition, ...],
         margin: Optional[float] = None,
     ) -> SeparationMarginResult:
+        """Verify an explicitly requested margin for generic regression use.
+
+        Theory-facing code should use ``verify_derived_separation`` instead.
+        """
         requested = self.separation_margin if margin is None else float(margin)
         requested = self._validate_margin(requested)
         minimum_gap = math.inf
@@ -295,6 +342,7 @@ __all__ = [
     "Observation3D",
     "GeometricModel",
     "WeightedObservationGraph",
+    "ObservationEnergyParameters",
     "SeparationMarginResult",
     "unit_quotient_key",
     "partition_quotient_key",
