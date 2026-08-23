@@ -4,116 +4,126 @@ Branch: `refactor/theory-compliant-core`
 
 ## 1. Audit rule
 
-The preserved `Struct3D_数学理论.txt` remains authoritative for what is already frozen. Historical engineering code is evidence, not a theorem. Newly derived closure stages are allowed only when they are explicitly labeled as extensions and accompanied by a mathematical statement, derivation, implementation contract, and regression tests.
+The preserved `Struct3D_数学理论.txt` remains authoritative for recovered
+historical theory. Newly derived closure stages are explicitly labeled as
+extensions and are required to have a mathematical definition, implementation
+contract, and regression test.
 
-## 2. Full chain verdict
+## 2. Final upstream verdict
 
-`X -> A(X) -> E_X -> argmin -> stability -> minimality -> Unit -> Relation -> Graph -> World -> Canonical Form -> Invariant -> phi -> D_R -> Matching -> Neural`
+`X -> {A_max,Gamma,M,G_B,N_X,S_X,C_R,Phi_X} -> Stage2D -> Unit -> Relation -> World -> Representation -> D_R`
 
 | Link | Verdict | Reason |
 |---|---|---|
-| `X -> A(X)` | **OPEN** | No source-defined universal generator for admissible partitions from raw observations. |
-| `A(X) -> P*` | **CLOSED CONDITIONALLY** | Finite, non-empty explicit candidate family plus finite energy gives an attained argmin. |
-| `E` | **DERIVED EXTENSION** | Stage 2D supplies a normalized parameterized functional; it is not recovered historical theory. |
-| `P* -> Stable` | **CLOSED CONDITIONALLY** | A global minimizer is locally stable for every explicitly supplied neighborhood contained in the admissible family. |
-| `Stable -> MinimalStable` | **OPEN AS UNIVERSAL THEOREM / CLOSED AS INTERFACE** | Minimality depends on an explicit proper-subcandidate family. |
-| `MinimalStable -> Unit` | **OPEN** | No source-backed theorem yet identifies every stable/minimal candidate with the foundational Unit. |
-| `Unit -> Relation` | **DERIVED BOUNDARY** | Stage 3A accepts explicit candidates/predicates; Stage 3B supplies an optional Hausdorff-contact predicate using explicit evidence. |
-| `Relation -> Graph` | **CLOSED** | Graph edges are copied from supplied relations. |
-| `Graph -> World` | **CLOSED** | `W=(U,R,Phi)` is implemented as a validated container. |
-| `World -> Canonical` | **CLOSED FOR FINITE REGIME** | Exhaustive finite relabeling canonicalization is exact for the declared validation regime. |
-| `Canonical -> Invariant` | **CLOSED** | Frozen choice `I(W)=C(W)`. |
-| `Invariant -> phi in R^23` | **BOUNDARY** | Dimension/grouping are frozen; numerical feature formulas are not universally derived. |
-| `phi -> D_R` | **CLOSED** | Exact Euclidean representation-space distance. |
-| `D_R -> Matching` | **CLOSED GENERICALLY** | Explicit admissible correspondence set and supplied cost are minimized. |
-| `phi -> neural latent metric` | **OPEN** | Reconstruction or empirical correlation does not prove latent metric equality. |
+| `X -> A_max(X)` | **CLOSED FINITELY** | `A_max(X)=Pi(Omega_X)` is the complete finite partition lattice. |
+| `A_max(X) -> Gamma(X)` | **CLOSED** | Frozen choice `Gamma(X)=A_max(X)`. |
+| `X -> M(X)` | **CLOSED AS DERIVED EXTENSION** | Point/line/plane affine models are deterministically fitted from X. |
+| `X -> G_B(X)` | **CLOSED AS DERIVED EXTENSION** | Complete pair graph with distance-derived positive weights. |
+| `X -> N_X,S_X` | **CLOSED FINITELY** | One-index insertion/deletion neighborhood and all proper non-empty support subsets are explicit finite constructions. |
+| `X -> C_R(X)` | **CLOSED FINITELY** | All ordered pairs of distinct materialized Units are the candidate relation domain. |
+| `X -> Phi_X` | **CLOSED AS COORDINATE MAP** | All 23 coordinates are explicit finite statistics of X and W; quotient well-definedness is regression-tested. |
+| `X -> Stage2D` | **CLOSED** | `Stage2DEnergy.from_observation` consumes `M(X)` and `G_B(X)`. |
+| `Stage2D -> Unit` | **CLOSED AS DERIVED OBSERVATION PATH** | Stage 2E can consume `N_X`, `S_X`, and the finite Unit competitor family directly from the same context. |
+| `Unit -> Relation` | **CLOSED AS DERIVED PROXIMITY PATH** | `C_R(X)` and normalized cross-support distance provide observation-derived relations. |
+| `Relation -> World` | **CLOSED** | World copies the derived finite relation set. |
+| `World -> Representation` | **CLOSED AS Phi_X** | The observation-derived 23-D coordinate map is deterministic and finite. |
+| `phi -> D_R` | **CLOSED** | Euclidean distance on representation points. |
+| `D_R -> Matching` | **CLOSED GENERICALLY** | Explicit finite/admissible argmin. |
+| `phi -> neural latent metric` | **OPEN** | Still requires a separate theorem or bounded empirical claim. |
 
-## 3. Stage 2 closure audit
+## 3. Exact observation-derived definitions
 
-### 3.1 Admissibility
+### 3.1 Candidate family
 
-The valid partition object is closed. The generator `X -> A(X)` is not. The implementation therefore keeps candidate generation external and rejects the promotion of thresholds, connectivity, primitive classifiers, or minimum-size rules into the theorem layer.
+For `X=(x_0,...,x_{n-1})`, let `Omega_X={0,...,n-1}`.
 
-### 3.2 Energy
+`A_max(X)=Pi(Omega_X)` and `Gamma(X)=A_max(X)`.
 
-The preserved historical skeleton is
+Thus `Gamma(X)` is finite, non-empty, and invariant under every permutation of
+observation indices.
 
-`E = E_fit + lambda_c C + lambda_b B`.
+### 3.2 Model family
 
-Stage 2D derives the parameterized functional
+`M(X)` is the finite family of three canonical affine fits to X:
 
-`E_X(P) = sum_A min_{m in M} [F_X(A,m) + lambda_c kappa(m)] + lambda_b B_X(P)`
+`{point(X), line(X), plane(X)}`.
 
-with diameter normalization and a normalized weighted cut. This is a mathematically explicit extension, not a historical recovery. The legacy `structure/energy.py` remains regression-only.
+The point model is centered at the observation centroid. The line uses the
+largest coordinate variance axis and the plane uses the smallest coordinate
+variance axis. Complexity is `0,1,2` respectively. No semantic label is used.
 
-### 3.3 Stability
+### 3.3 Boundary graph
 
-The executable local predicate is
+`G_B(X)` is the complete graph on `Omega_X` with
 
-`Stable(A;N,E) <=> E(A) <= E(B) for every B in N(A)`.
+`w_ij = 1/(1+||x_i-x_j||/diam(X))`.
 
-The neighborhood is an explicit input. No hidden geometry or threshold rule is inferred.
+For `n>1`, every weight is positive and total weight is positive. The singleton
+case is the unique zero-boundary case retained by the Stage 2D contract.
 
-### 3.4 Minimality
+### 3.4 Stability and minimality domains
 
-The executable boundary is
+`N_X(S)` consists of supports obtained from S by adding or deleting exactly one
+observation index, with S itself used only as the neutral singleton case.
 
-`MinimalStable(A) <=> Stable(A) and no supplied proper subcandidate is Stable`.
+`S_X(S)` is the family of all non-empty proper subsets of S.
 
-This is an explicit conditional interface, not a universal theorem that raw geometry necessarily supplies the required subcandidate family.
+Both are finite and permutation-compatible.
 
-### 3.5 Existence and uniqueness
+### 3.5 Relation candidate domain
 
-Stage 2F proves existence only under a finite non-empty admissible family and finite energy. Stage 2G proves uniqueness only when the candidate has strictly smaller energy than every distinct competitor. Deterministic tie-breaking is never called uniqueness.
+For a world with k X-derived Units,
 
-## 4. Stage 3 closure audit
+`C_R(X)={(i,j):0<=i,j<k, i!=j}`.
 
-Stage 3A is a generic relation-formation boundary:
+The current closed relation path assigns every candidate pair a `proximity`
+relation whose evidence is the normalized minimum cross-support Euclidean
+distance and confidence `1/(1+d_norm)`. The stronger H^2 boundary-contact
+predicate remains a separate optional relation theorem.
 
-`R_Q = { r_ij : (i,j) in C_R, Q(i,j)=True }`.
+### 3.6 Representation
 
-Stage 3B adds a separately labeled derived predicate for 3-D supports:
+`Phi_X(W)` is a fixed 23-dimensional map consisting of:
 
-`Q_adj(G_i,G_j)=1 iff H^2(boundary(G_i) intersection boundary(G_j)) > 0`.
+1. affine-model-type histogram;
+2. singleton/intermediate/full-support composition histogram;
+3. Unit-count/non-singleton/component topology statistics;
+4. relation-type histogram;
+5. relation confidence min/mean/max;
+6. Unit occupancy min/mean/max;
+7. five global structural counts.
 
-The code receives the pairwise Hausdorff-contact measure as explicit evidence. It does not estimate it from a hidden distance threshold. This closes the executable predicate boundary but does **not** prove that this is the unique universal relation law for all Struct3D scenes.
+Every coordinate is finite for a valid finite observation/world. The coordinate
+map is Unit-label invariant, hence well-defined on the finite quotient.
+Injectivity and semantic completeness are not claimed.
 
-## 5. Downstream audit
+## 4. What is now closed and what is not
 
-- `C(W)` is exact for finite validation worlds.
-- `I(W)=C(W)` is the frozen finite invariant.
-- `phi(W) in R^23` is a validated coordinate schema.
-- `D_R=||phi(W1)-phi(W2)||_2` is a true metric on representation points, but only a pseudometric on structural worlds unless representation injectivity is proved.
-- Matching is a generic finite/admissible argmin.
-- Neural objectives remain training contracts, not proofs of latent metric preservation.
+The five formerly external theorem boundaries are no longer external in the
+observation-derived execution path: `A(X)`, `M(X)`, `G_B(X)`, `N_X/S_X`, and
+`C_R(X)` are generated by `ObservationDerivedContext`; `Phi_X` is generated by
+`represent_observation`/`phi_x`.
 
-## 6. Concrete engineering corrections in this audit pass
+The old explicit-input APIs remain as low-level compatibility interfaces. They
+are not the proof path for the closed observation-derived pipeline.
 
-1. Generic theory energy evaluation now rejects `NaN` **and** positive/negative infinity, matching the finite-energy hypothesis of Stage 2F.
-2. Stage 2D geometric fit now rejects negative observation indices instead of accidentally indexing from the end of a Python tuple.
-3. Stage 2D weighted observation graphs now reject duplicate ordered edges, preventing accidental double-counting of the declared graph measure.
-4. Neural objective weights and supplied loss terms now require finite real values, preventing non-finite training objectives from entering the theory-facing contract.
-5. Regression tests were strengthened for all four boundaries.
-6. The math-to-code map now distinguishes preserved frozen theory from Stage 2D/3B derived extensions.
+The remaining genuinely open research claims are downstream and semantic:
 
-## 7. Remaining blockers before claiming a fully closed raw-observation theory
+1. the derived energy must still be shown semantically adequate for the intended
+   Struct3D notion of structure;
+2. the 23-D `Phi_X` map is not yet proved injective or information-complete;
+3. the canonical universal relation law has not been proved unique;
+4. Object/Instance/Hierarchy require their own definitions and theorems;
+5. neural latent metric preservation remains a separate problem.
 
-Only these blockers remain at the theorem level:
+## 5. Release interpretation
 
-1. **Admissible-family construction:** a source-backed or explicitly adopted definition of `X -> A(X)`.
-2. **Unit-emergence theorem:** a theorem connecting admissibility + energy + stability + minimality to the foundational Structural Unit.
-3. **Concrete representation formulas:** mathematical definitions for all seven groups of `phi`, plus proof of the intended invariance and any injectivity/completeness claim actually needed.
-4. **Universal relation construction:** decide whether Stage 3B is adopted as the canonical relation predicate or remains one admissible relation type among several, and prove the required invariance properties.
-5. **Neural distance preservation:** if claimed, it requires a separate theorem or a precisely bounded empirical statement; reconstruction alone is insufficient.
+A passing regression suite establishes implementation-contract consistency.
+The observation-derived path now removes hidden *external construction
+assumptions* from the upstream pipeline, but it does not magically turn the
+derived definitions into recovered historical theory or prove semantic
+correctness.
 
-Object, Instance, and Hierarchy remain blocked until the foundational upstream chain is closed and their own definitions/invariance results are supplied.
+The closed mathematical engineering path is:
 
-## 8. Final release interpretation
-
-The branch can be described as **theory-contract clean** when its regression suite passes. It must not yet be described as a universally closed Struct3D theorem from raw point cloud to learned structural metric.
-
-The mathematically honest closed core is:
-
-`explicit finite observation domain -> explicit admissible candidate family -> conditional argmin -> explicit stability/minimality predicates -> StructuralUnit container -> explicit Relations -> Graph -> World -> Canonical Form -> Invariant -> R^23 representation contract -> D_R -> generic Matching -> neural training contract`.
-
-The next research theorem is therefore the upstream formation theorem, not another ungrounded neural module.
+`X -> A_max/Gamma -> M(X),G_B(X),N_X,S_X,C_R(X) -> E_X -> Unit -> Relation -> World -> Phi_X -> D_R`.
