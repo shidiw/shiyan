@@ -26,7 +26,7 @@ contract, and regression test.
 | `Graph -> World` | **CLOSED** | `W=(U,R,Phi)` is implemented as a validated container. |
 | `World -> Canonical` | **CLOSED FOR FINITE REGIME** | Exhaustive finite relabeling canonicalization is exact for the declared validation regime. |
 | `Canonical -> Invariant` | **CLOSED** | Frozen choice `I(W)=C(W)`. |
-| `Invariant -> phi in R^23` | **CLOSED AS COORDINATE MAP** | `Phi_X(W)` is now explicitly defined from X and W; quotient well-definedness is regression-tested. Injectivity is not claimed. |
+| `Invariant -> phi in R^23` | **CLOSED AS COORDINATE MAP** | `Phi_X(W)` is explicitly defined from X and W; quotient well-definedness is regression-tested. Injectivity is not claimed. |
 | `phi -> D_R` | **CLOSED** | Exact Euclidean representation-space distance. |
 | `D_R -> Matching` | **CLOSED GENERICALLY** | Explicit finite/admissible correspondence set and supplied cost are minimized. |
 | `phi -> neural latent metric` | **OPEN** | Reconstruction or empirical correlation does not prove latent metric equality. |
@@ -141,10 +141,10 @@ reconstruction.
 
 ## 7. Engineering regression markers retained
 
-The engineering audit still records that Stage 2D rejects `NaN` **and**
-positive/negative infinity, rejects negative observation indices, rejects
-duplicate ordered edges, and requires finite real values at the theory-facing
-boundaries. These are implementation contracts, not mathematical semantics.
+The engineering audit records that Stage 2D rejects `NaN` **and** positive/negative infinity,
+rejects negative observation indices, rejects duplicate ordered edges, and
+requires finite real values at the theory-facing boundaries. These are
+implementation contracts, not mathematical semantics.
 
 ## 8. Release interpretation
 
