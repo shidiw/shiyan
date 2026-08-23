@@ -127,12 +127,33 @@ class GeometricModel:
     name: str
     squared_distance: Residual
     complexity: float
+    signature: Tuple[Any, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.name:
             raise ValueError("Geometric model name must be non-empty")
         if not math.isfinite(float(self.complexity)) or self.complexity < 0.0:
             raise ValueError("Model complexity must be finite and non-negative")
+
+    def __eq__(self, other: object) -> bool:
+        """Compare frozen model identity, never the closure object identity.
+
+        Observation-derived models contain Python callables for residuals.
+        Callable identity is allocation-dependent, so the default dataclass
+        equality would make two constructions from the same X unequal. The
+        explicit signature records the mathematical parameters of the model
+        and makes deterministic reconstruction testable.
+        """
+        if not isinstance(other, GeometricModel):
+            return NotImplemented
+        return (
+            self.name == other.name
+            and float(self.complexity) == float(other.complexity)
+            and self.signature == other.signature
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.name, float(self.complexity), self.signature))
 
 
 @dataclass(frozen=True)
