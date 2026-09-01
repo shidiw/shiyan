@@ -3,7 +3,7 @@
 The canonical observation-facing path is delegated to
 ``ObservationDerivedPipeline`` and therefore uses Gamma(X), observation-derived
 Stage 2E Unit formation, the unique Q_X relation law, and one provenance
-context through World and Phi_X.  Historical explicit-input APIs remain
+context through World and Phi_X. Historical explicit-input APIs remain
 available only for regression compatibility.
 """
 
@@ -22,6 +22,7 @@ from .theory_partition import PartitionSelection, select_minimum_energy_partitio
 from .theory_relation import StructuralRelation
 from .theory_representation import StructuralRepresentation, represent, phi_x
 from .theory_world import StructuralWorld
+from .theory_candidate_search import A_search  # compatibility-only; canonical path never calls it
 
 
 @dataclass(frozen=True)
@@ -46,14 +47,7 @@ def run_theory_pipeline(
 
 
 def build_gamma(observation: Sequence[object]):
-    """Return the observation-derived Gamma-family object.
-
-    ``Gamma(X)`` is a finite computational subfamily of ``A_max(X)``.  The
-    family object exposes ``.gamma``, ``.materialize()`` and
-    ``.is_quotient_compatible()``; returning the raw tuple here silently
-    discarded that theorem-level interface and caused downstream contract
-    failures.
-    """
+    """Return the observation-derived Gamma-family object."""
     return ObservationDerivedContext.from_points(tuple(observation)).candidates
 
 
@@ -68,8 +62,6 @@ def select_stage2d_partition(
     context = ObservationDerivedContext.from_points(observation.points)
     pipeline = ObservationDerivedPipeline(context)
     if unit_builder is not None:
-        # Custom builders belong to the low-level regression API and are not part
-        # of the canonical provenance path.
         candidates = tuple(
             Partition(
                 units=tuple(unit_builder(unit.indices) for unit in partition.units),
@@ -80,7 +72,7 @@ def select_stage2d_partition(
     else:
         candidates = pipeline.partitions
     if not candidates:
-        raise ValueError("No observation-derived Stage 2E-admissible Gamma partition")
+        raise ValueError("No observation-derived partition exists")
     return min(candidates, key=lambda partition: evaluate_energy(partition, energy))
 
 
@@ -91,7 +83,7 @@ def run_observation_derived_pipeline(
     pipeline = ObservationDerivedPipeline.from_points(points)
     candidates = pipeline.partitions
     if not candidates:
-        raise ValueError("No observation-derived partition survives Stage 2E")
+        raise ValueError("No observation-derived partition exists")
     selection = select_minimum_energy_partition(candidates, StructuralEnergy(pipeline.energy))
     world = pipeline.world()
     return TheoryPipelineResult(selection, world, canonical_form(world), phi_x(world, pipeline.context))
