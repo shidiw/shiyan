@@ -1,12 +1,7 @@
 """Strict observation-derived boundary bundle for the Struct3D theory.
 
-This module is the release-facing Hypothesis Elimination facade. It exposes
-only objects generated from one finite observation X; callers cannot inject
-A(X), M(X), G_B(X), N_X/S_X, C_R(X), or Phi_X as independent theorem inputs.
-
-The concrete bundle now implements the frozen formal interface in
-``theory_observation_interface.py``. Low-level compatibility APIs remain
-available, but this class is the release-facing theorem boundary.
+This is the release-facing Hypothesis Elimination facade. Every former
+external boundary is generated from one finite observation X.
 """
 
 from __future__ import annotations
@@ -14,20 +9,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
-from .theory_observation import ObservationDerivedContext, Point
+from .theory_core import StructuralUnit
+from .theory_observation import ObservationDerivedContext, ObservationRelationCandidateDomain, Point
 from .theory_observation_pipeline import ObservationDerivedPipeline, ObservationRepresentationMap
 from .theory_observation_interface import ObservationDerivedTheoryInterface
-from .theory_core import StructuralUnit
 
 
 @dataclass(frozen=True)
 class ObservationDerivedBoundaries(ObservationDerivedTheoryInterface):
-    """All formerly external theory boundaries generated from one X.
-
-    The two stored fields are themselves immutable provenance carriers built
-    from the same observation. No mathematical boundary is accepted as an
-    independent constructor argument.
-    """
+    """All formerly external boundaries generated from one X."""
 
     context: ObservationDerivedContext
     pipeline: ObservationDerivedPipeline
@@ -68,10 +58,9 @@ class ObservationDerivedBoundaries(ObservationDerivedTheoryInterface):
         return self.context.proper_subcandidates(unit)
 
     @property
-    def C_R(self):
-        """C_R(X): ordered candidate pairs over X-derived selected Units."""
-        selected = self.pipeline.selected_units
-        return tuple((i, j) for i in range(len(selected)) for j in range(len(selected)) if i != j)
+    def C_R(self) -> ObservationRelationCandidateDomain:
+        """Global C_R(X): all ordered pairs of X-derived Unit candidates."""
+        return self.context.relation_domain(self.units)
 
     @property
     def Phi_X(self) -> ObservationRepresentationMap:
@@ -94,14 +83,17 @@ class ObservationDerivedBoundaries(ObservationDerivedTheoryInterface):
         return (
             bool(self.A_max)
             and bool(self.Gamma)
-            and set(self.Gamma).issubset(set(self.A_max))
+            and set(self.Gamma) == set(self.A_max)
             and bool(self.M)
             and self.G_B.universe_size == len(self.X.points)
             and all(self.N_X(unit) is not None for unit in self.units)
             and all(self.S_X(unit) is not None for unit in self.units)
-            and len(self.C_R) == len(world.units) * (len(world.units) - 1)
+            and self.C_R.complete_ordered
+            and self.C_R.observation == self.X
+            and self.C_R.units == self.units
             and world.observation_context is self.context
             and len(representation.values) == 23
+            and self.Phi_X.context is self.context
         )
 
 
