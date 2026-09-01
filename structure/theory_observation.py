@@ -170,6 +170,13 @@ def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralU
     )
 
 
+def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], ...]:
+    """Compatibility projection of the complete ordered pair domain."""
+    if unit_count < 0:
+        raise ValueError("unit_count must be non-negative")
+    return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
+
+
 @dataclass(frozen=True)
 class ObservationRelationCandidateDomain:
     """Observation-derived candidate relation domain C_R(X)."""
@@ -187,12 +194,7 @@ class ObservationRelationCandidateDomain:
         normalized = tuple(units)
         for unit in normalized:
             _validate_support(unit, observation)
-        pairs = tuple(
-            (source, target)
-            for source in range(len(normalized))
-            for target in range(len(normalized))
-            if source != target
-        )
+        pairs = observation_relation_candidates(len(normalized))
         return cls(observation, normalized, pairs)
 
     def __len__(self) -> int:
@@ -206,7 +208,7 @@ class ObservationRelationCandidateDomain:
 
     @property
     def finite(self) -> bool:
-        return len(self.pairs) < float("inf")
+        return True
 
     @property
     def complete_ordered(self) -> bool:
@@ -271,10 +273,7 @@ class ObservationDerivedContext:
         return ObservationRelationCandidateDomain.from_observation(self.observation, units)
 
     def relation_candidates(self, unit_count: int) -> Tuple[Tuple[int, int], ...]:
-        """Compatibility projection of C_R for callers that only need cardinality."""
-        if unit_count < 0:
-            raise ValueError("unit_count must be non-negative")
-        return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
+        return observation_relation_candidates(unit_count)
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
         """Materialize the canonical Gamma(X)=A_max(X) family."""
