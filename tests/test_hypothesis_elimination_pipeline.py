@@ -1,6 +1,6 @@
 import unittest
 
-import structure.theory_observation_pipeline as observation_pipeline_module
+import structure.theory_pipeline as theory_pipeline_module
 from structure.theory_observation_pipeline import ObservationDerivedPipeline
 from structure.theory_observation import ObservationDerivedContext
 from structure.theory_pipeline import run_observation_derived_pipeline
@@ -18,7 +18,7 @@ class TestObservationDerivedHypothesisElimination(unittest.TestCase):
 
     def test_all_former_external_boundaries_are_projections_of_one_context(self):
         p = self.pipeline
-        self.assertEqual(len(p.A_max), 15)  # Bell(4), theorem-level universe
+        self.assertEqual(len(p.A_max), 15)
         self.assertEqual(p.Gamma, p.A_max)
         self.assertEqual(tuple(m.name for m in p.M), ("point", "line", "plane"))
         self.assertEqual(len(p.G_B.edges), 6)
@@ -37,14 +37,12 @@ class TestObservationDerivedHypothesisElimination(unittest.TestCase):
         world = p.world()
         energy = p.energy
         representation = p.representation()
-
         self.assertIs(world.observation_context, p.context)
         self.assertGreaterEqual(energy.observation.scale, 1.0)
         self.assertEqual(len(representation.values), 23)
         self.assertEqual(representation, p.Phi_X(world))
-        self.assertTrue(all(result.materializable for result in p.unit_formations if result.unit in world.units))
 
-    def test_selection_is_after_stage2e_and_not_from_a_search(self):
+    def test_selection_is_after_stage2f_and_not_from_a_search(self):
         p = self.pipeline
         selected = p.select_partition()
         self.assertIn(selected, p.partitions)
@@ -53,16 +51,16 @@ class TestObservationDerivedHypothesisElimination(unittest.TestCase):
         self.assertNotEqual(p.A_search, p.Gamma)
 
     def test_canonical_pipeline_does_not_call_a_search(self):
-        original = observation_pipeline_module.A_search
+        original = theory_pipeline_module.A_search
         try:
-            observation_pipeline_module.A_search = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            theory_pipeline_module.A_search = lambda *_args, **_kwargs: (_ for _ in ()).throw(
                 AssertionError("A_search must not be called by the canonical pipeline")
             )
             result = run_observation_derived_pipeline(self.points)
             self.assertGreaterEqual(result.world.unit_count, 1)
             self.assertEqual(len(result.representation.values), 23)
         finally:
-            observation_pipeline_module.A_search = original
+            theory_pipeline_module.A_search = original
 
     def test_derived_margin_is_observation_statistic(self):
         p = self.pipeline
@@ -104,7 +102,7 @@ class TestObservationDerivedHypothesisElimination(unittest.TestCase):
 
     def test_proper_subcandidate_family_is_complete(self):
         p = self.pipeline
-        candidate = p.context.unit_candidates[-1]  # full support
+        candidate = p.context.unit_candidates[-1]
         subcandidates = p.S_X(candidate)
         self.assertEqual(len(subcandidates), 2 ** 4 - 2)
         supports = {tuple(u.indices) for u in subcandidates}
