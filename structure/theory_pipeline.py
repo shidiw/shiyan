@@ -82,8 +82,10 @@ def run_observation_derived_pipeline(
 ) -> TheoryPipelineResult:
     """Canonical X -> boundaries -> Stage2D -> Unit -> Q_X -> World -> Phi_X path."""
     pipeline = ObservationDerivedPipeline.from_points(points)
-    partition = pipeline.select_partition()
-    selection = PartitionSelection(partition=partition, energy=float(pipeline.energy(partition)))
+    selection = select_minimum_energy_partition(
+        pipeline.partitions,
+        StructuralEnergy(pipeline.energy),
+    )
     world = pipeline.world()
     return TheoryPipelineResult(selection, world, canonical_form(world), pipeline.representation())
 
