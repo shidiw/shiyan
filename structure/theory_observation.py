@@ -1,7 +1,9 @@
 """Observation-derived Struct3D theory objects.
 
-All theory-facing boundaries are deterministic functions of one finite
-observation X. No semantic labels and no neural component are used.
+Canonical provenance is generated from one finite observation X.  The module
+owns the observation-derived boundaries A_max/Gamma, M, G_B, N_X, S_X and
+C_R.  No semantic labels, neural parameters, or caller-supplied mathematical
+objects are required on the canonical path.
 """
 
 from __future__ import annotations
@@ -12,7 +14,6 @@ from math import sqrt
 from typing import Sequence, Tuple
 
 from .theory_candidates import ObservationCandidateFamily, observation_candidate_family
-from .theory_candidate_search import Gamma_X, materialize_Gamma
 from .theory_core import Partition, StructuralUnit
 from .theory_energy_model import GeometricModel, Observation3D, Stage2DEnergy, WeightedObservationGraph
 from .theory_stability import StabilityNeighborhood
@@ -81,7 +82,7 @@ class ObservationModelFamily:
         return self == ObservationModelFamily.from_observation(observation)
 
     def is_quotient_compatible(self) -> bool:
-        return self.observation == Observation3D(tuple(self.observation.points))
+        return self == ObservationModelFamily.from_observation(self.observation)
 
 
 @dataclass(frozen=True)
@@ -117,12 +118,20 @@ class ObservationBoundaryGraph:
         return self.is_complete
 
 
+def _validate_support(candidate: StructuralUnit, observation: Observation3D) -> Tuple[int, ...]:
+    omega = set(range(len(observation.points)))
+    support = tuple(sorted(candidate.indices))
+    if not support or any(index not in omega for index in support):
+        raise ValueError("Unit support must be a non-empty subset of the observation universe")
+    return support
+
+
 def observation_neighborhood(candidate: StructuralUnit, observation: Observation3D) -> StabilityNeighborhood[StructuralUnit]:
     """Frozen N_X: one-point insertion/deletion neighborhood derived from X."""
+    support = set(_validate_support(candidate, observation))
     omega = set(range(len(observation.points)))
-    support = set(candidate.indices)
     alternatives = set()
-    for index in tuple(support):
+    for index in support:
         reduced = tuple(sorted(support - {index}))
         if reduced:
             alternatives.add(reduced)
@@ -134,30 +143,69 @@ def observation_neighborhood(candidate: StructuralUnit, observation: Observation
     return StabilityNeighborhood(units)
 
 
-def observation_proper_subcandidates(candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-    """Frozen S_X: one-point deletions plus singleton supports."""
-    support = tuple(candidate.indices)
-    if len(support) <= 1:
-        return ()
-    subsets = {tuple(sorted(support[:k] + support[k + 1 :])) for k in range(len(support))}
-    subsets.update((index,) for index in support)
-    subsets.discard(support)
-    return tuple(StructuralUnit(subset, {}) for subset in sorted(subsets))
+def observation_proper_subcandidates(
+    candidate: StructuralUnit,
+    observation: Observation3D | None = None,
+) -> Tuple[StructuralUnit, ...]:
+    """Frozen S_X: every non-empty proper support subset of the candidate."""
+    if observation is not None:
+        support = _validate_support(candidate, observation)
+    else:
+        support = tuple(sorted(candidate.indices))
+        if not support:
+            raise ValueError("Unit support must be non-empty")
+    subsets = []
+    for size in range(1, len(support)):
+        subsets.extend(combinations(support, size))
+    return tuple(StructuralUnit(tuple(subset), {}) for subset in subsets)
 
 
 def observation_unit_candidates(observation: Observation3D) -> Tuple[StructuralUnit, ...]:
-    """Units appearing in the observation-derived computational family Gamma(X)."""
-    unique = {}
-    for partition in materialize_Gamma(observation):
-        for unit in partition.units:
-            unique[tuple(unit.indices)] = unit
-    return tuple(unique[key] for key in sorted(unique))
+    """All non-empty support Units induced by the finite observation universe."""
+    indices = tuple(range(len(observation.points)))
+    return tuple(
+        StructuralUnit(tuple(subset), {})
+        for size in range(1, len(indices) + 1)
+        for subset in combinations(indices, size)
+    )
 
 
-def observation_relation_candidates(unit_count: int) -> Tuple[Tuple[int, int], ...]:
-    if unit_count < 0:
-        raise ValueError("unit_count must be non-negative")
-    return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
+@dataclass(frozen=True)
+class ObservationRelationCandidateDomain:
+    """Observation-derived candidate relation domain C_R(X)."""
+
+    observation: Observation3D
+    units: Tuple[StructuralUnit, ...]
+    pairs: Tuple[Tuple[int, int], ...]
+
+    @classmethod
+    def from_observation(
+        cls,
+        observation: Observation3D,
+        units: Sequence[StructuralUnit],
+    ) -> "ObservationRelationCandidateDomain":
+        normalized = tuple(units)
+        for unit in normalized:
+            _validate_support(unit, observation)
+        pairs = tuple(
+            (source, target)
+            for source in range(len(normalized))
+            for target in range(len(normalized))
+            if source != target
+        )
+        return cls(observation, normalized, pairs)
+
+    @property
+    def finite(self) -> bool:
+        return len(self.pairs) < float("inf")
+
+    @property
+    def complete_ordered(self) -> bool:
+        n = len(self.units)
+        return len(self.pairs) == n * (n - 1)
+
+    def is_quotient_compatible(self) -> bool:
+        return self.complete_ordered
 
 
 @dataclass(frozen=True)
@@ -180,12 +228,17 @@ class ObservationDerivedContext:
         )
 
     @property
+    def omega(self) -> Tuple[int, ...]:
+        return tuple(range(len(self.observation.points)))
+
+    @property
     def a_max(self):
         return self.candidates.a_max
 
     @property
     def gamma(self):
-        return Gamma_X(self.observation)
+        """Canonical Gamma(X), frozen equal to the complete A_max(X)."""
+        return self.candidates.gamma
 
     @property
     def model_family(self) -> Tuple[GeometricModel, ...]:
@@ -203,13 +256,20 @@ class ObservationDerivedContext:
         return observation_neighborhood(candidate, self.observation)
 
     def proper_subcandidates(self, candidate: StructuralUnit) -> Tuple[StructuralUnit, ...]:
-        return observation_proper_subcandidates(candidate)
+        return observation_proper_subcandidates(candidate, self.observation)
+
+    def relation_domain(self, units: Sequence[StructuralUnit]) -> ObservationRelationCandidateDomain:
+        return ObservationRelationCandidateDomain.from_observation(self.observation, units)
 
     def relation_candidates(self, unit_count: int) -> Tuple[Tuple[int, int], ...]:
-        return observation_relation_candidates(unit_count)
+        """Compatibility projection of C_R for callers that only need cardinality."""
+        if unit_count < 0:
+            raise ValueError("unit_count must be non-negative")
+        return tuple((i, j) for i in range(unit_count) for j in range(unit_count) if i != j)
 
     def materialize_partitions(self) -> Tuple[Partition, ...]:
-        return materialize_Gamma(self.observation)
+        """Materialize the canonical Gamma(X)=A_max(X) family."""
+        return self.candidates.materialize()
 
     def stage2d_energy(self) -> Stage2DEnergy:
         return Stage2DEnergy.from_observation(self)
@@ -217,10 +277,7 @@ class ObservationDerivedContext:
     def prove_stage2e_existence(self, *, require_strict_margin: bool = False):
         """Run the observation-derived Stage 2E existence theorem from this X."""
         from .theory_stage2e_existence import prove_observation_derived_stage2e_existence
-        return prove_observation_derived_stage2e_existence(
-            self,
-            require_strict_margin=require_strict_margin,
-        )
+        return prove_observation_derived_stage2e_existence(self, require_strict_margin=require_strict_margin)
 
     def form_relations(self, units: Sequence[StructuralUnit]):
         from .theory_semantic_relation import form_observation_semantic_relations
@@ -240,10 +297,16 @@ class ObservationDerivedContext:
         from .theory_representation import phi_x
         return phi_x(world, self)
 
+    def representation_map(self):
+        """Return the first-class observation-derived Phi_X map."""
+        from .theory_observation_pipeline import ObservationRepresentationMap
+        return ObservationRepresentationMap(self)
+
 
 __all__ = [
     "ObservationModelFamily",
     "ObservationBoundaryGraph",
+    "ObservationRelationCandidateDomain",
     "ObservationDerivedContext",
     "observation_neighborhood",
     "observation_proper_subcandidates",
