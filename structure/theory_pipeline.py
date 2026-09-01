@@ -1,10 +1,11 @@
 """End-to-end Struct3D theory pipeline.
 
 The canonical observation-facing path is delegated to
-``ObservationDerivedPipeline`` and therefore uses Gamma(X), observation-derived
-Stage 2E Unit formation, the unique Q_X relation law, and one provenance
-context through World and Phi_X. Historical explicit-input APIs remain
-available only for regression compatibility.
+``ObservationDerivedPipeline`` and therefore uses the first-class
+ObservationDerivedBoundaries carrier: X -> A/Gamma/M/G_B/N_X/S_X/C_R/Phi_X
+-> Stage 2D -> Unit -> World -> Representation.
+Historical explicit-input APIs remain available only for regression
+compatibility.
 """
 
 from __future__ import annotations
@@ -20,9 +21,9 @@ from .theory_observation import ObservationDerivedContext
 from .theory_observation_pipeline import ObservationDerivedPipeline
 from .theory_partition import PartitionSelection, select_minimum_energy_partition
 from .theory_relation import StructuralRelation
-from .theory_representation import StructuralRepresentation, represent, phi_x
+from .theory_representation import StructuralRepresentation, represent
 from .theory_world import StructuralWorld
-from .theory_candidate_search import A_search  # compatibility-only; canonical path never calls it
+from .theory_candidate_search import A_search
 
 
 @dataclass(frozen=True)
@@ -79,14 +80,12 @@ def select_stage2d_partition(
 def run_observation_derived_pipeline(
     points: Sequence[Tuple[float, float, float]],
 ) -> TheoryPipelineResult:
-    """Canonical X -> Gamma -> Stage2E -> Unit -> Q_X -> World -> Phi_X path."""
+    """Canonical X -> boundaries -> Stage2D -> Unit -> Q_X -> World -> Phi_X path."""
     pipeline = ObservationDerivedPipeline.from_points(points)
-    candidates = pipeline.partitions
-    if not candidates:
-        raise ValueError("No observation-derived partition exists")
-    selection = select_minimum_energy_partition(candidates, StructuralEnergy(pipeline.energy))
+    partition = pipeline.select_partition()
+    selection = PartitionSelection(partition=partition, energy=float(pipeline.energy(partition)))
     world = pipeline.world()
-    return TheoryPipelineResult(selection, world, canonical_form(world), phi_x(world, pipeline.context))
+    return TheoryPipelineResult(selection, world, canonical_form(world), pipeline.representation())
 
 
 __all__ = [
