@@ -1,19 +1,12 @@
 """Complete observation-aware invariant for Structural Units.
 
-The current ``StructuralUnit`` stores finite observation indices in ``G``.
-Those indices are labels, not semantic content. Therefore a quotient
-invariant for Units must be computed relative to the observation X and must
-remove the arbitrary index names while retaining the observed geometry and
-frozen Unit attributes ``theta``.
-
 For X=(x_0,...,x_{n-1}) and u=(G,theta), define
 
     Can_U^X(u) = ( multiset{ x_i : i in G }, Freeze(theta) ).
 
 The point coordinates are sorted lexicographically, so this is a finite,
-deterministic canonical representative. The historical ``primitive`` field
-is deliberately excluded because the frozen mathematical Unit is
-u=(G,theta); primitive is compatibility metadata.
+deterministic canonical representative. The historical ``primitive`` field is
+excluded because the frozen mathematical Unit is u=(G,theta).
 """
 
 from __future__ import annotations
@@ -56,12 +49,26 @@ def Can_U(unit: StructuralUnit, observation):
 
 
 def unit_equivalent_X(first: StructuralUnit, second: StructuralUnit, observation) -> bool:
-    """Test the Unit quotient relation ``~_X`` using the canonical invariant."""
+    """Test the Unit quotient relation when both Units live in one X."""
     return Can_U(first, observation) == Can_U(second, observation)
 
 
+def unit_equivalent_between_observations(
+    first: StructuralUnit,
+    first_observation,
+    second: StructuralUnit,
+    second_observation,
+) -> bool:
+    """Compare Units living in two observations through their canonical forms.
+
+    This is the correct cross-observation quotient statement. A one-observation
+    predicate cannot infer the original coordinate system of the other Unit.
+    """
+    return Can_U(first, first_observation) == Can_U(second, second_observation)
+
+
 def relabel_unit(unit: StructuralUnit, permutation: Sequence[int]) -> StructuralUnit:
-    """Transport a Unit through ``x'_j=x_{permutation[j]}``."""
+    """Transport a Unit through ``x'_j=x_{permutation[j]}`` using the inverse map."""
     if len(permutation) == 0:
         raise ValueError("permutation must be non-empty")
     mapping = tuple(int(v) for v in permutation)
@@ -74,7 +81,7 @@ def relabel_unit(unit: StructuralUnit, permutation: Sequence[int]) -> Structural
 
 
 def can_u_is_invariant_under_relabeling(unit: StructuralUnit, observation, permutation: Sequence[int]) -> bool:
-    """Check quotient invariance under a finite observation relabeling."""
+    """Check finite observation quotient invariance under relabeling."""
     if len(permutation) != len(observation.points):
         raise ValueError("permutation must match the observation cardinality")
     observation_type = type(observation)
@@ -83,4 +90,10 @@ def can_u_is_invariant_under_relabeling(unit: StructuralUnit, observation, permu
     return Can_U(unit, observation) == Can_U(relabeled_unit, relabeled_observation)
 
 
-__all__ = ["Can_U", "unit_equivalent_X", "relabel_unit", "can_u_is_invariant_under_relabeling"]
+__all__ = [
+    "Can_U",
+    "unit_equivalent_X",
+    "unit_equivalent_between_observations",
+    "relabel_unit",
+    "can_u_is_invariant_under_relabeling",
+]
