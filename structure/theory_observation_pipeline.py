@@ -15,18 +15,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
-from .theory_candidate_search import A_search
 from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext
 from .theory_observation_boundaries import ObservationDerivedBoundaries, ObservationRepresentationMap
 from .theory_representation import StructuralRepresentation
 from .theory_semantic_relation import form_observation_semantic_relations
-from .theory_unit_formation import (
-    UnitFormationResult,
-    evaluate_observation_boundary_unit_formation,
-    materialize_observation_boundary_unit,
-)
+from .theory_unit_formation import UnitFormationResult, evaluate_observation_boundary_unit_formation, materialize_observation_boundary_unit
 from .theory_world import StructuralWorld
 
 Point = Tuple[float, float, float]
@@ -64,11 +59,6 @@ class ObservationDerivedPipeline:
         return self.boundaries.Gamma
 
     @property
-    def A_search(self):
-        """Compatibility-only scalable approximation; never canonical provenance."""
-        return A_search(self.X)
-
-    @property
     def M(self):
         return self.boundaries.M
 
@@ -96,48 +86,27 @@ class ObservationDerivedPipeline:
 
     @property
     def energy(self) -> Stage2DEnergy:
-        """Stage 2D consumes M(X) and G_B(X) from the same boundary object."""
-        b = self.boundaries
-        return Stage2DEnergy(
-            observation=self.X,
-            models=b.M,
-            boundary_graph=b.G_B,
-            lambda_complexity=1.0,
-            lambda_boundary=1.0,
-            separation_margin=0.0,
-            observation_context=self.context,
-        )
+        """Canonical Stage 2D energy generated from the same X-derived context."""
+        return Stage2DEnergy.from_observation(self.context)
 
     @property
     def unit_formations(self) -> Tuple[UnitFormationResult, ...]:
         """Run Stable -> MinimalStable using the X-derived N_X/S_X families."""
         b = self.boundaries
         unit_energy = self.energy.unit_energy
-        return tuple(
-            evaluate_observation_boundary_unit_formation(
-                unit,
-                b,
-                unit_energy,
-                energy_margin=0.0,
-            )
-            for unit in b.units
-        )
+        return tuple(evaluate_observation_boundary_unit_formation(unit, b, unit_energy, energy_margin=0.0) for unit in b.units)
 
     @property
     def materializable_units(self) -> Tuple[StructuralUnit, ...]:
         """The Stage 2E materialization witness set; not a partition filter."""
         b = self.boundaries
         unit_energy = self.energy.unit_energy
-        return tuple(
-            materialize_observation_boundary_unit(result.unit, b, unit_energy, energy_margin=0.0)
-            for result in self.unit_formations
-            if result.materializable
-        )
+        return tuple(materialize_observation_boundary_unit(result.unit, b, unit_energy, energy_margin=0.0) for result in self.unit_formations if result.materializable)
 
     @property
     def partitions(self) -> Tuple[Partition, ...]:
         """Canonical Gamma(X)=A_max(X), consumed directly by Stage 2F."""
-        return self.context.materialize_partitions()
+        return tuple(self.boundaries.candidates.materialize())
 
     def select_partition(self) -> Partition:
         if not self.partitions:
@@ -161,23 +130,14 @@ class ObservationDerivedPipeline:
     def world(self) -> StructuralWorld:
         """Build World from selected X-derived Units and the unique Q_X law."""
         units = self.selected_units
-        relations = form_observation_semantic_relations(
-            units,
-            self.context,
-            candidate_domain=self.world_relation_domain,
-        )
-        return StructuralWorld(
-            units=units,
-            relations=relations.relations,
-            attributes={},
-            observation_context=self.context,
-        )
+        relations = form_observation_semantic_relations(units, self.context, candidate_domain=self.world_relation_domain)
+        return StructuralWorld(units=units, relations=relations.relations, attributes={}, observation_context=self.context)
 
     def representation(self) -> StructuralRepresentation:
         return self.Phi_X(self.world())
 
     def derived_margin(self) -> float:
-        return self.energy.derived_separation_margin(self.context.materialize_partitions())
+        return self.energy.derived_separation_margin(self.partitions)
 
     def audit(self) -> dict:
         world = self.world()
@@ -185,32 +145,18 @@ class ObservationDerivedPipeline:
         formations = self.unit_formations
         b = self.boundaries
         return {
-            "A_nonempty": bool(b.A),
-            "A_finite": len(b.A) < float("inf"),
-            "A_max_nonempty": bool(b.A_max),
-            "A_max_finite": len(b.A_max) < float("inf"),
-            "Gamma_nonempty": bool(b.Gamma),
-            "Gamma_finite": len(b.Gamma) < float("inf"),
+            "A_nonempty": bool(b.A), "A_finite": len(b.A) < float("inf"),
+            "A_max_nonempty": bool(b.A_max), "A_max_finite": len(b.A_max) < float("inf"),
+            "Gamma_nonempty": bool(b.Gamma), "Gamma_finite": len(b.Gamma) < float("inf"),
             "Gamma_equals_A_max": set(b.Gamma) == set(b.A_max),
-            "A_search_is_approximation": True,
-            "A_search_used_by_pipeline": False,
-            "M_finite": bool(b.M),
-            "M_X_finite": all(bool(self.M_X(u)) for u in b.units),
-            "G_B_finite": len(b.G_B.edges) < float("inf"),
-            "N_X_finite": b.N_X.finite,
-            "S_X_finite": b.S_X.finite,
-            "Stage2E_stable_minimal_executed": bool(formations),
-            "Stage2E_unit_materialization_executed": bool(self.materializable_units),
-            "C_R_from_X_unit_family": b.C_R.complete_ordered,
-            "C_R_observation_derived": b.C_R.observation == self.X,
-            "C_R_finite": b.C_R.finite,
-            "World_uses_unique_Q_X": True,
-            "World_uses_C_R_restriction": self.world_relation_domain.complete_ordered,
-            "World_derived_from_X": world.observation_context is self.context,
-            "Phi_X_dimension": len(representation.values),
+            "M_finite": bool(b.M), "M_X_finite": all(bool(self.M_X(u)) for u in b.units),
+            "G_B_finite": len(b.G_B.edges) < float("inf"), "N_X_finite": b.N_X.finite, "S_X_finite": b.S_X.finite,
+            "Stage2E_stable_minimal_executed": bool(formations), "Stage2E_unit_materialization_executed": bool(self.materializable_units),
+            "C_R_from_X_unit_family": b.C_R.complete_ordered, "C_R_observation_derived": b.C_R.observation == self.X, "C_R_finite": b.C_R.finite,
+            "World_uses_unique_Q_X": True, "World_uses_C_R_restriction": self.world_relation_domain.complete_ordered,
+            "World_derived_from_X": world.observation_context is self.context, "Phi_X_dimension": len(representation.values),
             "Phi_X_observation_derived": b.Phi_X.context is self.context,
-            "All_boundaries_observation_derived": b.finite_and_nonempty(),
-            "All_boundaries_quotient_compatible": b.quotient_compatible(),
+            "All_boundaries_observation_derived": b.finite_and_nonempty(), "All_boundaries_quotient_compatible": b.quotient_compatible(),
         }
 
 
