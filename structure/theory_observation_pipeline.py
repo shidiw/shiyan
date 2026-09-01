@@ -3,7 +3,7 @@
 The release-facing path is
 X -> A_max/Gamma -> M,G_B,N_X,S_X -> E_X -> Unit -> C_R -> Q_X -> World -> Phi_X.
 Every mathematical boundary is generated from the same finite observation
-context.  ``A_search`` remains importable only as a compatibility/scalability
+context. ``A_search`` remains importable only as a compatibility/scalability
 API and is never called by canonical execution.
 """
 
@@ -12,19 +12,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
-# Kept as a compatibility symbol because older regression tests monkeypatch it.
-# Canonical execution below never calls it.
-from .theory_candidate_search import A_search
+from .theory_candidate_search import A_search  # compatibility-only symbol
 from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext, ObservationRelationCandidateDomain
 from .theory_representation import StructuralRepresentation
 from .theory_semantic_relation import form_observation_semantic_relations
-from .theory_unit_formation import (
-    UnitFormationResult,
-    evaluate_observation_unit_formation,
-    materialize_observation_unit,
-)
+from .theory_unit_formation import UnitFormationResult, evaluate_observation_unit_formation, materialize_observation_unit
 from .theory_world import StructuralWorld
 
 Point = Tuple[float, float, float]
@@ -110,7 +104,7 @@ class ObservationDerivedPipeline:
 
     @property
     def materializable_units(self) -> Tuple[StructuralUnit, ...]:
-        """Run the final Unit materialization step after Stage 2E predicates."""
+        """The Stage 2E materialization witness set; not a partition filter."""
         unit_energy = self.energy.unit_energy
         return tuple(
             materialize_observation_unit(result.unit, self.context, unit_energy, energy_margin=0.0)
@@ -120,17 +114,17 @@ class ObservationDerivedPipeline:
 
     @property
     def partitions(self) -> Tuple[Partition, ...]:
-        """Gamma(X)=A_max(X), restricted to partitions whose Units are materializable."""
-        materializable = set(self.materializable_units)
-        return tuple(
-            partition
-            for partition in self.context.materialize_partitions()
-            if all(unit in materializable for unit in partition.units)
-        )
+        """Canonical Gamma(X)=A_max(X).
+
+        Stage 2F proves that this finite non-empty family has an attained energy
+        minimizer. Per-cell Stage 2E minimality is a separate Unit-emergence
+        predicate and therefore must not be used to delete members of Gamma.
+        """
+        return self.context.materialize_partitions()
 
     def select_partition(self) -> Partition:
         if not self.partitions:
-            raise ValueError("No observation-derived admissible partition survives Stage 2E")
+            raise ValueError("No observation-derived partition exists")
         return select_minimizer(self.partitions, self.energy)
 
     @property
