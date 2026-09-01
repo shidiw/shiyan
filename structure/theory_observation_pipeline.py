@@ -24,8 +24,8 @@ from .theory_representation import StructuralRepresentation
 from .theory_semantic_relation import form_observation_semantic_relations
 from .theory_unit_formation import (
     UnitFormationResult,
-    evaluate_observation_unit_formation,
-    materialize_observation_unit,
+    evaluate_observation_boundary_unit_formation,
+    materialize_observation_boundary_unit,
 )
 from .theory_world import StructuralWorld
 
@@ -110,24 +110,26 @@ class ObservationDerivedPipeline:
 
     @property
     def unit_formations(self) -> Tuple[UnitFormationResult, ...]:
-        """Run Stable -> MinimalStable for every X-derived Unit candidate."""
+        """Run Stable -> MinimalStable using the X-derived N_X/S_X families."""
+        b = self.boundaries
         unit_energy = self.energy.unit_energy
         return tuple(
-            evaluate_observation_unit_formation(
+            evaluate_observation_boundary_unit_formation(
                 unit,
-                self.context,
+                b,
                 unit_energy,
                 energy_margin=0.0,
             )
-            for unit in self.unit_family
+            for unit in b.units
         )
 
     @property
     def materializable_units(self) -> Tuple[StructuralUnit, ...]:
         """The Stage 2E materialization witness set; not a partition filter."""
+        b = self.boundaries
         unit_energy = self.energy.unit_energy
         return tuple(
-            materialize_observation_unit(result.unit, self.context, unit_energy, energy_margin=0.0)
+            materialize_observation_boundary_unit(result.unit, b, unit_energy, energy_margin=0.0)
             for result in self.unit_formations
             if result.materializable
         )
