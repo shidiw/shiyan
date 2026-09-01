@@ -19,7 +19,7 @@ from .theory_candidate_search import A_search
 from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext
-from .theory_observation_boundaries import ObservationDerivedBoundaries
+from .theory_observation_boundaries import ObservationDerivedBoundaries, ObservationRepresentationMap
 from .theory_representation import StructuralRepresentation
 from .theory_semantic_relation import form_observation_semantic_relations
 from .theory_unit_formation import (
@@ -214,4 +214,4 @@ class ObservationDerivedPipeline:
         }
 
 
-__all__ = ["ObservationDerivedPipeline"]
+__all__ = ["ObservationRepresentationMap", "ObservationDerivedPipeline"]
