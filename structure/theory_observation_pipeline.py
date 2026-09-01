@@ -96,7 +96,17 @@ class ObservationDerivedPipeline:
 
     @property
     def energy(self) -> Stage2DEnergy:
-        return Stage2DEnergy.from_boundaries(self.boundaries)
+        """Stage 2D consumes M(X) and G_B(X) from the same boundary object."""
+        b = self.boundaries
+        return Stage2DEnergy(
+            observation=self.X,
+            models=b.M,
+            boundary_graph=b.G_B,
+            lambda_complexity=1.0,
+            lambda_boundary=1.0,
+            separation_margin=0.0,
+            observation_context=self.context,
+        )
 
     @property
     def unit_formations(self) -> Tuple[UnitFormationResult, ...]:
