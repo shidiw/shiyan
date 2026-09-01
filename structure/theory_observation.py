@@ -195,6 +195,15 @@ class ObservationRelationCandidateDomain:
         )
         return cls(observation, normalized, pairs)
 
+    def __len__(self) -> int:
+        return len(self.pairs)
+
+    def __iter__(self):
+        return iter(self.pairs)
+
+    def __contains__(self, pair) -> bool:
+        return pair in self.pairs
+
     @property
     def finite(self) -> bool:
         return len(self.pairs) < float("inf")
