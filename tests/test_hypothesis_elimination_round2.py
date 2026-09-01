@@ -52,7 +52,8 @@ class TestHypothesisEliminationRound2(unittest.TestCase):
         result = energy.verify_derived_separation(candidates)
         self.assertEqual(result.requested_margin, result.minimum_gap)
         self.assertGreaterEqual(result.minimum_gap, 0.0)
-        self.assertEqual(result.compared_pairs, 3)
+        # Gamma(X)=A_max(X), so Bell(3)=5 gives ten ordered quotient-distinct comparisons.
+        self.assertEqual(result.compared_pairs, 10)
 
     def test_relabeling_preserves_model_and_boundary_objects(self):
         relabeled = tuple(self.points[i] for i in (2, 0, 1))
