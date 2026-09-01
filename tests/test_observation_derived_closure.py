@@ -21,16 +21,16 @@ class TestObservationDerivedClosure(unittest.TestCase):
     def test_all_external_boundaries_are_functions_of_x(self):
         self.assertTrue(self.context.a_max)
         self.assertTrue(self.context.gamma)
-        self.assertLessEqual(len(self.context.gamma), len(self.context.a_max))
+        self.assertEqual(len(self.context.gamma), len(self.context.a_max))
         self.assertEqual(len(self.context.model_family), 3)
         self.assertEqual(len(self.context.boundary_graph.edges), 3)
         self.assertTrue(self.context.unit_candidates)
         self.assertTrue(self.context.relation_candidates(2))
 
-    def test_a_max_and_gamma_are_distinct_mathematical_vs_computational_domains(self):
+    def test_a_max_and_gamma_are_the_same_frozen_mathematical_domain(self):
         self.assertEqual(len(self.context.a_max), 5)
-        self.assertEqual(len(self.context.gamma), 3)
-        self.assertTrue(set(self.context.gamma).issubset(set(self.context.a_max)))
+        self.assertEqual(len(self.context.gamma), 5)
+        self.assertEqual(self.context.gamma, self.context.a_max)
 
     def test_boundary_graph_is_observation_derived(self):
         weights = [weight for _, _, weight in self.context.boundary_graph.edges]
@@ -53,7 +53,7 @@ class TestObservationDerivedClosure(unittest.TestCase):
         self.assertTrue(energy(partition) >= 0.0)
 
     def test_unique_qx_forms_the_canonical_relation_set(self):
-        partition = self.context.materialize_partitions()[1]  # singleton partition
+        partition = self.context.materialize_partitions()[1]
         relations = form_observation_semantic_relations(partition.units, self.context)
         world = StructuralWorld(
             partition.units,
