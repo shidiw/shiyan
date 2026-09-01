@@ -1,10 +1,4 @@
-"""Final Hypothesis Elimination certificate for the observation-facing theory.
-
-The certificate introduces no new mathematical assumption. It checks that all
-formerly external boundaries are generated from the same finite observation
-context and that Stage 2D -> Unit -> Relation -> World -> Phi consumes that
-context end-to-end.
-"""
+"""Final Hypothesis Elimination certificate for the observation-facing theory."""
 
 from __future__ import annotations
 
@@ -50,9 +44,9 @@ def certify_hypothesis_elimination(pipeline: ObservationDerivedPipeline) -> Hypo
     n_ok = all(context.neighborhood_rule(u) == context.neighborhood_rule(u) for u in units)
     s_ok = all(context.proper_subcandidates(u) == context.proper_subcandidates(u) for u in units)
 
-    selected = pipeline.selected_units
-    c_r = context.relation_domain(selected)
-    c_ok = tuple(c_r.pairs) == observation_relation_candidates(len(selected))
+    # C_R(X) is the global candidate relation domain over all X-derived Units.
+    c_r = context.relation_domain(units)
+    c_ok = tuple(c_r.pairs) == observation_relation_candidates(len(units))
 
     phi_ok = isinstance(pipeline.Phi_X, ObservationRepresentationMap)
     world = pipeline.world()
@@ -70,7 +64,7 @@ def certify_hypothesis_elimination(pipeline: ObservationDerivedPipeline) -> Hypo
         gamma_size=len(gamma),
         model_count=len(context.model_family),
         boundary_edge_count=len(context.boundary_graph.edges),
-        unit_count=len(selected),
+        unit_count=len(units),
         relation_candidate_count=len(c_r),
         representation_dim=len(representation.values),
         all_boundaries_derived=all_boundaries,
