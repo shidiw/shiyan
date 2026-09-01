@@ -1,16 +1,16 @@
 """Stage 2E: theory-safe Structural Unit formation.
 
 The low-level API still accepts explicit predicates for regression compatibility.
-The observation-derived API removes that external boundary by obtaining
-N_X, S_X, and the Unit competitor family directly from one observation-derived
-context.
+The observation-derived APIs eliminate that external boundary by consuming one
+first-class observation-derived boundary carrier containing N_X, S_X, and the
+X-derived Unit competitor family.
 """
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable, Sequence, Tuple
+from typing import Callable, Sequence
 
 from .theory_stability import StabilityNeighborhood, is_locally_stable, is_minimal_stable
 from .theory_unit import StructuralUnit
@@ -86,21 +86,33 @@ def evaluate_unit_formation(
     return UnitFormationResult(unit, stable, minimal_stable, margin_separated)
 
 
+def evaluate_observation_boundary_unit_formation(
+    unit: StructuralUnit,
+    boundaries,
+    energy: Energy,
+    energy_margin: float = 0.0,
+) -> UnitFormationResult:
+    """Evaluate Stage 2E using only the first-class X-derived boundary carrier."""
+    return evaluate_unit_formation(
+        unit=unit,
+        neighborhood_rule=boundaries.neighborhood,
+        proper_subcandidates=boundaries.proper_subcandidates(unit),
+        energy=energy,
+        energy_margin=energy_margin,
+        margin_competitors=boundaries.units,
+    )
+
+
 def evaluate_observation_unit_formation(
     unit: StructuralUnit,
     context,
     energy: Energy,
     energy_margin: float = 0.0,
 ) -> UnitFormationResult:
-    """Evaluate Stage 2E with N_X, S_X and competitors derived from X."""
-    return evaluate_unit_formation(
-        unit=unit,
-        neighborhood_rule=context.neighborhood_rule,
-        proper_subcandidates=context.proper_subcandidates(unit),
-        energy=energy,
-        energy_margin=energy_margin,
-        margin_competitors=context.unit_candidates,
-    )
+    """Compatibility wrapper using the context's X-derived boundaries."""
+    from .theory_observation_boundaries import ObservationDerivedBoundaries
+    boundaries = ObservationDerivedBoundaries.from_context(context)
+    return evaluate_observation_boundary_unit_formation(unit, boundaries, energy, energy_margin)
 
 
 def materialize_unit(
@@ -124,24 +136,38 @@ def materialize_unit(
     return result.unit
 
 
+def materialize_observation_boundary_unit(
+    unit: StructuralUnit,
+    boundaries,
+    energy: Energy,
+    energy_margin: float = 0.0,
+) -> StructuralUnit:
+    """Materialize a Unit from the first-class X-derived boundary carrier."""
+    result = evaluate_observation_boundary_unit_formation(unit, boundaries, energy, energy_margin)
+    if not result.materializable:
+        raise ValueError("candidate does not satisfy observation-derived Stage 2E predicates")
+    return result.unit
+
+
 def materialize_observation_unit(
     unit: StructuralUnit,
     context,
     energy: Energy,
     energy_margin: float = 0.0,
 ) -> StructuralUnit:
-    """Materialize a Unit using only observation-derived Stage 2E boundaries."""
-    result = evaluate_observation_unit_formation(unit, context, energy, energy_margin)
-    if not result.materializable:
-        raise ValueError("candidate does not satisfy observation-derived Stage 2E predicates")
-    return result.unit
+    """Compatibility wrapper using the context's X-derived boundaries."""
+    from .theory_observation_boundaries import ObservationDerivedBoundaries
+    boundaries = ObservationDerivedBoundaries.from_context(context)
+    return materialize_observation_boundary_unit(unit, boundaries, energy, energy_margin)
 
 
 __all__ = [
     "UnitFormationResult",
     "evaluate_unit_formation",
+    "evaluate_observation_boundary_unit_formation",
     "evaluate_observation_unit_formation",
     "has_energy_margin",
     "materialize_unit",
+    "materialize_observation_boundary_unit",
     "materialize_observation_unit",
 ]
