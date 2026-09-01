@@ -20,7 +20,7 @@ class TestHypothesisClosureCertificate(unittest.TestCase):
         self.assertTrue(certificate.passed)
         self.assertEqual(certificate.observation_size, 4)
         self.assertEqual(certificate.a_max_size, 15)
-        self.assertEqual(certificate.gamma_size, 3)
+        self.assertEqual(certificate.gamma_size, 15)
         self.assertEqual(certificate.model_count, 3)
         self.assertEqual(certificate.boundary_edge_count, 6)
         self.assertEqual(certificate.representation_dim, 23)
