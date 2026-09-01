@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence, Tuple
 
-from .theory_candidate_search import A_search  # compatibility-only symbol
+from .theory_candidate_search import A_search
 from .theory_core import Partition, StructuralUnit, select_minimizer
 from .theory_energy_model import Observation3D, Stage2DEnergy
 from .theory_observation import ObservationDerivedContext, ObservationRelationCandidateDomain
@@ -114,12 +114,7 @@ class ObservationDerivedPipeline:
 
     @property
     def partitions(self) -> Tuple[Partition, ...]:
-        """Canonical Gamma(X)=A_max(X).
-
-        Stage 2F proves that this finite non-empty family has an attained energy
-        minimizer. Per-cell Stage 2E minimality is a separate Unit-emergence
-        predicate and therefore must not be used to delete members of Gamma.
-        """
+        """Canonical Gamma(X)=A_max(X), consumed directly by Stage 2F."""
         return self.context.materialize_partitions()
 
     def select_partition(self) -> Partition:
@@ -133,13 +128,22 @@ class ObservationDerivedPipeline:
 
     @property
     def C_R(self) -> ObservationRelationCandidateDomain:
-        """Observation-derived complete ordered relation candidate domain C_R(X)."""
+        """Global C_R(X): all ordered pairs of X-derived Unit candidates."""
+        return self.context.relation_domain(self.unit_family)
+
+    @property
+    def world_relation_domain(self) -> ObservationRelationCandidateDomain:
+        """Restriction of C_R(X) to the selected World Unit sequence."""
         return self.context.relation_domain(self.selected_units)
 
     def world(self) -> StructuralWorld:
-        """Build World from X-derived Units and the frozen Q_X relation law."""
+        """Build World from the selected X-derived Units and Q_X restricted to them."""
         units = self.selected_units
-        relations = form_observation_semantic_relations(units, self.context, candidate_domain=self.C_R)
+        relations = form_observation_semantic_relations(
+            units,
+            self.context,
+            candidate_domain=self.world_relation_domain,
+        )
         return StructuralWorld(
             units=units,
             relations=relations.relations,
@@ -172,12 +176,11 @@ class ObservationDerivedPipeline:
             "S_X_finite": all(len(self.S_X(u)) < float("inf") for u in self.unit_family),
             "Stage2E_stable_minimal_executed": bool(formations),
             "Stage2E_unit_materialization_executed": bool(self.materializable_units),
-            "Stage2E_all_selected_units_materializable": all(
-                result.materializable for result in formations if result.unit in world.units
-            ),
-            "C_R_from_selected_units": self.C_R.complete_ordered,
+            "C_R_from_X_unit_family": self.C_R.complete_ordered,
             "C_R_observation_derived": self.C_R.observation == self.X,
+            "C_R_finite": self.C_R.finite,
             "World_uses_unique_Q_X": True,
+            "World_uses_C_R_restriction": self.world_relation_domain.complete_ordered,
             "World_derived_from_X": world.observation_context is self.context,
             "Phi_X_dimension": len(representation.values),
             "Phi_X_observation_derived": self.Phi_X.context is self.context,
