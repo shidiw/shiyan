@@ -10,6 +10,7 @@ from structure.theory_unit_invariant import (
     can_u_is_invariant_under_relabeling,
     relabel_unit,
     unit_equivalent_X,
+    unit_equivalent_between_observations,
 )
 from structure.theory_world import StructuralWorld
 
@@ -76,10 +77,13 @@ class TestCompleteObservationUnitInvariant(unittest.TestCase):
             )
         )
 
-    def test_current_index_tuple_is_not_complete_under_relabeling(self):
+    def test_index_tuple_alone_is_not_a_quotient_invariant(self):
         first = StructuralUnit((0, 1), {"role": "surface"})
         second = StructuralUnit((2, 3), {"role": "surface"})
         self.assertNotEqual(first.indices, second.indices)
+
+    def test_cross_observation_unit_equivalence_uses_both_observations(self):
+        first = StructuralUnit((0, 1), {"role": "surface"})
         relabeled = Observation3D((
             self.observation.points[2],
             self.observation.points[3],
@@ -87,7 +91,7 @@ class TestCompleteObservationUnitInvariant(unittest.TestCase):
             self.observation.points[1],
         ))
         transported = StructuralUnit((2, 3), {"role": "surface"})
-        self.assertTrue(unit_equivalent_X(first, transported, relabeled))
+        self.assertTrue(unit_equivalent_between_observations(first, self.observation, transported, relabeled))
 
     def test_can_u_is_invariant_under_observation_relabeling(self):
         unit = StructuralUnit((0, 2), {"role": "surface"})
@@ -103,7 +107,7 @@ class TestCompleteObservationUnitInvariant(unittest.TestCase):
             self.observation.points[2],
         ))
         second = StructuralUnit((1, 3), {"role": "surface"})
-        self.assertTrue(unit_equivalent_X(first, second, relabeled_observation))
+        self.assertTrue(unit_equivalent_between_observations(first, self.observation, second, relabeled_observation))
         self.assertEqual(Can_U(first, self.observation), Can_U(second, relabeled_observation))
 
     def test_different_geometry_is_not_identified(self):
@@ -128,7 +132,7 @@ class TestCompleteObservationUnitInvariant(unittest.TestCase):
         unit = StructuralUnit((0, 2), {})
         permutation = (2, 0, 3, 1)
         transported = relabel_unit(unit, permutation)
-        self.assertEqual(transported.indices, (1, 2))
+        self.assertEqual(transported.indices, (0, 1))
 
     def test_can_u_is_finite_and_hashable(self):
         unit = StructuralUnit((0, 1, 3), {"weight": [1, 2, 3]})
